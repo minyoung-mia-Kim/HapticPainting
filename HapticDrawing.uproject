@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "4.18",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "HapticDrawing",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+      "AdditionalDependencies": [
+        "Engine",
+        "ProceduralMeshComponent"
+      ]
+		}
+	],
+	"Plugins": [
+		{
+			"Name": "Haptico",
+			"Enabled": true
+		}
+	]
+}
