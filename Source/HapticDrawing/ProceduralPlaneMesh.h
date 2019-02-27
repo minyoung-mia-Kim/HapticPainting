@@ -5,32 +5,42 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
-#include "MyProcedualMesh.generated.h"
+#include "ProceduralPlaneMesh.generated.h"
 
 UCLASS()
-class HAPTICDRAWING_API AMyProcedualMesh : public AActor
+class HAPTICDRAWING_API AProceduralPlaneMesh : public AActor
 {
 	GENERATED_BODY()
-	
+
 	UPROPERTY(VisibleAnywhere, Category = "MyProceduralMesh")
 	UProceduralMeshComponent* pm;
-
+	
 public:	
 	// Sets default values for this actor's properties
-	AMyProcedualMesh();
-
+	AProceduralPlaneMesh();
 	UPROPERTY()
 		TArray<FVector> vertices;
 	UPROPERTY()
 		TArray<FVector> normals;
 	UPROPERTY()
-		TArray<int32> triangles; //indice : Counter-clockwise
+		TArray<int32> triangles;
 	UPROPERTY()
 		TArray<FVector2D> uvs;
 	UPROPERTY()
 		TArray<FLinearColor> vertexColors;
 	UPROPERTY()
 		TArray<FProcMeshTangent> tangents;
+
+	// Decide the resolution of Plane = the # of vertices
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
+		int32 height;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
+		int32 width;
+	// The distace btw vertices
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
+		float spacing;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
+		bool generateMesh;
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -38,9 +48,9 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	// Called when an instance of this class is placed (in editor) or spawned.
 	virtual void OnConstruction(const FTransform& Transform) override;
+	void GenerateVertices();
+	void GenerateTriangles();
 	void ClearMeshData();
-	
 	
 };
