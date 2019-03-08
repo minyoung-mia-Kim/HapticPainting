@@ -23,7 +23,7 @@ bool HapticDeviceButtonHandler::button1Clicked() {
 		return true;
 	}
 	else if (button1Pressed && button1AlreadyPressed) {
-		return false;
+		return true;
 	}
 	else if (!button1Pressed && button1AlreadyPressed) {
 		button1AlreadyPressed = false;
@@ -40,7 +40,7 @@ bool HapticDeviceButtonHandler::button2Clicked() {
 		return true;
 	}
 	else if (button2Pressed && button2AlreadyPressed) {
-		return false;
+		return true;
 	}
 	else if (!button2Pressed && button2AlreadyPressed) {
 		button2AlreadyPressed = false;

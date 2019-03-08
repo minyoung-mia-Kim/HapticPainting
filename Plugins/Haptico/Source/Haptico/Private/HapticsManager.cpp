@@ -101,7 +101,7 @@ FRotator AHapticsManager::getHapticDeviceRotationAsUnrealRotator() {
 */
 FVector AHapticsManager::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
-	return FVector(position.X * 1000, position.Y * 1000, position.Z * 1000);
+	return FVector(position.X * 1000, -position.Y * 1000, position.Z * 1000);
 }
 
 /**
@@ -109,4 +109,13 @@ FVector AHapticsManager::getHapticDevicePositionInUnrealCoordinates() {
 */
 void AHapticsManager::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
 	OnHapticTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
+}
+void AHapticsManager::button1Clicked()
+{
+	UE_LOG(LogTemp, Warning, TEXT("b1 clicked"));
+}
+
+void AHapticsManager::button2Clicked()
+{
+	UE_LOG(LogTemp, Warning, TEXT("b2 clicked"));
 }

@@ -7,7 +7,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-
 #include "HapticsManager.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FNewHapticData, FVector, Position, FMatrix, Rotation, FVector, LinearVelocity, FVector, AngularVelocity);
@@ -93,12 +92,14 @@ public:
 	/**
 	* fires an event when the button 1 is clicked
 	*/
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Button1Clicked"))
+	//UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Button1Clicked"))
+	UFUNCTION(BlueprintCallable)
 	void button1Clicked();
 
 	/**
 	* fires an event when the button 2 is clicked
 	*/
-	UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Button2Clicked"))
+	//UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Button2Clicked"))
+	UFUNCTION(BlueprintCallable)
 	void button2Clicked();
 };
