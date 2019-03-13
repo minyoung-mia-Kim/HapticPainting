@@ -17,7 +17,6 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 public:
 
 	AHapticsHandler();
-	bool isFirstClicked;
 	/**
 	* the multicast delegate that is fired every tick and provides the up to date haptic data
 	*/

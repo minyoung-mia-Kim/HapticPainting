@@ -95,12 +95,12 @@ public:
 	*/
 	//UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Button1Clicked"))
 	UFUNCTION(BlueprintCallable)
-	void button1Clicked();
+	virtual void button1Clicked();
 
 	/**
 	* fires an event when the button 2 is clicked
 	*/
 	//UFUNCTION(BlueprintImplementableEvent, meta = (DisplayName = "Button2Clicked"))
 	UFUNCTION(BlueprintCallable)
-	void button2Clicked();
+	virtual void button2Clicked();
 };

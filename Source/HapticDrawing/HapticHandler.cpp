@@ -25,6 +25,8 @@ void AHapticsHandler::BeginPlay()
 	Super::BeginPlay();
 	UHapticThreadInput::getInst().setRunThread(true);
 	(new FAutoDeleteAsyncTask<FHapticThread>(IHaptico::Get(), this))->StartBackgroundTask();
+	UE_LOG(LogTemp, Warning, TEXT("I'm handler"));
+
 }
 
 /**
@@ -112,12 +114,14 @@ void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation,
 void AHapticsHandler::button1Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
-	UE_LOG(LogTemp, Warning, TEXT("b1 clicked"));
+	UE_LOG(LogTemp, Warning, TEXT("I'm handler b1 clicked"));
 	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-	isFirstClicked = true;
 }
 
 void AHapticsHandler::button2Clicked()
 {
-	UE_LOG(LogTemp, Warning, TEXT("b2 clicked"));
+	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
+	UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
+	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+
 }
