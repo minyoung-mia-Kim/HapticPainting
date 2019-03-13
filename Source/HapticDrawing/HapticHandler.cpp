@@ -8,6 +8,7 @@
 #include "HapticThread.h"
 #include "HapticThreadInput.h"
 #include "HapticThreadOutput.h"
+#include "MainController.h"
 
 /**
  * constructs an instance of the haptic manager
@@ -25,7 +26,7 @@ void AHapticsHandler::BeginPlay()
 	Super::BeginPlay();
 	UHapticThreadInput::getInst().setRunThread(true);
 	(new FAutoDeleteAsyncTask<FHapticThread>(IHaptico::Get(), this))->StartBackgroundTask();
-	UE_LOG(LogTemp, Warning, TEXT("I'm handler"));
+	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm handler"));
 
 }
 
@@ -115,13 +116,15 @@ void AHapticsHandler::button1Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
 	UE_LOG(LogTemp, Warning, TEXT("I'm handler b1 clicked"));
-	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+	FbuttonInputDelegate.Broadcast(position);
+
 }
 
 void AHapticsHandler::button2Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
 	UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
-	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+	SbuttonInputDelegate.Broadcast(position);
+
 
 }

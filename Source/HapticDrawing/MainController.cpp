@@ -8,6 +8,7 @@ AMainController::AMainController()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	
 	//
 	//FVector NewLocation = GetActorLocation() + FVector(5.f, 0.f, 0.f);
 
@@ -17,11 +18,28 @@ AMainController::AMainController()
 	//HM_Transform = CreateDefaultSubobject<USceneComponent>(TEXT("HM_Transform"));
 }
 
+void AMainController::BindToFbuttonInput(FVector position)
+{
+	UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked"));
+	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+
+}
+
+void AMainController::BindToSbuttonInput(FVector position)
+{
+	UE_LOG(LogTemp, Warning, TEXT("I'm Controller b2 clicked"));
+	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+
+}
+
 // Called when the game starts or when spawned
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
+	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
+
+
 
 	/*FVector NewLocation = GetActorLocation() + FVector(5.f, 0.f, 0.f);
 	HManager = GetWorld()->SpawnActor<AHapticsManager>(AHapticsManager::StaticClass(), NewLocation, FRotator::ZeroRotator);
@@ -46,8 +64,8 @@ void AMainController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	CurrentLocation = GetActorLocation();
-	HManager->SetActorLocation(HManager->getHapticDevicePositionInUnrealCoordinates() + CurrentLocation);
-	HManager->SetActorRotation(HManager->getHapticDeviceRotationAsUnrealRotator());
+	HHandler->SetActorLocation(HHandler->getHapticDevicePositionInUnrealCoordinates() + CurrentLocation);
+	HHandler->SetActorRotation(HHandler->getHapticDeviceRotationAsUnrealRotator());
 
 }
 

@@ -11,6 +11,14 @@ ADrawingHandler::ADrawingHandler()
 	this->brushinfo = new BrushInfo(Draw, 50, FVector(255, 255, 255));
 }
 
+void ADrawingHandler::generateStroke(FVector position)
+{
+}
+
+void ADrawingHandler::EraseStroke()
+{
+}
+
 // Called when the game starts or when spawned
 void ADrawingHandler::BeginPlay()
 {

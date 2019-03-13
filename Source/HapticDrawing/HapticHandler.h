@@ -8,6 +8,8 @@
 #include "HapticHandler.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FNewHapticDeviceData, FVector, Position, FMatrix, Rotation, FVector, LinearVelocity, FVector, AngularVelocity);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSbuttonDelegate, FVector, Position);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FFbuttonDelegate, FVector, Position);
 
 UCLASS(BlueprintType)
 class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
@@ -22,6 +24,10 @@ public:
 	*/
 	UPROPERTY(BlueprintAssignable)
 	FNewHapticDeviceData OnHapticHandlerTick;
+	UPROPERTY()
+	FFbuttonDelegate FbuttonInputDelegate;
+	UPROPERTY()
+	FSbuttonDelegate SbuttonInputDelegate;
 
 private:
 

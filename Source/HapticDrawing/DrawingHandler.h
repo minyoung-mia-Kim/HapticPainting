@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "DrawingHandler.generated.h"
 
+
 UCLASS()
 class HAPTICDRAWING_API ADrawingHandler : public AActor
 {
@@ -42,7 +43,11 @@ public:
 	//Drawing Data
 	BrushInfo* brushinfo;
 	//Drawing function
+
+
+	UFUNCTION()
 	void generateStroke(FVector position);
+	UFUNCTION()
 	void EraseStroke();
 protected:
 	// Called when the game starts or when spawned
