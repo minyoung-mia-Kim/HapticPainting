@@ -1,10 +1,9 @@
-/* Copyright (C) 2018 Sinan Demirtas
-*
-* This software may be distributed under the terms
-* of the MIT license. See the LICENSE file for details.
-*/
+// Fill out your copyright notice in the Description page of Project Settings.
+
+
+
+#include "HapticHandler.h"
 #include "IHaptico.h"
-#include "HapticsManager.h"
 #include "AsyncWork.h"
 #include "HapticThread.h"
 #include "HapticThreadInput.h"
@@ -13,7 +12,7 @@
 /**
  * constructs an instance of the haptic manager
 */
-AHapticsManager::AHapticsManager()
+AHapticsHandler::AHapticsHandler()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
@@ -21,7 +20,7 @@ AHapticsManager::AHapticsManager()
 /**
  * Called when the actor is spawned and starts the haptic thread
  */
-void AHapticsManager::BeginPlay()
+void AHapticsHandler::BeginPlay()
 {
 	Super::BeginPlay();
 	UHapticThreadInput::getInst().setRunThread(true);
@@ -31,7 +30,7 @@ void AHapticsManager::BeginPlay()
 /**
 * Called when the actor is destroyed and ends the haptic thread
 */
-void  AHapticsManager::EndPlay(EEndPlayReason::Type type)
+void  AHapticsHandler::EndPlay(EEndPlayReason::Type type)
 {
 	Super::EndPlay(type);
 	UHapticThreadInput::getInst().setRunThread(false);
@@ -40,7 +39,7 @@ void  AHapticsManager::EndPlay(EEndPlayReason::Type type)
 /**
  * Called every frame
 */
-void AHapticsManager::Tick(float DeltaTime)
+void AHapticsHandler::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 }
@@ -48,49 +47,49 @@ void AHapticsManager::Tick(float DeltaTime)
 /**
  * set the force that should be applied to the haptic device in the next tick of the haptic thread
 */
-void AHapticsManager::setForceToApply(FVector force) {
+void AHapticsHandler::setForceToApply(FVector force) {
 	UHapticThreadInput::getInst().setForceToApply(force);
 }
 
 /**
 * set the torque that should be applied to the haptic device in the next tick of the haptic thread
 */
-void AHapticsManager::setTorqueToApply(FVector torque) {
+void AHapticsHandler::setTorqueToApply(FVector torque) {
 	UHapticThreadInput::getInst().setTorqueToApply(torque);
 }
 
 /**
 * gets the current position of the haptic device end affector
 */
-FVector AHapticsManager::getHapticDevicePosition() {
+FVector AHapticsHandler::getHapticDevicePosition() {
 	return UHapticThreadOutput::getInst().getHapticCursorPosition();
 }
 
 /**
 * get the current linear velocity of the haptic device end affector
 */
-FVector AHapticsManager::getHapticDeviceLinearVelocity() {
+FVector AHapticsHandler::getHapticDeviceLinearVelocity() {
 	return UHapticThreadOutput::getInst().getHapticCursorLinearVelocity();
 }
 
 /**
 * get the current angular velocity of the haptic device end affector
 */
-FVector AHapticsManager::getHapticDeviceAngularVelocity() {
+FVector AHapticsHandler::getHapticDeviceAngularVelocity() {
 	return UHapticThreadOutput::getInst().getHapticCursorAngularVelocity();
 }
 
 /**
 * get the current rotation of the haptic device end affector
 */
-FMatrix AHapticsManager::getHapticDeviceRotation() {
+FMatrix AHapticsHandler::getHapticDeviceRotation() {
 	return UHapticThreadOutput::getInst().getHapticCursorRotation();
 }
 
 /**
 * get the current rotation of the haptic device end affector as an unreal rotator
 */
-FRotator AHapticsManager::getHapticDeviceRotationAsUnrealRotator() {
+FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 	FMatrix rotation = UHapticThreadOutput::getInst().getHapticCursorRotation();
 	FVector euler = rotation.Rotator().Euler();
 	return FRotator(-euler.Y, -euler.Z, euler.X);
@@ -99,26 +98,26 @@ FRotator AHapticsManager::getHapticDeviceRotationAsUnrealRotator() {
 /**
 * get the current position of the haptic device end affector in unreal coordinates
 */
-FVector AHapticsManager::getHapticDevicePositionInUnrealCoordinates() {
+FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
 	return FVector(position.X * 1000, -position.Y * 1000, position.Z * 1000);
 }
 
 /**
-* broad casts the new haptic data as a multicast delegate 
+* broad casts the new haptic data as a multicast delegate
 */
-void AHapticsManager::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	OnHapticTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
+void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
+	OnHapticHandlerTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
 }
-void AHapticsManager::button1Clicked()
+void AHapticsHandler::button1Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
 	UE_LOG(LogTemp, Warning, TEXT("b1 clicked"));
-	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"),position.X,position.Y,position.Z );
+	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 	isFirstClicked = true;
 }
 
-void AHapticsManager::button2Clicked()
+void AHapticsHandler::button2Clicked()
 {
 	UE_LOG(LogTemp, Warning, TEXT("b2 clicked"));
 }

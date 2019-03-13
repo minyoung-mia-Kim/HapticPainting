@@ -21,6 +21,8 @@ public:
 protected:
 	UPROPERTY(EditAnywhere)
 	class AHapticsManager* HManager;
+	UPROPERTY(EditAnywhere)
+	class ADrawingHandler* DHandler;
 
 	FVector CurrentLocation;
 	// Called when the game starts or when spawned
@@ -29,7 +31,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
+	void CalledBTN();
 	
 	
 };
