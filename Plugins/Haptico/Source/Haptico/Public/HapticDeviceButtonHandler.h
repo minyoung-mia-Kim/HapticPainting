@@ -14,10 +14,10 @@ public:
 	HapticDeviceButtonHandler(IHaptico* haptico);
 	bool button1Clicked();
 	bool button2Clicked();
-
-private:
 	bool button1AlreadyPressed = false;
 	bool button2AlreadyPressed = false;
+
+private:
 	IHaptico* haptico;
 
 };

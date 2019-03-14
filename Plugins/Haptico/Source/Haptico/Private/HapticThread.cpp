@@ -30,6 +30,7 @@ void FHapticThread::DoWork()
 		UHapticThreadOutput::getInst().setHapticCursorLinearVelocity(linearVelocity);
 
 		AHapticsManager* hapticManagerPointer = hapticsManager;
+		hapticsManager->BHandler = &buttonHandler;
 		bool button1clicked = buttonHandler.button1Clicked();
 		bool button2clicked = buttonHandler.button2Clicked();
 		AsyncTask(ENamedThreads::GameThread, [hapticManagerPointer, button1clicked, button2clicked, position, rotation]() {

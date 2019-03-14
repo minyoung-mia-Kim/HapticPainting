@@ -28,8 +28,8 @@ public:
 	FFbuttonDelegate FbuttonInputDelegate;
 	UPROPERTY()
 	FSbuttonDelegate SbuttonInputDelegate;
-
-private:
+		bool isFbuttonUp;
+		bool isFbuttonDown;
 
 protected:
 

@@ -27,6 +27,8 @@ void AHapticsHandler::BeginPlay()
 	UHapticThreadInput::getInst().setRunThread(true);
 	(new FAutoDeleteAsyncTask<FHapticThread>(IHaptico::Get(), this))->StartBackgroundTask();
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm handler"));
+	isFbuttonUp = true;
+	isFbuttonDown = false;
 
 }
 
@@ -115,15 +117,19 @@ void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation,
 void AHapticsHandler::button1Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
-	UE_LOG(LogTemp, Warning, TEXT("I'm handler b1 clicked"));
+	//UE_LOG(LogTemp, Warning, TEXT("I'm handler b1 clicked"));
 	FbuttonInputDelegate.Broadcast(position);
+	if(BHandler->button1AlreadyPressed)
+		UE_LOG(LogTemp, Warning, TEXT("I'm handler b1 already clicked"));
 
+	isFbuttonDown = true;
+	isFbuttonUp = false;
 }
 
 void AHapticsHandler::button2Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
-	UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
+	//UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
 	SbuttonInputDelegate.Broadcast(position);
 
 
