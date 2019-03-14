@@ -21,10 +21,10 @@ public:
 	AMainController();
 	//Response Delegate
 	UFUNCTION()
-		void BindToFbuttonInput(FVector posDevice);
+		void BindToFbuttonInput(FVector posDevice, bool hasClicked);
 
 	UFUNCTION()
-		void BindToSbuttonInput(FVector posDevice);
+		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
 protected:
 	UPROPERTY(EditAnywhere)
 	class AHapticsHandler* HHandler;

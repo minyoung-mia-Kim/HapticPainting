@@ -17,14 +17,14 @@ AMainController::AMainController()
 	//HM_Transform = CreateDefaultSubobject<USceneComponent>(TEXT("HM_Transform"));
 }
 
-void AMainController::BindToFbuttonInput(FVector posDevice)
+void AMainController::BindToFbuttonInput(FVector posDevice, bool hasClicked)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked"));
+	UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked %d"), hasClicked);
 	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 	DHandler->receivedFbutton(HHandler->GetActorLocation(), HHandler->GetActorRotation());
 }
 
-void AMainController::BindToSbuttonInput(FVector posDevice)
+void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b2 clicked"));
 	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
