@@ -115,7 +115,6 @@ void AHapticsManager::button1Clicked()
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
 	UE_LOG(LogTemp, Warning, TEXT("b1 clicked"));
 	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"),position.X,position.Y,position.Z );
-	isFirstClicked = true;
 }
 
 void AHapticsManager::button2Clicked()

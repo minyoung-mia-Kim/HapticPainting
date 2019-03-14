@@ -95,7 +95,7 @@ FMatrix AHapticsHandler::getHapticDeviceRotation() {
 FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 	FMatrix rotation = UHapticThreadOutput::getInst().getHapticCursorRotation();
 	FVector euler = rotation.Rotator().Euler();
-	return FRotator(-euler.Y, -euler.Z, euler.X);
+	return FRotator(euler.Y, -euler.Z, -euler.X);
 }
 
 /**

@@ -44,17 +44,19 @@ public:
 	BrushInfo* brushinfo;
 	//Drawing function
 
-
 	UFUNCTION()
-	void generateStroke(FVector position);
+		void receivedFbutton(FVector position, FRotator rotation);
+	UFUNCTION()
+		void receivedSbutton(FVector position, FRotator rotation);
+	UFUNCTION()
+	void generateStroke(FVector position, FRotator rotation);
 	UFUNCTION()
 	void EraseStroke();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
+public:		// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	

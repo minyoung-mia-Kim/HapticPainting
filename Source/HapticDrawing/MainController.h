@@ -7,6 +7,7 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "HapticHandler.h"
+#include "DrawingHandler.h"
 #include "MainController.generated.h"
 
 
@@ -20,15 +21,15 @@ public:
 	AMainController();
 	//Response Delegate
 	UFUNCTION()
-		void BindToFbuttonInput(FVector position);
+		void BindToFbuttonInput(FVector posDevice);
 
 	UFUNCTION()
-		void BindToSbuttonInput(FVector position);
+		void BindToSbuttonInput(FVector posDevice);
 protected:
 	UPROPERTY(EditAnywhere)
 	class AHapticsHandler* HHandler;
-	UPROPERTY(EditAnywhere)
-	class ADrawingHandler* DHandler;
+	UPROPERTY()
+		class ADrawingHandler* DHandler;
 
 	FVector CurrentLocation;
 	// Called when the game starts or when spawned

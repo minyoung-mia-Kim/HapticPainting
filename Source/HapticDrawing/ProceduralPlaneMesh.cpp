@@ -12,11 +12,11 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 	pm = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	pm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 
-	width = 4;
-	height = 4;
-	spacing = 50.0f;
+	width = 2;
+	height = 2;
+	spacing = 10.0f;
 
-	generateMesh = false;
+	generateMesh = true;
 }
 
 
@@ -33,7 +33,12 @@ void AProceduralPlaneMesh::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
+// Initialize the mesh's loction
+void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation)
+{
+	pm->SetWorldLocation(position);
+	pm->SetWorldRotation(rotation);
+}
 void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
 {
 	if (generateMesh)

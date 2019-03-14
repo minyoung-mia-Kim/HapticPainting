@@ -40,6 +40,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	// Called when an instance of this class is placed (in editor) or spawned.
 	virtual void OnConstruction(const FTransform& Transform) override;
+	void Initialize(FVector position);
 	void ClearMeshData();
 	
 	

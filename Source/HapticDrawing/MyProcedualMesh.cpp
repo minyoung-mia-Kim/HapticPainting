@@ -26,7 +26,6 @@ void AMyProcedualMesh::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
-
 void AMyProcedualMesh::OnConstruction(const FTransform & Transform)
 {
 	vertices.Add(FVector(0.0f, 0.0f, 0.0f));
@@ -60,6 +59,11 @@ void AMyProcedualMesh::OnConstruction(const FTransform & Transform)
 	*	@param	bCreateCollision	Indicates whether collision should be created for this section. This adds significant cost.
 	*/
 	pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+}
+// Initialize the mesh's loction
+void AMyProcedualMesh::Initialize(FVector position)
+{
+	pm->SetWorldLocation(position);
 }
 
 void AMyProcedualMesh::ClearMeshData()
