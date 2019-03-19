@@ -38,9 +38,7 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation)
 {
 	pm->SetWorldLocation(position);
 	pm->SetWorldRotation(rotation);
-}
-void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
-{
+
 	if (generateMesh)
 	{
 		generateMesh = false;
@@ -53,6 +51,40 @@ void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
 		//Function that creates mesh section
 		pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
 	}
+}
+void AProceduralPlaneMesh::Initialize(FVector sPos, FVector ePos, FRotator rotation)
+{
+	pm->SetWorldLocation(sPos);
+	pm->SetWorldRotation(rotation);
+	width = FVector::Dist(sPos, ePos);
+
+	if (generateMesh)
+	{
+		generateMesh = false;
+
+		ClearMeshData();
+
+		GenerateVertices();
+		GenerateTriangles();
+
+		//Function that creates mesh section
+		pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	}
+}
+void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
+{
+	//if (generateMesh)
+	//{
+	//	generateMesh = false;
+
+	//	ClearMeshData();
+
+	//	GenerateVertices();
+	//	GenerateTriangles();
+
+	//	//Function that creates mesh section
+	//	pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	//}
 }
 
 void AProceduralPlaneMesh::GenerateVertices()
