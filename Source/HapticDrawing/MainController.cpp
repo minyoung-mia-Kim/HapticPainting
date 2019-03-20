@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "MainController.h"
+#include "TimerManager.h"
 
 
 // Sets default values
@@ -28,7 +29,7 @@ void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b2 clicked"));
 	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-	DHandler->receivedFbutton(HHandler->GetActorLocation(), HHandler->GetActorRotation(), hasClicked);
+	DHandler->receivedSbutton(HHandler->GetActorLocation(), HHandler->GetActorRotation(), hasClicked);
 }
 
 // Called when the game starts or when spawned
@@ -38,7 +39,6 @@ void AMainController::BeginPlay()
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
 	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
-
 
 
 	/*FVector NewLocation = GetActorLocation() + FVector(5.f, 0.f, 0.f);

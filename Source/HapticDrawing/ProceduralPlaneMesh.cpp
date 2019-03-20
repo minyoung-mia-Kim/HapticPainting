@@ -11,6 +11,7 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 
 	pm = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	pm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	SetRootComponent(pm);
 
 	width = 2;
 	height = 2;
@@ -51,6 +52,11 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation)
 		//Function that creates mesh section
 		pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
 	}
+	FProcMeshSection* ms = pm->GetProcMeshSection(0);
+	for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
+		UE_LOG(LogTemp, Warning, TEXT("created X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Position.X, ms->ProcVertexBuffer[0].Position.Y, ms->ProcVertexBuffer[0].Position.Z);
+	prvHeight = height;
+	prvWidth = width;
 }
 void AProceduralPlaneMesh::Initialize(FVector sPos, FVector ePos, FRotator rotation)
 {
@@ -70,7 +76,79 @@ void AProceduralPlaneMesh::Initialize(FVector sPos, FVector ePos, FRotator rotat
 		//Function that creates mesh section
 		pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
 	}
+	FProcMeshSection* ms = pm->GetProcMeshSection(0);
+	for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
+		UE_LOG(LogTemp, Warning, TEXT("created X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X, 
+																ms->ProcVertexBuffer[i].Position.Y, 
+																ms->ProcVertexBuffer[i].Position.Z);
+	prvHeight = height;
+	prvWidth = width;
 }
+
+void AProceduralPlaneMesh::Initialize(TArray<FVector> posArray, TArray<FRotator> rotArray)
+{
+	pm->SetWorldLocation(posArray[0]);
+	pm->SetWorldRotation(rotArray[0]);
+
+	if (generateMesh)
+	{
+		generateMesh = false;
+
+		ClearMeshData();
+
+		GenerateVertices();
+		GenerateTriangles();
+
+		//Function that creates mesh section
+		pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	}
+}
+
+void AProceduralPlaneMesh::Update(FVector position, FRotator rotation)
+{
+	pm->ClearAllMeshSections();
+	height = FVector::Dist(pm->GetComponentLocation(), position);
+	UE_LOG(LogTemp, Warning, TEXT("number : %d"), height);
+
+	if (height > spacing)
+	{
+		float uvSpacing = 1.0f / FMath::Max(height, width);
+
+		for (int32 y = 0; y < height; y++)
+		{
+			for (int32 x = 0; x < width; x++)
+			{
+				vertices.Add(FVector(x * spacing, y * spacing, 0.0f));
+				normals.Add(FVector(0.0f, 0.0f, 1.0f));
+				uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
+				vertexColors.Add(FLinearColor(0.5f, 0.5f, 0.0f, 1.0f));
+				tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+			}
+		}
+		for (int32 y = 0; y < height - 1; y++)
+		{
+			for (int32 x = 0; x < width - 1; x++)
+			{
+				triangles.Add(x + (y * width));					//current vertex
+				triangles.Add(x + (y * width) + width);			//current vertex + row
+				triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+
+				triangles.Add(x + (y * width));					//current vertex
+				triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+				triangles.Add(x + (y * width) + 1);				//current vertex + one right
+			}
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("number : %d"), vertices.Num());
+		pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+		FProcMeshSection* ms = pm->GetProcMeshSection(0);
+		for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
+			UE_LOG(LogTemp, Warning, TEXT("edited X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X, ms->ProcVertexBuffer[i].Position.Y, ms->ProcVertexBuffer[i].Position.Z);
+
+	}
+	
+}
+
 void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
 {
 	//if (generateMesh)
@@ -89,6 +167,23 @@ void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
 
 void AProceduralPlaneMesh::GenerateVertices()
 {
+	float uvSpacing = 1.0f / FMath::Max(height, width);
+
+	for (int32 y = 0; y < height; y++)
+	{
+		for (int32 x = 0; x < width; x++)
+		{
+			vertices.Add(FVector(x * spacing, y * spacing, 0.0f));
+			normals.Add(FVector(0.0f, 0.0f, 1.0f));
+			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
+			vertexColors.Add(FLinearColor(0.0f, 0.0f, 0.0f, 1.0f));
+			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+		}
+	}
+}
+void AProceduralPlaneMesh::GenerateVertices(TArray<FVector> posArray)
+{
+	width = FVector::Dist(posArray[0], posArray[posArray.Num()-1]);
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
 	for (int32 y = 0; y < height; y++)

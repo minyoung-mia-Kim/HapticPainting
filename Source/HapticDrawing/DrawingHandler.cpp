@@ -27,8 +27,16 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 	}
 	else
 	{
-		//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
-		regenerateStroke(position, rotation);
+	/*	if (dt / 0.1 == 0)
+		{*/
+			PositionArray.Add(position);
+			RotationArray.Add(rotation);
+			if(FVector::Dist(position, prvPositon)>1.0f)
+				regenerateStroke(position, rotation);
+
+			//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
+		//}
+
 	}
 		
 	prvPositon = position;
@@ -38,6 +46,16 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool hasClicked)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("receivedSbutton : I'm Drawing handler"));
+	/*for (int i = 0; i < PositionArray.Num(); i++)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), PositionArray[i].X, PositionArray[i].Y, PositionArray[i].Z);
+	}
+	UE_LOG(LogTemp, Warning, TEXT("Number of : %d"), PositionArray.Num());*/
+	
+	
+	//AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
+	//mesh1->Initialize(PositionArray, RotationArray);
+
 }
 
 void ADrawingHandler::generateStroke(FVector position, FRotator rotation)
@@ -55,14 +73,14 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation)
 void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation)
 {
 	UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
-	StrokeArray.Last().endPos = position;
-	if (StrokeArray.Last().mesh->Destroy())
-	{
-		AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
-		mesh1->Initialize(StrokeArray.Last().startPos, StrokeArray.Last().endPos, rotation);
-		StrokeArray.Last().mesh = mesh1;
-	}
-
+	//StrokeArray.Last().endPos = position;
+	//if (StrokeArray.Last().mesh->Destroy())
+	//{
+	//	AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
+	//	mesh1->Initialize(StrokeArray.Last().startPos, StrokeArray.Last().endPos, rotation);
+	//	StrokeArray.Last().mesh = mesh1;
+	//}
+	StrokeArray.Last().mesh->Update(position, rotation);
 }
 
 void ADrawingHandler::EraseStroke()
@@ -81,5 +99,6 @@ void ADrawingHandler::BeginPlay()
 void ADrawingHandler::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	dt += DeltaTime;
+	//UE_LOG(LogTemp, Warning, TEXT("%f"), dt);
 }

@@ -13,7 +13,7 @@ class HAPTICDRAWING_API AProceduralPlaneMesh : public AActor
 	GENERATED_BODY()
 
 	UPROPERTY(VisibleAnywhere, Category = "MyProceduralMesh")
-	UProceduralMeshComponent* pm;
+	UProceduralMeshComponent* pm = nullptr;
 	
 public:	
 	// Sets default values for this actor's properties
@@ -36,6 +36,8 @@ public:
 		int32 height;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
 		int32 width;
+	int prvHeight;
+	int prvWidth;
 	// The distace btw vertices
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
 		float spacing;
@@ -50,9 +52,13 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void Initialize(FVector position, FRotator rotation);
 	void Initialize(FVector sPos, FVector ePos, FRotator rotation);
+	void Initialize(TArray<FVector> posArray, TArray<FRotator> rotArray);
+	void Update(FVector position, FRotator rotation);
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	void GenerateVertices();
+	void GenerateVertices(TArray<FVector> posArray);
+
 	void GenerateTriangles();
 	void ClearMeshData();
 	

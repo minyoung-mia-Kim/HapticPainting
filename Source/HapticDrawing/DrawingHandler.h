@@ -59,12 +59,18 @@ class HAPTICDRAWING_API ADrawingHandler : public AActor
 	
 	UPROPERTY()
 		TArray<FStroke> StrokeArray;
+
+	UPROPERTY()
+		TArray<FVector> PositionArray;
+	UPROPERTY()
+		TArray<FRotator> RotationArray;
 	//UPROPERTY()
 	//	FStroke& CurrentStroke = nullptr;
 public:	
 	// Sets default values for this actor's properties
 	ADrawingHandler();
 
+		float dt = 0.0f;
 	//Drawing Data
 	FBrushInfo* brushinfo;
 	//Drawing function
