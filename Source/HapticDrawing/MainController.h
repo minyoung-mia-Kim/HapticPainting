@@ -26,7 +26,7 @@ public:
 	UFUNCTION()
 		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
 protected:
-	UPROPERTY(EditAnywhere)
+	UPROPERTY()
 	class AHapticsHandler* HHandler;
 	UPROPERTY()
 		class ADrawingHandler* DHandler;

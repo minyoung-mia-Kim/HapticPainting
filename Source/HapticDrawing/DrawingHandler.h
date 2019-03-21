@@ -75,13 +75,13 @@ public:
 	FBrushInfo* brushinfo;
 	//Drawing function
 	FVector prvPositon;
-	bool isDrawing;
+	FVector DrawingDirection;
 	UFUNCTION()
 		void receivedFbutton(FVector position, FRotator rotation, bool hasClicked);
 	UFUNCTION()
 		void receivedSbutton(FVector position, FRotator rotation, bool hasClicked);
 	UFUNCTION()
-	void generateStroke(FVector position, FRotator rotation);
+	void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
 		void regenerateStroke(FVector position, FRotator rotation);
 	UFUNCTION()

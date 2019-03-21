@@ -16,6 +16,12 @@
 AHapticsHandler::AHapticsHandler()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	rc = CreateDefaultSubobject<USceneComponent>(TEXT("Transform"));
+	rc->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	SetRootComponent(rc);
+	plane = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
+	plane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	plane->bHiddenInGame = false;
 }
 
 /**
@@ -48,6 +54,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
+	plane->SetWorldLocation(GetActorLocation());
 }
 
 /**

@@ -38,6 +38,7 @@ public:
 		int32 width;
 	int prvHeight;
 	int prvWidth;
+	int nGeneratedSection;
 	// The distace btw vertices
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
 		float spacing;
@@ -50,14 +51,14 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	void Initialize(FVector position, FRotator rotation);
+	void Initialize(FVector position, FRotator rotation, FVector direction);
 	void Initialize(FVector sPos, FVector ePos, FRotator rotation);
 	void Initialize(TArray<FVector> posArray, TArray<FRotator> rotArray);
-	void Update(FVector position, FRotator rotation);
+	void Update(FVector position, FRotator rotation) ;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	void GenerateVertices();
-	void GenerateVertices(TArray<FVector> posArray);
+	void GenerateVertices(FVector position, FRotator rotation);
 
 	void GenerateTriangles();
 	void ClearMeshData();

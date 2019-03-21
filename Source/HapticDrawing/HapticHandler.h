@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
 #include "Haptico/Public/HapticsManager.h"
 #include "HapticHandler.generated.h"
 
@@ -15,6 +16,9 @@ UCLASS(BlueprintType)
 class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 {
 	GENERATED_BODY()
+
+	USceneComponent* rc = nullptr;
+	USphereComponent* plane = nullptr;
 
 public:
 
