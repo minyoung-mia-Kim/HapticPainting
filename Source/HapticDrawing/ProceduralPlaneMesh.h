@@ -14,7 +14,8 @@ class HAPTICDRAWING_API AProceduralPlaneMesh : public AActor
 
 	UPROPERTY(VisibleAnywhere, Category = "MyProceduralMesh")
 	UProceduralMeshComponent* pm = nullptr;
-	
+	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
+	UMaterialInterface* Material;
 public:	
 	// Sets default values for this actor's properties
 	AProceduralPlaneMesh();

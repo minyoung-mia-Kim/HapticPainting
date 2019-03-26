@@ -38,7 +38,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 		{*/
 			PositionArray.Add(position);
 			RotationArray.Add(rotation);
-			if(FMath::Abs(FVector::Dist(position, prvPositon))>1.0f && StrokeArray.Num() > 0)
+			if(FMath::Abs(FVector::Dist(position, prvPositon))>0.5f && StrokeArray.Num() > 0)
 				regenerateStroke(position, rotation);
 
 			//UE_LOG(LogTemp, Warning, TEXT("clicking!"));

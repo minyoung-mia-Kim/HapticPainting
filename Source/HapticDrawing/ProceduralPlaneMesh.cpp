@@ -12,6 +12,10 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 	pm = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	pm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 	SetRootComponent(pm);
+	//UMaterialInstanceDynamic * InstanceMaterial = UMaterialInstanceDynamic::Create(Material, NULL);
+	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
+	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
+	pm->SetMaterial(0, Material);
 
 	width = 2;
 	height = 2;
@@ -25,7 +29,7 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 void AProceduralPlaneMesh::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 }
 
 // Called every frame
@@ -52,12 +56,14 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 
 		//Function that creates mesh section
 		pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+		pm->SetMaterial(nGeneratedSection, Material);
+
 	}
 	FProcMeshSection* ms = pm->GetProcMeshSection(nGeneratedSection);
 	for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
-		UE_LOG(LogTemp, Warning, TEXT("created X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X, 
-																   ms->ProcVertexBuffer[i].Position.Y, 
-																   ms->ProcVertexBuffer[i].Position.Z);
+		UE_LOG(LogTemp, Warning, TEXT("created X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X,
+			ms->ProcVertexBuffer[i].Position.Y,
+			ms->ProcVertexBuffer[i].Position.Z);
 	prvHeight = height;
 	prvWidth = width;
 	nGeneratedSection++;
@@ -82,9 +88,9 @@ void AProceduralPlaneMesh::Initialize(FVector sPos, FVector ePos, FRotator rotat
 	}
 	FProcMeshSection* ms = pm->GetProcMeshSection(nGeneratedSection);
 	for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
-		UE_LOG(LogTemp, Warning, TEXT("created X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X, 
-																ms->ProcVertexBuffer[i].Position.Y, 
-																ms->ProcVertexBuffer[i].Position.Z);
+		UE_LOG(LogTemp, Warning, TEXT("created X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X,
+			ms->ProcVertexBuffer[i].Position.Y,
+			ms->ProcVertexBuffer[i].Position.Z);
 	prvHeight = height;
 	prvWidth = width;
 	nGeneratedSection++;
@@ -112,57 +118,73 @@ void AProceduralPlaneMesh::Initialize(TArray<FVector> posArray, TArray<FRotator>
 void AProceduralPlaneMesh::Update(FVector position, FRotator rotation)
 {
 	ClearMeshData();
-	UE_LOG(LogTemp, Warning, TEXT("Working on %d section"), nGeneratedSection-1);
+	UE_LOG(LogTemp, Warning, TEXT("Working on %d section"), nGeneratedSection - 1);
 
-		FProcMeshSection* ms = pm->GetProcMeshSection(nGeneratedSection-1);
-		FProcMeshVertex lastidx = ms->ProcVertexBuffer[ms->ProcVertexBuffer.Num() - 1];
-		FVector prvVertex = lastidx.Position;
-	float distance = FVector::Dist(pm->GetComponentLocation()+prvVertex, position);
-	UE_LOG(LogTemp, Warning, TEXT("component X:%f, Y:%f, Z:%f"), pm->GetComponentLocation().X + prvVertex.X,
-																pm->GetComponentLocation().Y + prvVertex.Y,
-																pm->GetComponentLocation().Z + prvVertex.Z);
+	FProcMeshSection* ms = pm->GetProcMeshSection(nGeneratedSection - 1);
+	TArray<FProcMeshVertex> prvVertex = ms->ProcVertexBuffer;
+
+	UE_LOG(LogTemp, Warning, TEXT("component X:%f, Y:%f, Z:%f"), pm->GetComponentLocation().X + prvVertex[3].Position.X,
+		pm->GetComponentLocation().Y + prvVertex[3].Position.Y,
+		pm->GetComponentLocation().Z + prvVertex[3].Position.Z);
 	UE_LOG(LogTemp, Warning, TEXT("update haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-	UE_LOG(LogTemp, Warning, TEXT("distance : %f"), distance);
-	height = FMath::Abs(distance) / spacing;
-	if (height > 0)
+	//height = FMath::Abs(distance) / spacing;
+	float uvSpacing = 1.0f / FMath::Max(height, width);
+	
+	FVector WorldSpaceVertexLocation = position + GetTransform().TransformVector(FVector(prvVertex[2].Position.X, prvVertex[2].Position.Y, prvVertex[2].Position.Z));
+	//UE_LOG(LogTemp, Warning, TEXT("result of get Transform X:%f, Y:%f, Z:%f"), GetTransform().vector, dis.Y, dis.Z + spacing);
+
+	FVector dis = GetTransform().TransformVector(position);
+	UE_LOG(LogTemp, Warning, TEXT("Distance X:%f, Y:%f, Z:%f"), dis.X, dis.Y, dis.Z);
+
+	UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), prvVertex[2].Position.X, prvVertex[2].Position.Y, prvVertex[2].Position.Z);
+	vertices.Add(FVector(prvVertex[2].Position));
+	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
+
+	UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), prvVertex[3].Position.X, prvVertex[3].Position.Y, prvVertex[3].Position.Z);
+	vertices.Add(FVector(prvVertex[3].Position));
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
+
+	UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), dis.X, dis.Y + spacing, dis.Z + spacing);
+	vertices.Add(FVector(dis.X, dis.Y + spacing, dis.Z + spacing));
+	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));//blue
+
+	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), dis.X, dis.Y, dis.Z + spacing);
+	vertices.Add(FVector(dis.X, dis.Y, dis.Z + spacing));
+	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
+
+	for (int32 y = 0; y < height; y++)
 	{
-		float uvSpacing = 1.0f / FMath::Max(height, width);
-		for (int32 y = 0; y < height; y++)
+		for (int32 x = 0; x < width; x++)
 		{
-			for (int32 x = 0; x < width; x++)
-			{
-				FVector WorldSpaceVertexLocation = position + GetTransform().TransformVector(FVector(prvVertex.X, prvVertex.Y + y * spacing, prvVertex.Z + x * spacing));
-				//vertices.Add(FVector(x * spacing, y * spacing, 0.0f));
-				vertices.Add(FVector(WorldSpaceVertexLocation));
-				//vertices.Add(FVector(prvVertex.X, prvVertex.Y + y * spacing, prvVertex.Z + x * spacing));
-				normals.Add(FVector(1.0f, 0.0f, 0.0f));
-				uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
-				vertexColors.Add(FLinearColor(0.0f, 0.0f, 0.0f, 1.0f));
-				tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
-			}
+			//vertices.Add(FVector(prvVertex.X, prvVertex.Y + y * spacing, prvVertex.Z + x * spacing));
+			normals.Add(FVector(1.0f, 0.0f, 0.0f));
+			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
+			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
 		}
-		for (int32 y = 0; y < height - 1; y++)
-		{
-			for (int32 x = 0; x < width - 1; x++)
-			{
-				triangles.Add(x + (y * width));					//current vertex
-				triangles.Add(x + (y * width) + width);			//current vertex + row
-				triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
-
-				triangles.Add(x + (y * width));					//current vertex
-				triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
-				triangles.Add(x + (y * width) + 1);				//current vertex + one right
-			}
-		}
-
-		UE_LOG(LogTemp, Warning, TEXT("# of section : %d"), nGeneratedSection);
-		pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, false);
-		ms = pm->GetProcMeshSection(nGeneratedSection);
-		for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
-			UE_LOG(LogTemp, Warning, TEXT("edited X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X, ms->ProcVertexBuffer[i].Position.Y, ms->ProcVertexBuffer[i].Position.Z);
-		nGeneratedSection++;
 	}
-	distance = 0.0;
+	for (int32 y = 0; y < height - 1; y++)
+	{
+		for (int32 x = 0; x < width - 1; x++)
+		{
+			triangles.Add(x + (y * width));					//current vertex
+			triangles.Add(x + (y * width) + width);			//current vertex + row
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+
+			triangles.Add(x + (y * width));					//current vertex
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("# of section : %d"), nGeneratedSection);
+	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	pm->SetMaterial(nGeneratedSection, Material);
+
+	ms = pm->GetProcMeshSection(nGeneratedSection);
+	//for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
+		//UE_LOG(LogTemp, Warning, TEXT("edited X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X, ms->ProcVertexBuffer[i].Position.Y, ms->ProcVertexBuffer[i].Position.Z);
+	nGeneratedSection++;
+
 }
 
 void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
@@ -203,17 +225,25 @@ void AProceduralPlaneMesh::GenerateVertices(FVector position, FRotator rotation)
 	UE_LOG(LogTemp, Warning, TEXT("haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 
 	float uvSpacing = 1.0f / FMath::Max(height, width);
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 0.0f, 0.0f))));
+	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f));
+
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(10.0f, 0.0f, 0.0f))));
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f));
+
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 10.0f, 0.0f))));
+	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));
+
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(10.0f, 10.0f, 0.0f))));
+	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));
 
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
-			FVector WorldSpaceVertexLocation = position + GetTransform().TransformVector(FVector(x * spacing, y * spacing, 0.0f));
 			//vertices.Add(FVector(x * spacing, y * spacing, 0.0f));
-			vertices.Add(FVector(WorldSpaceVertexLocation));
 			normals.Add(FVector(0.0f, 0.0f, 1.0f));
 			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
-			vertexColors.Add(FLinearColor(0.0f, 0.0f, 0.0f, 1.0f));
 			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
 		}
 	}
