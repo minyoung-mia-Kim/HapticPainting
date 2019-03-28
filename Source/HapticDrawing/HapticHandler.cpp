@@ -19,10 +19,55 @@ AHapticsHandler::AHapticsHandler()
 	rc = CreateDefaultSubobject<USceneComponent>(TEXT("Transform"));
 	rc->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 	SetRootComponent(rc);
-	plane = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
+	cursor = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
+	cursor->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	cursor->bHiddenInGame = false;
+
+	TArray<FVector> vertices;
+	TArray<FVector> normals;
+	TArray<int32> triangles;
+	TArray<FVector2D> uvs;
+	TArray<FLinearColor> vertexColors;
+	TArray<FProcMeshTangent> tangents;
+	int32 height = 2;
+	int32 width = 2;
+	float spacing = 10.0f;
+	float uvSpacing = 1.0f / FMath::Max(height, width);
+
+	plane = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
+
+	vertices.Add(FVector(0.0f, -5.0f, -5.0f));
+	vertices.Add(FVector(0.0f, -5.0f, 5.0f));
+	vertices.Add(FVector(0.0f, 5.0f, -5.0f));
+	vertices.Add(FVector(0.0f, 5.0f, 5.0f));
+
+	for (int32 y = 0; y < height; y++)
+	{
+		for (int32 x = 0; x < width; x++)
+		{
+			normals.Add(FVector(1.0f, 0.0f, 0.0f));
+			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
+			vertexColors.Add(FLinearColor(0.0f, 0.0f, 0.0f, 1.0f));
+			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+		}
+	}
+	for (int32 y = 0; y < height - 1; y++)
+	{
+		for (int32 x = 0; x < width - 1; x++)
+		{
+			triangles.Add(x + (y * width));					//current vertex
+			triangles.Add(x + (y * width) + width);			//current vertex + row
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+
+			triangles.Add(x + (y * width));					//current vertex
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right
+		}
+	}
+
+	plane->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
 	plane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	plane->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
-	plane->bHiddenInGame = false;
 }
 
 /**
@@ -55,7 +100,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
-	plane->SetWorldLocation(GetActorLocation());
+	cursor->SetWorldLocation(GetActorLocation());
 }
 
 /**
@@ -106,7 +151,8 @@ FMatrix AHapticsHandler::getHapticDeviceRotation() {
 FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 	FMatrix rotation = UHapticThreadOutput::getInst().getHapticCursorRotation();
 	FVector euler = rotation.Rotator().Euler();
-	return FRotator(euler.Y, -euler.Z, -euler.X);
+	//Re-adjusted the angle
+	return FRotator(euler.Y, -euler.Z, -euler.X + 20.f);
 }
 
 /**

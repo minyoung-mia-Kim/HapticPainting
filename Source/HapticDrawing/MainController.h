@@ -29,7 +29,7 @@ protected:
 	UPROPERTY()
 	class AHapticsHandler* HHandler;
 	UPROPERTY()
-		class ADrawingHandler* DHandler;
+	class ADrawingHandler* DHandler;
 
 	FVector CurrentLocation;
 	// Called when the game starts or when spawned

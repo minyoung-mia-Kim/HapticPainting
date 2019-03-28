@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "ProceduralMeshComponent.h"
 #include "Components/SphereComponent.h"
 #include "Haptico/Public/HapticsManager.h"
 #include "HapticHandler.generated.h"
@@ -17,8 +18,14 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 {
 	GENERATED_BODY()
 
+	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 	USceneComponent* rc = nullptr;
-	USphereComponent* plane = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "Cursor")
+	USphereComponent* cursor = nullptr;
+
+public:
+	UPROPERTY(VisibleAnywhere, Category = "Cursor")
+	UProceduralMeshComponent* plane = nullptr;
 
 public:
 
