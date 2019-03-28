@@ -21,6 +21,7 @@ AHapticsHandler::AHapticsHandler()
 	SetRootComponent(rc);
 	plane = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
 	plane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	plane->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	plane->bHiddenInGame = false;
 }
 
