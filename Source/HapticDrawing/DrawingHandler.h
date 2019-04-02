@@ -71,6 +71,7 @@ public:
 	ADrawingHandler();
 
 		float dt = 0.0f;
+		float prvDt = 0.0f;
 	//Drawing Data
 	FBrushInfo* brushinfo;
 	//Drawing function

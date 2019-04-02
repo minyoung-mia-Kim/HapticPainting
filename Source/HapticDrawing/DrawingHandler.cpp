@@ -16,7 +16,7 @@ ADrawingHandler::ADrawingHandler()
 
 void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool hasClicked)
 {
-	FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
+	//FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
 	DrawingDirection = FVector(position - prvPositon);
 	//UE_LOG(LogTemp, Warning, TEXT("DrawingDirection X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
@@ -34,15 +34,16 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 	}
 	else
 	{
-	/*	if (dt / 0.1 == 0)
-		{*/
+		if (dt - prvDt > 0.01 && StrokeArray.Num() > 0)
+		{
 			PositionArray.Add(position);
 			RotationArray.Add(rotation);
-			if(FMath::Abs(FVector::Dist(position, prvPositon))>0.5f && StrokeArray.Num() > 0)
+			if(FMath::Abs(FVector::Dist(position, prvPositon)))
 				regenerateStroke(position, rotation);
 
+	prvDt = dt;
 			//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
-		//}
+		}
 
 	}
 		
@@ -71,7 +72,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	//AMyProcedualMesh* mesh1 = GetWorld()->SpawnActor<AMyProcedualMesh>(AMyProcedualMesh::StaticClass());
 	AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(position, position, mesh1));
-	mesh1->Initialize(position, rotation, direction);
+	mesh1->Initialize2(position, rotation, direction);
 	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }

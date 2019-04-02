@@ -53,8 +53,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void Initialize(FVector position, FRotator rotation, FVector direction);
-	void Initialize(FVector sPos, FVector ePos, FRotator rotation);
-	void Initialize(TArray<FVector> posArray, TArray<FRotator> rotArray);
+	void Initialize2(FVector position, FRotator rotation, FVector direction);
 	void Update(FVector position, FRotator rotation) ;
 
 	virtual void OnConstruction(const FTransform& Transform) override;

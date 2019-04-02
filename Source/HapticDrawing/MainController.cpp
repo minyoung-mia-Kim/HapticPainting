@@ -15,14 +15,18 @@ void AMainController::BindToFbuttonInput(FVector posDevice, bool hasClicked)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked %d"), hasClicked);
 	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-	DHandler->receivedFbutton(posDevice, HHandler->GetActorRotation(), hasClicked);
+
+	//Give the drawing plane position
+	DHandler->receivedFbutton(HHandler->plane->GetComponentLocation(), HHandler->plane->GetComponentRotation(), hasClicked);
 }
 
 void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b2 clicked"));
 	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-	DHandler->receivedSbutton(posDevice, HHandler->GetActorRotation(), hasClicked);
+
+	//Give the drawing plane position
+	DHandler->receivedSbutton(HHandler->plane->GetComponentLocation(), HHandler->plane->GetComponentRotation(), hasClicked);
 }
 
 // Called when the game starts or when spawned

@@ -37,19 +37,28 @@ AHapticsHandler::AHapticsHandler()
 
 	plane = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 
-	vertices.Add(FVector(0.0f, -5.0f, -5.0f));
+	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
+	FVector Direction = MyRotation.Vector();
+
+	// Normalize the direction to a unit vector.
+	Direction.Normalize();
+
+	vertices.Add(FVector(0.0f, 5.0f, 5.0f));
 	vertices.Add(FVector(0.0f, -5.0f, 5.0f));
 	vertices.Add(FVector(0.0f, 5.0f, -5.0f));
-	vertices.Add(FVector(0.0f, 5.0f, 5.0f));
-
+	vertices.Add(FVector(0.0f, -5.0f, -5.0f));
+	FVector dot = FVector().CrossProduct(vertices[1] - vertices[0], vertices[2] - vertices[1]);
+	dot.Normalize();
+	normal = dot;
+	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), dot.X, dot.Y, dot.Z);
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
-			normals.Add(FVector(1.0f, 0.0f, 0.0f));
+			normals.Add(dot);
 			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
 			vertexColors.Add(FLinearColor(0.0f, 0.0f, 0.0f, 1.0f));
-			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+			tangents.Add(FProcMeshTangent(0.0f, 1.0f, 0.0f));
 		}
 	}
 	for (int32 y = 0; y < height - 1; y++)

@@ -26,6 +26,7 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 public:
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 	UProceduralMeshComponent* plane = nullptr;
+	FVector normal;
 
 public:
 

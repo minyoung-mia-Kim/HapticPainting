@@ -66,51 +66,59 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 			ms->ProcVertexBuffer[i].Position.Z);
 	nGeneratedSection++;
 }
-void AProceduralPlaneMesh::Initialize(FVector sPos, FVector ePos, FRotator rotation)
+
+void AProceduralPlaneMesh::Initialize2(FVector position, FRotator rotation, FVector direction)
 {
-	pm->SetWorldLocation(sPos);
-	pm->SetWorldRotation(rotation);
-	width = FVector::Dist(sPos, ePos);
+	ClearMeshData();
+	float uvSpacing = 1.0f / FMath::Max(height, width);
 
-	if (generateMesh)
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 5.0f, 5.0f)))));
+	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
+
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, -5.0f, 5.0f)))));
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
+
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 5.0f, -5.0f)))));
+	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //blue
+
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, -5.0f, -5.0f)))));
+	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
+
+
+	for (int32 y = 0; y < height; y++)
 	{
-		generateMesh = false;
-
-		ClearMeshData();
-
-		GenerateVertices();
-		GenerateTriangles();
-
-		//Function that creates mesh section
-		pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+		for (int32 x = 0; x < width; x++)
+		{
+			normals.Add(FVector(-1.0f, 0.0f, 0.0f));
+			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
+			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+		}
 	}
+	for (int32 y = 0; y < height - 1; y++)
+	{
+		for (int32 x = 0; x < width - 1; x++)
+		{
+			triangles.Add(x + (y * width));					//current vertex 0
+			triangles.Add(x + (y * width) + width);			//current vertex + row 2
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right 3
+
+			triangles.Add(x + (y * width));					//current vertex 0
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right 3
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right 1
+		}
+	}
+
+	//Function that creates mesh section
+	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	pm->SetMaterial(nGeneratedSection, Material);
+
 	FProcMeshSection* ms = pm->GetProcMeshSection(nGeneratedSection);
 	for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
 		UE_LOG(LogTemp, Warning, TEXT("created X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X,
-			ms->ProcVertexBuffer[i].Position.Y,
-			ms->ProcVertexBuffer[i].Position.Z);
-	prvHeight = height;
-	prvWidth = width;
+																ms->ProcVertexBuffer[i].Position.Y,
+																ms->ProcVertexBuffer[i].Position.Z);
 	nGeneratedSection++;
-}
 
-void AProceduralPlaneMesh::Initialize(TArray<FVector> posArray, TArray<FRotator> rotArray)
-{
-	pm->SetWorldLocation(posArray[0]);
-	pm->SetWorldRotation(rotArray[0]);
-
-	if (generateMesh)
-	{
-		generateMesh = false;
-
-		ClearMeshData();
-
-		GenerateVertices();
-		GenerateTriangles();
-
-		//Function that creates mesh section
-		pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
-	}
 }
 
 void AProceduralPlaneMesh::Update(FVector position, FRotator rotation)
@@ -129,7 +137,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation)
 
 	UE_LOG(LogTemp, Warning, TEXT("update haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 	float uvSpacing = 1.0f / FMath::Max(height, width);
-	
+
 	// The distance between this mesh component and the haptic position
 	// Actually, it's the same with the haptic position itself since the mesh component coordination is (0,0,0).
 	FVector dis = GetTransform().TransformVector(position);
@@ -182,7 +190,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation)
 	//for (int i = 0; i < ms->ProcVertexBuffer.Num(); i++)
 		//UE_LOG(LogTemp, Warning, TEXT("edited X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[i].Position.X, ms->ProcVertexBuffer[i].Position.Y, ms->ProcVertexBuffer[i].Position.Z);
 	nGeneratedSection++;
-	UE_LOG(LogTemp, Warning, TEXT("Total # of section : %d"), nGeneratedSection+1);
+	UE_LOG(LogTemp, Warning, TEXT("Total # of section : %d"), nGeneratedSection);
 
 }
 
@@ -224,24 +232,24 @@ void AProceduralPlaneMesh::GenerateVertices(FVector position, FRotator rotation)
 	UE_LOG(LogTemp, Warning, TEXT("haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 
 	float uvSpacing = 1.0f / FMath::Max(height, width);
-	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 0.0f, 0.0f))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 5.0f, 5.0f))));
 	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 
-	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 10.0f, 0.0f))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, -5.0f, 5.0f))));
 	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
 
-	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 10.0f, 10.0f))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 5.0f, -5.0f))));
 	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //blue
 
-	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, 0.0f, 10.0f))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(FVector(0.0f, -5.0f, -5.0f))));
 	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
+
 
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
-			//vertices.Add(FVector(x * spacing, y * spacing, 0.0f));
-			normals.Add(FVector(1.0f, 0.0f, 0.0f));
+			normals.Add(FVector(-1.0f, 0.0f, 0.0f));
 			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
 			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
 		}
