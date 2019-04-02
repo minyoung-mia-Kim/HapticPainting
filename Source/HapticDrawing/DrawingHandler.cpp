@@ -38,10 +38,12 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 		{
 			PositionArray.Add(position);
 			RotationArray.Add(rotation);
-			if(FMath::Abs(FVector::Dist(position, prvPositon)))
-				regenerateStroke(position, rotation);
+			UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
-	prvDt = dt;
+			if(FMath::Abs(FVector::Dist(position, prvPositon)))
+				regenerateStroke(position, rotation, DrawingDirection);
+
+			prvDt = dt;
 			//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
 		}
 
@@ -77,7 +79,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 
 }
 
-void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation)
+void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVector direction)
 {
 	UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
 	//StrokeArray.Last().endPos = position;
@@ -87,7 +89,7 @@ void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation)
 	//	mesh1->Initialize(StrokeArray.Last().startPos, StrokeArray.Last().endPos, rotation);
 	//	StrokeArray.Last().mesh = mesh1;
 	//}
-	StrokeArray.Last().mesh->Update(position, rotation);
+	StrokeArray.Last().mesh->Update(position, rotation, direction);
 }
 
 void ADrawingHandler::EraseStroke()

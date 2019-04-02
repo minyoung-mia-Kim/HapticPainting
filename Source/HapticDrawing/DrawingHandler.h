@@ -84,7 +84,7 @@ public:
 	UFUNCTION()
 	void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
-		void regenerateStroke(FVector position, FRotator rotation);
+		void regenerateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
 	void EraseStroke();
 protected:

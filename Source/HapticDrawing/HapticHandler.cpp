@@ -36,6 +36,8 @@ AHapticsHandler::AHapticsHandler()
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
 	plane = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
+	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
+	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
 
 	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
 	FVector Direction = MyRotation.Vector();
@@ -43,10 +45,18 @@ AHapticsHandler::AHapticsHandler()
 	// Normalize the direction to a unit vector.
 	Direction.Normalize();
 
-	vertices.Add(FVector(0.0f, 5.0f, 5.0f));
-	vertices.Add(FVector(0.0f, -5.0f, 5.0f));
-	vertices.Add(FVector(0.0f, 5.0f, -5.0f));
-	vertices.Add(FVector(0.0f, -5.0f, -5.0f));
+	vertices.Add(FVector(0.0f, 1.0f, 5.0f));
+	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
+
+	vertices.Add(FVector(0.0f, -1.0f, 5.0f));
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //red
+
+	vertices.Add(FVector(0.0f, 1.0f, -5.0f));
+	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //red
+
+	vertices.Add(FVector(0.0f, -1.0f, -5.0f));
+	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
+
 	FVector dot = FVector().CrossProduct(vertices[1] - vertices[0], vertices[2] - vertices[1]);
 	dot.Normalize();
 	normal = dot;
@@ -57,7 +67,6 @@ AHapticsHandler::AHapticsHandler()
 		{
 			normals.Add(dot);
 			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
-			vertexColors.Add(FLinearColor(0.0f, 0.0f, 0.0f, 1.0f));
 			tangents.Add(FProcMeshTangent(0.0f, 1.0f, 0.0f));
 		}
 	}
@@ -77,6 +86,8 @@ AHapticsHandler::AHapticsHandler()
 
 	plane->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
 	plane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	plane->SetMaterial(0, Material);
+
 }
 
 /**
