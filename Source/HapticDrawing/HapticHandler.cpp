@@ -19,6 +19,7 @@ AHapticsHandler::AHapticsHandler()
 	rc = CreateDefaultSubobject<USceneComponent>(TEXT("Transform"));
 	rc->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 	SetRootComponent(rc);
+
 	cursor = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
 	cursor->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
@@ -120,7 +121,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
-	cursor->SetWorldLocation(GetActorLocation());
+
 }
 
 /**
@@ -172,7 +173,8 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 	FMatrix rotation = UHapticThreadOutput::getInst().getHapticCursorRotation();
 	FVector euler = rotation.Rotator().Euler();
 	//Re-adjusted the angle
-	return FRotator(euler.Y, -euler.Z, -euler.X + 20.f);
+	//Pitch(Updown), Yaw(RL), Roll(CW, CCW)
+	return FRotator(euler.Y, -euler.Z + 180.f, euler.X);
 }
 
 /**
@@ -180,7 +182,8 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 */
 FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
-	return FVector(position.X * 1000, -position.Y * 1000, position.Z * 1000);
+	//Re-adjusted the position
+	return FVector(position.X * 1000, -position.Y * 1000, (position.Z * 1000 + 65.0f));
 }
 
 /**

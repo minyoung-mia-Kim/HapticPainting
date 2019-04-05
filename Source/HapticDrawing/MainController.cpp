@@ -7,7 +7,7 @@
 // Sets default values
 AMainController::AMainController()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 }
 
@@ -46,9 +46,16 @@ void AMainController::BeginPlay()
 void AMainController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	CurrentLocation = GetActorLocation();
-	HHandler->SetActorLocation(HHandler->getHapticDevicePositionInUnrealCoordinates());
-	HHandler->SetActorRotation(HHandler->getHapticDeviceRotationAsUnrealRotator());
+	FVector location;
+	FRotator rotation;
+
+	auto aa = GetWorld()->GetFirstPlayerController();
+	aa->GetPlayerViewPoint(location, rotation);
+	rotation.Pitch = -rotation.Pitch; //updown
+	rotation.Yaw += 180.f;			  //RL
+
+	HHandler->SetActorLocation(rotation.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
+	HHandler->SetActorRotation(HHandler->getHapticDeviceRotationAsUnrealRotator()+rotation);
 
 }
 

@@ -34,7 +34,7 @@ public:
 
 	AHapticsHandler();
 	/**
-	* the multicast delegate that is fired every tick and provides the up to date haptic data
+	* The multicast delegate that is fired every tick and provides the up to date haptic data
 	*/
 	UPROPERTY(BlueprintAssignable)
 	FNewHapticDeviceData OnHapticHandlerTick;

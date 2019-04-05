@@ -8,6 +8,8 @@
 #include "Engine/World.h"
 #include "HapticHandler.h"
 #include "DrawingHandler.h"
+#include "GameFramework/DefaultPawn.h"
+#include "HapticDrawingGameModeBase.h"
 #include "MainController.generated.h"
 
 
@@ -25,6 +27,7 @@ public:
 
 	UFUNCTION()
 		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
+
 protected:
 	UPROPERTY()
 	class AHapticsHandler* HHandler;

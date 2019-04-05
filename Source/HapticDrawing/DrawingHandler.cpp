@@ -8,7 +8,7 @@
 // Sets default values
 ADrawingHandler::ADrawingHandler()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	this->brushinfo = new FBrushInfo(Draw, 50, FVector(255, 255, 255));
 	prvPositon = FVector(0, 0, 0);
@@ -19,11 +19,8 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 	//FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
 	DrawingDirection = FVector(position - prvPositon);
 	//UE_LOG(LogTemp, Warning, TEXT("DrawingDirection X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
-
 	//DrawingDirection.Normalize();
-	
 	//UE_LOG(LogTemp, Warning, TEXT("NO DrawingDirection X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
-
 	//UE_LOG(LogTemp, Warning, TEXT("receivedFbutton : I'm Drawing handler"));
 	if (!hasClicked)
 	{
@@ -40,7 +37,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 			RotationArray.Add(rotation);
 			UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
-			if(FMath::Abs(FVector::Dist(position, prvPositon)))
+			if (FMath::Abs(FVector::Dist(position, prvPositon)))
 				regenerateStroke(position, rotation, DrawingDirection);
 
 			prvDt = dt;
@@ -48,7 +45,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 		}
 
 	}
-		
+
 	prvPositon = position;
 
 }
@@ -61,8 +58,8 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 		UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), PositionArray[i].X, PositionArray[i].Y, PositionArray[i].Z);
 	}
 	UE_LOG(LogTemp, Warning, TEXT("Number of : %d"), PositionArray.Num());*/
-	
-	
+
+
 	//AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	//mesh1->Initialize(PositionArray, RotationArray);
 
