@@ -53,12 +53,11 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void Initialize(FVector position, FRotator rotation, FVector direction);
-	void Initialize2(FVector position, FRotator rotation, FVector direction);
 	void Update(FVector position, FRotator rotation, FVector direction) ;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
-	void GenerateVertices();
-	void GenerateVertices(FVector position, FRotator rotation);
+	//void GenerateVertices();
+	//void GenerateVertices(FVector position, FRotator rotation);
 
 	void GenerateTriangles();
 	void ClearMeshData();

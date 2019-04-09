@@ -71,7 +71,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	//AMyProcedualMesh* mesh1 = GetWorld()->SpawnActor<AMyProcedualMesh>(AMyProcedualMesh::StaticClass());
 	AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(position, position, mesh1));
-	mesh1->Initialize2(position, rotation, direction);
+	mesh1->Initialize(position, rotation, direction);
 	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
@@ -79,13 +79,6 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVector direction)
 {
 	UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
-	//StrokeArray.Last().endPos = position;
-	//if (StrokeArray.Last().mesh->Destroy())
-	//{
-	//	AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
-	//	mesh1->Initialize(StrokeArray.Last().startPos, StrokeArray.Last().endPos, rotation);
-	//	StrokeArray.Last().mesh = mesh1;
-	//}
 	StrokeArray.Last().mesh->Update(position, rotation, direction);
 }
 
