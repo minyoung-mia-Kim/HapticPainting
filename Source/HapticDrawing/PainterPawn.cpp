@@ -10,6 +10,7 @@ APainterPawn::APainterPawn()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	SetRootComponent((USceneComponent*)GetCollisionComponent());
+	SetActorEnableCollision(false);
 	GetRootComponent()->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
 }
 

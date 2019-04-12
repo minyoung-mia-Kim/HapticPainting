@@ -10,6 +10,8 @@
 #include "HapticThreadOutput.h"
 #include "MainController.h"
 
+#include "DrawDebugHelpers.h"
+
 /**
  * constructs an instance of the haptic manager
 */
@@ -17,13 +19,23 @@ AHapticsHandler::AHapticsHandler()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	rc = CreateDefaultSubobject<USceneComponent>(TEXT("Transform"));
-	rc->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-	SetRootComponent(rc);
+	//rc->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	//SetRootComponent(rc);
 
 	cursor = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
+	// set up a notification for when this component overlaps something
+	cursor->OnComponentBeginOverlap.AddDynamic(this, &AHapticsHandler::OnComponentBeginOverlap);
+	cursor->OnComponentEndOverlap.AddDynamic(this, &AHapticsHandler::OnComponentEndOverlap);
+	cursor->SetEnableGravity(false);
+	cursor->SetSimulatePhysics(true);
+	//cursor->SetNotifyRigidBodyCollision(true);
+	//cursor->BodyInstance.SetCollisionProfileName("BlockAll");
+	//cursor->OnComponentHit.AddDynamic(this, &AHapticsHandler::OnHit);
+
 	cursor->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	cursor->bHiddenInGame = false;
+	SetRootComponent(cursor);
 
 	TArray<FVector> vertices;
 	TArray<FVector> normals;
@@ -61,7 +73,6 @@ AHapticsHandler::AHapticsHandler()
 	FVector dot = FVector().CrossProduct(vertices[1] - vertices[0], vertices[2] - vertices[1]);
 	dot.Normalize();
 	normal = dot;
-	UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), dot.X, dot.Y, dot.Z);
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
@@ -211,3 +222,46 @@ void AHapticsHandler::button2Clicked()
 
 
 }
+/*
+* Collistion event
+*/
+void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
+	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
+	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
+	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(SweepResult.GetComponent()->GetName()));
+	////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), (bFromSweep ? TEXT("True") : TEXT("False")));
+	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), SweepResult.Location.X, SweepResult.Location.Y, SweepResult.Location.Z);
+	//UE_LOG(LogTemp, Warning, TEXT("bDepth : %d"), SweepResult.bStartPenetrating);
+
+	//UE_LOG(LogTemp, Warning, TEXT("Depth : %f"), SweepResult.PenetrationDepth);
+	////DrawDebugSphere(GetWorld(), SweepResult.Location, 16, 32, FColor(255, 0, 0), false, 3.0f);
+	//if(!hasFBClicked)
+	//	setForceToApply(FVector(1.0f, 1.0f, 1.0f));
+
+}
+
+void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Finished"));
+	////UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
+	////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
+	//if (!hasFBClicked)
+	//	setForceToApply(FVector(0.0f, 0.0f, 0.0f));
+
+}
+
+//void AHapticsHandler::OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)
+//{
+//	if ((OtherActor != NULL) && (OtherActor != this) && (OtherComp != NULL))
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Hitted(Blocked)"));
+//		UE_LOG(LogTemp, Warning, TEXT("Depth : %f"), Hit.PenetrationDepth);
+//
+//	}
+//
+//}
+
+

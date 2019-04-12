@@ -8,9 +8,11 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	//SetActorEnableCollision(true);
 	pm = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	pm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	//pm->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	pm->SetEnableGravity(false);
 	SetRootComponent(pm);
 	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
 	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
@@ -72,10 +74,10 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
 	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, 5.0f)))));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
+	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 
 	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)))));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //green
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
 
 }
 /* // Old function
@@ -162,7 +164,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), position.X, position.Y + spacing, position.Z + spacing);
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, 5.0f)));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f));//blue
+	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));//blue
 
 	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z + spacing);
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)));
@@ -180,7 +182,9 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	GenerateTriangles();
 
 	/* Add a mesh section */
-	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, true);
+	//pm->bUseComplexAsSimpleCollision = false;
+	pm->SetCollisionConvexMeshes({ vertices });
 	pm->SetMaterial(nGeneratedSection, Material);
 
 	/* increase section idx */
@@ -192,10 +196,10 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	/* For the next mesh section */
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, 5.0f)));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
+	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 	
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //red
 
 
 }

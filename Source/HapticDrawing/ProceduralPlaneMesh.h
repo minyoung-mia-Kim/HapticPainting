@@ -61,5 +61,7 @@ public:
 
 	void GenerateTriangles();
 	void ClearMeshData();
+
+	
 	
 };

@@ -54,7 +54,9 @@ void AMainController::Tick(float DeltaTime)
 	rotation.Pitch = -rotation.Pitch; //updown
 	rotation.Yaw += 180.f;			  //RL
 
-	HHandler->SetActorLocation(rotation.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
+	//Follow the pawn's camera view
+	//HHandler->SetActorLocation(rotation.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
+	HHandler->SetActorLocation(HHandler->getHapticDevicePositionInUnrealCoordinates() + location);
 	HHandler->SetActorRotation(HHandler->getHapticDeviceRotationAsUnrealRotator()+rotation);
 
 }
