@@ -128,7 +128,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
 	FVector Direction = MyRotation.Vector();
 	Direction.Normalize();
-	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * -10.0f, FColor::Red, false, 0, 0, 0.5);
+	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * 10.0f, FColor::Red, false, 0, 0, 0.5);
 
 	for (int i = 0; i < plane->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
 	{

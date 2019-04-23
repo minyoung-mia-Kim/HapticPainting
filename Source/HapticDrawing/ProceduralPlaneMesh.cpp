@@ -1,7 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ProceduralPlaneMesh.h"
-
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AProceduralPlaneMesh::AProceduralPlaneMesh()
@@ -170,11 +170,17 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)));
 	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
 
+	FVector Normal = FVector::CrossProduct(vertices[1] - vertices[0], vertices[2] - vertices[1]);
+	Normal.Normalize();
+
+	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+
+
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
-			normals.Add(FVector(1.0f, 0.0f, 0.0f));
+			normals.Add(Normal);
 			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
 			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
 		}
@@ -199,7 +205,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 	
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)));
-	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //red
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //blue
 
 
 }
