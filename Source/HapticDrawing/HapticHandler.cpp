@@ -27,13 +27,13 @@ AHapticsHandler::AHapticsHandler()
 	cursor->OnComponentBeginOverlap.AddDynamic(this, &AHapticsHandler::OnComponentBeginOverlap);
 	cursor->OnComponentEndOverlap.AddDynamic(this, &AHapticsHandler::OnComponentEndOverlap);
 	cursor->SetEnableGravity(false);
-	cursor->SetSimulatePhysics(true);
+	cursor->SetSimulatePhysics(false);
 	//cursor->SetNotifyRigidBodyCollision(true);
 	//cursor->BodyInstance.SetCollisionProfileName("BlockAll");
 	//cursor->OnComponentHit.AddDynamic(this, &AHapticsHandler::OnHit);
 
 	cursor->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	//cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	cursor->bHiddenInGame = false;
 	SetRootComponent(cursor);
 
@@ -52,12 +52,6 @@ AHapticsHandler::AHapticsHandler()
 	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
 	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
 
-	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
-	FVector Direction = MyRotation.Vector();
-
-	// Normalize the direction to a unit vector.
-	Direction.Normalize();
-
 	vertices.Add(FVector(0.0f, 1.0f, 5.0f));
 	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 
@@ -70,14 +64,11 @@ AHapticsHandler::AHapticsHandler()
 	vertices.Add(FVector(0.0f, -1.0f, -5.0f));
 	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
 
-	FVector dot = FVector().CrossProduct(vertices[1] - vertices[0], vertices[2] - vertices[1]);
-	dot.Normalize();
-	normal = dot;
+
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
-			normals.Add(dot);
 			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
 			tangents.Add(FProcMeshTangent(0.0f, 1.0f, 0.0f));
 		}
@@ -113,6 +104,7 @@ void AHapticsHandler::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm handler"));
 	hasFBClicked = false;
 	hasSBClicked = false;
+
 }
 
 /**
@@ -133,6 +125,15 @@ void AHapticsHandler::Tick(float DeltaTime)
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
 
+	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
+	FVector Direction = MyRotation.Vector();
+	Direction.Normalize();
+	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * -10.0f, FColor::Red, false, 0, 0, 0.5);
+
+	for (int i = 0; i < plane->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
+	{
+		plane->GetProcMeshSection(0)->ProcVertexBuffer[i].Normal = Direction;
+	}
 }
 
 /**
