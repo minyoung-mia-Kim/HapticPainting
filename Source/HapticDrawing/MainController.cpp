@@ -49,15 +49,16 @@ void AMainController::Tick(float DeltaTime)
 	FVector location;
 	FRotator rotation;
 
-	auto aa = GetWorld()->GetFirstPlayerController();
-	aa->GetPlayerViewPoint(location, rotation);
-	rotation.Pitch = -rotation.Pitch; //updown
-	rotation.Yaw += 180.f;			  //RL
+	//Bilboard with cam
+	//auto aa = GetWorld()->GetFirstPlayerController();
+	//aa->GetPlayerViewPoint(location, rotation);
+	////rotation.Pitch = -rotation.Pitch; //updown
+	////rotation.Yaw += 180.f;			  //RL
 
 	//Follow the pawn's camera view
 	//HHandler->SetActorLocation(rotation.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
 	HHandler->SetActorLocation(HHandler->getHapticDevicePositionInUnrealCoordinates() + location);
-	HHandler->SetActorRotation(HHandler->getHapticDeviceRotationAsUnrealRotator()+rotation);
+	HHandler->SetActorRotation(HHandler->getHapticDeviceRotationAsUnrealRotator());
 
 }
 

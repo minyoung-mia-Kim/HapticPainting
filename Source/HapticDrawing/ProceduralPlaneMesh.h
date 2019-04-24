@@ -52,8 +52,8 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	void Initialize(FVector position, FRotator rotation, FVector direction);
-	void Update(FVector position, FRotator rotation, FVector direction) ;
+	void Initialize(FVector position, FRotator rotation, FVector direction, float spacing);
+	void Update(FVector position, FRotator rotation, FVector direction, float spacing) ;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	//void GenerateVertices();

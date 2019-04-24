@@ -10,7 +10,7 @@ ADrawingHandler::ADrawingHandler()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	this->brushinfo = new FBrushInfo(Draw, 50, FVector(255, 255, 255));
+	this->brushinfo = new FBrushInfo(Draw, 10.f, FVector(255, 255, 255));
 	prvPositon = FVector(0, 0, 0);
 }
 
@@ -18,10 +18,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 {
 	//FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
 	DrawingDirection = FVector(position - prvPositon);
-	//UE_LOG(LogTemp, Warning, TEXT("DrawingDirection X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
-	//DrawingDirection.Normalize();
-	//UE_LOG(LogTemp, Warning, TEXT("NO DrawingDirection X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
-	//UE_LOG(LogTemp, Warning, TEXT("receivedFbutton : I'm Drawing handler"));
+
 	if (!hasClicked)
 	{
 		if (!(DrawingDirection.Size() < 1.0))
@@ -31,7 +28,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 	}
 	else
 	{
-		if (dt - prvDt > 0.01 && StrokeArray.Num() > 0)
+		if (dt - prvDt > 0.05 && StrokeArray.Num() > 0)
 		{
 			PositionArray.Add(position);
 			RotationArray.Add(rotation);
@@ -71,7 +68,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	//AMyProcedualMesh* mesh1 = GetWorld()->SpawnActor<AMyProcedualMesh>(AMyProcedualMesh::StaticClass());
 	AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(position, position, mesh1));
-	mesh1->Initialize(position, rotation, direction);
+	mesh1->Initialize(position, rotation, direction, brushinfo->size);
 	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
@@ -79,7 +76,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVector direction)
 {
 	UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
-	StrokeArray.Last().mesh->Update(position, rotation, direction);
+	StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size);
 }
 
 void ADrawingHandler::EraseStroke()

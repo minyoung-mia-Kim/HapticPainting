@@ -68,15 +68,15 @@ void AProceduralPlaneMesh::Tick(float DeltaTime)
 //	nGeneratedSection++;
 //}
 
-void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVector direction)
+void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVector direction, float spacing)
 {
 	ClearMeshData();
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, 5.0f)))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)))));
 	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, -spacing/2)))));
 	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
 
 }
@@ -134,19 +134,19 @@ void AProceduralPlaneMesh::GenerateTriangles()
 	{
 		for (int32 x = 0; x < width - 1; x++)
 		{
-			triangles.Add(x + (y * width));					//current vertex
-			triangles.Add(x + (y * width) + width);			//current vertex + row
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
 
-			triangles.Add(x + (y * width));					//current vertex
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
-			triangles.Add(x + (y * width) + 1);				//current vertex + one right
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right		: 1
 		}
 	}
 }
 
 
-void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector direction)
+void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector direction, float spacing)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Working on idx %d section"), nGeneratedSection);
 
@@ -162,16 +162,22 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	UE_LOG(LogTemp, Warning, TEXT("Distance X:%f, Y:%f, Z:%f"), dis.X, dis.Y, dis.Z);
 
 
-	UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), position.X, position.Y + spacing, position.Z + spacing);
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, 5.0f)));
-	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f));//blue
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)));
+	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //blue
+	UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
 
-	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z + spacing);
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)));
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing/2)));
 	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
+	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
 
-	FVector Normal = FVector::CrossProduct(vertices[1] - vertices[0], vertices[2] - vertices[1]);
+	//Normal : Mesh front - Forward
+	//FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]),FVector(vertices[1] - vertices[3]));
+	
+	//Normal : Hapatic - Forward
+	FVector Normal = -rotation.Vector();
+
 	Normal.Normalize();
+	UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
 
 	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 
@@ -201,11 +207,15 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	ClearMeshData();
 
 	/* For the next mesh section */
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, 5.0f)));
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)));
+	//vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
 	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
-	
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -5.0f)));
-	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //blue
+	UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
+
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing/2)));
+	//vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
+	UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
 
 
 }

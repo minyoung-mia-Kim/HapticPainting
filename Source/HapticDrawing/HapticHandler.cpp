@@ -55,10 +55,10 @@ AHapticsHandler::AHapticsHandler()
 	vertices.Add(FVector(0.0f, 1.0f, 5.0f));
 	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 
-	vertices.Add(FVector(0.0f, -1.0f, 5.0f));
+	vertices.Add(FVector(0.0f, 1.0f, -5.0f));
 	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //red
 
-	vertices.Add(FVector(0.0f, 1.0f, -5.0f));
+	vertices.Add(FVector(0.0f, -1.0f, 5.0f));
 	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //red
 
 	vertices.Add(FVector(0.0f, -1.0f, -5.0f));
@@ -128,7 +128,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
 	FVector Direction = MyRotation.Vector();
 	Direction.Normalize();
-	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * 10.0f, FColor::Red, false, 0, 0, 0.5);
+	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * -10.0f, FColor::Red, false, 0, 0, 0.5);
 
 	for (int i = 0; i < plane->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
 	{
@@ -185,8 +185,8 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 	FMatrix rotation = UHapticThreadOutput::getInst().getHapticCursorRotation();
 	FVector euler = rotation.Rotator().Euler();
 	//Re-adjusted the angle
-	//Pitch(Updown), Yaw(RL), Roll(CW, CCW)
-	return FRotator(euler.Y, -euler.Z + 180.f, euler.X);
+	//Pitch(Updown) : the same with the stylus pitch, Yaw(RL), Roll(CW, CCW)
+	return FRotator(-euler.Y, -euler.Z + 180.f, euler.X);
 }
 
 /**

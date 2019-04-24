@@ -46,10 +46,6 @@ struct FStroke
 	AProceduralPlaneMesh* mesh;
 	FVector startPos;
 	FVector endPos;
-	float width = 2;
-	float height = 2;
-	float spacing = 10.f;
-
 };
 UCLASS()
 class HAPTICDRAWING_API ADrawingHandler : public AActor
