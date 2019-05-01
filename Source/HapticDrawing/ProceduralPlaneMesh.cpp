@@ -144,6 +144,23 @@ void AProceduralPlaneMesh::GenerateTriangles()
 		}
 	}
 }
+//Assemble the front or back side trangles
+void AProceduralPlaneMesh::GenerateOppositeTriangles()
+{
+	for (int32 y = 0; y < height - 1; y++)
+	{
+		for (int32 x = 0; x < width - 1; x++)
+		{
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right		: 1
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
+		}
+	}
+}
 
 
 void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector direction, float spacing)
@@ -192,6 +209,17 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 		}
 	}
 	GenerateTriangles();
+
+	//TODO :: Fix the error
+	//for (int32 i = 0; i < 4; i++)
+	//{
+	//	vertices.Add(vertices[i]);
+	//	vertexColors.Add(vertexColors[i]);
+	//	normals.Add(normals[i]);
+	//	uvs.Add(uvs[i]);
+	//	tangents.Add(tangents[i]);
+	//}
+	GenerateOppositeTriangles();
 
 	/* Add a mesh section */
 	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, true);

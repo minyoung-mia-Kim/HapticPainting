@@ -60,6 +60,7 @@ public:
 	//void GenerateVertices(FVector position, FRotator rotation);
 
 	void GenerateTriangles();
+	void GenerateOppositeTriangles();
 	void ClearMeshData();
 
 	
