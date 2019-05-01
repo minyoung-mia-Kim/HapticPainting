@@ -47,27 +47,35 @@ struct FStroke
 	FVector startPos;
 	FVector endPos;
 };
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBrushDelegate, float, brushSize);
+
+
 UCLASS()
 class HAPTICDRAWING_API ADrawingHandler : public AActor
 {
 	GENERATED_BODY()
 
-	
+
 	UPROPERTY()
 		TArray<FStroke> StrokeArray;
-
 	UPROPERTY()
 		TArray<FVector> PositionArray;
 	UPROPERTY()
 		TArray<FRotator> RotationArray;
 	//UPROPERTY()
 	//	FStroke& CurrentStroke = nullptr;
-public:	
+
+
+public:
 	// Sets default values for this actor's properties
 	ADrawingHandler();
 
-		float dt = 0.0f;
-		float prvDt = 0.0f;
+	UPROPERTY()
+		FBrushDelegate FBrushSizeDelegate;
+
+	float dt = 0.0f;
+	float prvDt = 0.0f;
 	//Drawing Data
 	FBrushInfo* brushinfo;
 	//Drawing function
@@ -78,11 +86,15 @@ public:
 	UFUNCTION()
 		void receivedSbutton(FVector position, FRotator rotation, bool hasClicked);
 	UFUNCTION()
-	void generateStroke(FVector position, FRotator rotation, FVector direction);
+		void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
 		void regenerateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
-	void EraseStroke();
+		void EraseStroke();
+	UFUNCTION()
+		void BrushsizeUp();
+	UFUNCTION()
+		void BrushsizeDown();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -90,6 +102,6 @@ protected:
 public:		// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	
-	
+
+
 };

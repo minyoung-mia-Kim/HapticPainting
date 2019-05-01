@@ -27,6 +27,10 @@ public:
 
 	UFUNCTION()
 		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
+	
+	UFUNCTION()
+		void BindToBrushSize(float brushSize);
+
 
 protected:
 	UPROPERTY()

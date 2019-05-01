@@ -29,6 +29,11 @@ void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
 	DHandler->receivedSbutton(HHandler->plane->GetComponentLocation(), HHandler->plane->GetComponentRotation(), hasClicked);
 }
 
+void AMainController::BindToBrushSize(float brushSize)
+{
+	HHandler->RefreshBrushCursor(brushSize);
+}
+
 // Called when the game starts or when spawned
 void AMainController::BeginPlay()
 {
@@ -39,6 +44,7 @@ void AMainController::BeginPlay()
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
 
 	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
+	DHandler->FBrushSizeDelegate.AddDynamic(this, &AMainController::BindToBrushSize);
 
 }
 

@@ -37,60 +37,9 @@ AHapticsHandler::AHapticsHandler()
 	cursor->bHiddenInGame = false;
 	SetRootComponent(cursor);
 
-	TArray<FVector> vertices;
-	TArray<FVector> normals;
-	TArray<int32> triangles;
-	TArray<FVector2D> uvs;
-	TArray<FLinearColor> vertexColors;
-	TArray<FProcMeshTangent> tangents;
-	int32 height = 2;
-	int32 width = 2;
-	float spacing = 10.0f;
-	float uvSpacing = 1.0f / FMath::Max(height, width);
-
 	plane = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
-	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
-	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
-
-	vertices.Add(FVector(0.0f, 1.0f, 5.0f));
-	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
-
-	vertices.Add(FVector(0.0f, 1.0f, -5.0f));
-	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //red
-
-	vertices.Add(FVector(0.0f, -1.0f, 5.0f));
-	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //red
-
-	vertices.Add(FVector(0.0f, -1.0f, -5.0f));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
-
-
-	for (int32 y = 0; y < height; y++)
-	{
-		for (int32 x = 0; x < width; x++)
-		{
-			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
-			tangents.Add(FProcMeshTangent(0.0f, 1.0f, 0.0f));
-		}
-	}
-	for (int32 y = 0; y < height - 1; y++)
-	{
-		for (int32 x = 0; x < width - 1; x++)
-		{
-			triangles.Add(x + (y * width));					//current vertex
-			triangles.Add(x + (y * width) + width);			//current vertex + row
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
-
-			triangles.Add(x + (y * width));					//current vertex
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
-			triangles.Add(x + (y * width) + 1);				//current vertex + one right
-		}
-	}
-
-	plane->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
 	plane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	plane->SetMaterial(0, Material);
-
+	CreateBrushCursor(10.0f);
 }
 
 /**
@@ -126,9 +75,9 @@ void AHapticsHandler::Tick(float DeltaTime)
 	hasSBClicked = BHandler->button2AlreadyPressed;
 
 	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
-	FVector Direction = MyRotation.Vector();
+	FVector Direction = -MyRotation.Vector();
 	Direction.Normalize();
-	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * -10.0f, FColor::Red, false, 0, 0, 0.5);
+	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * 10.0f, FColor::Red, false, 0, 0, 0.5);
 
 	for (int i = 0; i < plane->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
 	{
@@ -230,6 +179,10 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 {
 
 	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
+	//UE_LOG(LogTemp, Warning, TEXT("Plane Normal X:%f, Y:%f, Z:%f"), plane->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal);
+	//UE_LOG(LogTemp, Warning, TEXT("Plane Normal X:%f, Y:%f, Z:%f"), -);
+
+
 	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
 	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
 	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(SweepResult.GetComponent()->GetName()));
@@ -242,6 +195,8 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 	//if(!hasFBClicked)
 	//	setForceToApply(FVector(1.0f, 1.0f, 1.0f));
 
+
+
 }
 
 void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -251,6 +206,82 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 	////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
 	//if (!hasFBClicked)
 	//	setForceToApply(FVector(0.0f, 0.0f, 0.0f));
+
+}
+
+void AHapticsHandler::RefreshBrushCursor(float brushSize)
+{
+	plane->ClearAllMeshSections();
+	CreateBrushCursor(brushSize);
+}
+
+void AHapticsHandler::CreateBrushCursor(float brushSize = 10.0f)
+{
+	TArray<FVector> vertices;
+	TArray<FVector> normals;
+	TArray<int32> triangles;
+	TArray<FVector2D> uvs;
+	TArray<FLinearColor> vertexColors;
+	TArray<FProcMeshTangent> tangents;
+	int32 height = 2;
+	int32 width = 2;
+	float spacing = brushSize;
+	float uvSpacing = 1.0f / FMath::Max(height, width);
+
+	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
+	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
+
+	vertices.Add(FVector(0.0f, 1.0f, spacing / 2));
+	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
+
+	vertices.Add(FVector(0.0f, 1.0f, -spacing / 2));
+	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //red
+
+	vertices.Add(FVector(0.0f, -1.0f, spacing / 2));
+	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //red
+
+	vertices.Add(FVector(0.0f, -1.0f, -spacing / 2));
+	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
+
+
+	for (int32 y = 0; y < height; y++)
+	{
+		for (int32 x = 0; x < width; x++)
+		{
+			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
+			tangents.Add(FProcMeshTangent(0.0f, 1.0f, 0.0f));
+		}
+	}
+	//Front-face
+	for (int32 y = 0; y < height - 1; y++)
+	{
+		for (int32 x = 0; x < width - 1; x++)
+		{
+			triangles.Add(x + (y * width));					//current vertex
+			triangles.Add(x + (y * width) + width);			//current vertex + row
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+
+			triangles.Add(x + (y * width));					//current vertex
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right
+		}
+	}
+	//Opposite Front-face
+	for (int32 y = 0; y < height - 1; y++)
+	{
+		for (int32 x = 0; x < width - 1; x++)
+		{
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right		: 1
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
+		}
+	}
+	plane->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	plane->SetMaterial(0, Material);
 
 }
 

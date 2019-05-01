@@ -59,6 +59,7 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 
 	//AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	//mesh1->Initialize(PositionArray, RotationArray);
+	BrushsizeUp();
 
 }
 
@@ -80,6 +81,17 @@ void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVec
 }
 
 void ADrawingHandler::EraseStroke()
+{
+}
+
+void ADrawingHandler::BrushsizeUp()
+{
+	brushinfo->size += 0.005f;
+	UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
+	FBrushSizeDelegate.Broadcast(brushinfo->size);
+}
+
+void ADrawingHandler::BrushsizeDown()
 {
 }
 
