@@ -8,7 +8,7 @@ public class HapticDrawing : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent", "SlateCore","Slate"});
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
@@ -17,7 +17,6 @@ public class HapticDrawing : ModuleRules
         PrivateDependencyModuleNames.AddRange(new string[] { "Haptico" });
         PrivateIncludePathModuleNames.AddRange(new string[] { "Haptico" });
         PublicIncludePathModuleNames.AddRange(new string[] { "Haptico" });
-
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 

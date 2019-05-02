@@ -16,8 +16,8 @@ void AMainController::BindToFbuttonInput(FVector posDevice, bool hasClicked)
 	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked %d"), hasClicked);
 	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 
-	//Give the drawing plane position
-	DHandler->receivedFbutton(HHandler->plane->GetComponentLocation(), HHandler->plane->GetComponentRotation(), hasClicked);
+	//Give the drawing brush position
+	DHandler->receivedFbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
 }
 
 void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
@@ -25,14 +25,18 @@ void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
 	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b2 clicked"));
 	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 
-	//Give the drawing plane position
-	DHandler->receivedSbutton(HHandler->plane->GetComponentLocation(), HHandler->plane->GetComponentRotation(), hasClicked);
+	//Give the drawing brush position
+	DHandler->receivedSbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
 }
 
-void AMainController::BindToBrushSize(float brushSize)
+void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor)
 {
-	HHandler->RefreshBrushCursor(brushSize);
+	HHandler->RefreshBrushCursor(brushSize, brushColor);
+	//UE_LOG(LogTemp, Warning, TEXT("middle Color: %s"), *(brushColor.ToString()));
+
 }
+
+
 
 // Called when the game starts or when spawned
 void AMainController::BeginPlay()
@@ -44,7 +48,7 @@ void AMainController::BeginPlay()
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
 
 	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
-	DHandler->FBrushSizeDelegate.AddDynamic(this, &AMainController::BindToBrushSize);
+	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
 }
 

@@ -20,7 +20,7 @@ struct FBrushInfo
 {
 	GENERATED_BODY()
 		FBrushInfo() {}
-	FBrushInfo(BRUSHMODE _mode, float _size, FVector _color)
+	FBrushInfo(BRUSHMODE _mode, float _size, FLinearColor _color)
 	{
 		mode = _mode;
 		size = _size;
@@ -28,7 +28,7 @@ struct FBrushInfo
 	}
 	BRUSHMODE mode;
 	float size;
-	FVector color;
+	FLinearColor color;
 };
 
 USTRUCT()
@@ -48,7 +48,7 @@ struct FStroke
 	FVector endPos;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBrushDelegate, float, brushSize);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrushDelegate, float, brushSize, FLinearColor, brushColor);
 
 
 UCLASS()
@@ -72,7 +72,7 @@ public:
 	ADrawingHandler();
 
 	UPROPERTY()
-		FBrushDelegate FBrushSizeDelegate;
+		FBrushDelegate FBrushUpdateDelegate;
 
 	float dt = 0.0f;
 	float prvDt = 0.0f;
@@ -102,6 +102,12 @@ protected:
 public:		// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+		void ChangeColorR();
+	UFUNCTION()
+		void ChangeColorG();
+	UFUNCTION()
+		void ChangeColorB();
 
 
 };

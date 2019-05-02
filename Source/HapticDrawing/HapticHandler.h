@@ -18,6 +18,12 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 {
 	GENERATED_BODY()
 
+
+		/*
+		*	Mouse mode
+		*/
+		bool noHapticDevice;
+
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 	USceneComponent* rc = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
@@ -25,7 +31,7 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 
 public:
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-	UProceduralMeshComponent* plane = nullptr;
+	UProceduralMeshComponent* brush = nullptr;
 	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
 	UMaterialInterface* Material;
 
@@ -141,10 +147,10 @@ public:
 	* Redraw the cursor
 	*/
 	UFUNCTION()
-	void RefreshBrushCursor(float brushSize);
+	void RefreshBrushCursor(float brushSize, FLinearColor brushColor);
 
 	UFUNCTION()
-	void CreateBrushCursor(float brushSize);
+	void CreateBrushCursor(float brushSize, FLinearColor brushColor);
 	
 
 };

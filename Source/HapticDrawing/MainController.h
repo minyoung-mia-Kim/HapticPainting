@@ -29,7 +29,7 @@ public:
 		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
 	
 	UFUNCTION()
-		void BindToBrushSize(float brushSize);
+		void BindToBrushUpdate(float brushSize, FLinearColor brushColor);
 
 
 protected:

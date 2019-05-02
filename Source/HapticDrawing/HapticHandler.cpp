@@ -18,6 +18,7 @@
 AHapticsHandler::AHapticsHandler()
 {
 	PrimaryActorTick.bCanEverTick = true;
+	noHapticDevice = false;
 	rc = CreateDefaultSubobject<USceneComponent>(TEXT("Transform"));
 	//rc->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 	//SetRootComponent(rc);
@@ -37,9 +38,9 @@ AHapticsHandler::AHapticsHandler()
 	cursor->bHiddenInGame = false;
 	SetRootComponent(cursor);
 
-	plane = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
-	plane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	CreateBrushCursor(10.0f);
+	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
+	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	CreateBrushCursor(10.0f, FLinearColor::White);
 }
 
 /**
@@ -50,6 +51,8 @@ void AHapticsHandler::BeginPlay()
 	Super::BeginPlay();
 	UHapticThreadInput::getInst().setRunThread(true);
 	(new FAutoDeleteAsyncTask<FHapticThread>(IHaptico::Get(), this))->StartBackgroundTask();
+	//if (!IHaptico::connect)
+	//	noHapticDevice = true;
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm handler"));
 	hasFBClicked = false;
 	hasSBClicked = false;
@@ -77,11 +80,11 @@ void AHapticsHandler::Tick(float DeltaTime)
 	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
 	FVector Direction = -MyRotation.Vector();
 	Direction.Normalize();
-	DrawDebugLine(GetWorld(), plane->GetComponentLocation(), plane->GetComponentLocation() + Direction * 10.0f, FColor::Red, false, 0, 0, 0.5);
+	DrawDebugLine(GetWorld(), brush->GetComponentLocation(), brush->GetComponentLocation() + Direction * 10.0f, FColor::Red, false, 0, 0, 0.5);
 
-	for (int i = 0; i < plane->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
+	for (int i = 0; i < brush->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
 	{
-		plane->GetProcMeshSection(0)->ProcVertexBuffer[i].Normal = Direction;
+		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Normal = Direction;
 	}
 }
 
@@ -179,8 +182,8 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 {
 
 	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
-	//UE_LOG(LogTemp, Warning, TEXT("Plane Normal X:%f, Y:%f, Z:%f"), plane->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal);
-	//UE_LOG(LogTemp, Warning, TEXT("Plane Normal X:%f, Y:%f, Z:%f"), -);
+	//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal);
+	//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), -);
 
 
 	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
@@ -209,13 +212,17 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 
 }
 
-void AHapticsHandler::RefreshBrushCursor(float brushSize)
+/*
+	Redraw the cursor by the new brush information
+*/
+void AHapticsHandler::RefreshBrushCursor(float brushSize, FLinearColor brushColor)
 {
-	plane->ClearAllMeshSections();
-	CreateBrushCursor(brushSize);
+	brush->ClearAllMeshSections();
+	UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushColor.ToString()));
+	CreateBrushCursor(brushSize, brushColor);
 }
 
-void AHapticsHandler::CreateBrushCursor(float brushSize = 10.0f)
+void AHapticsHandler::CreateBrushCursor(float brushSize, FLinearColor brushColor)
 {
 	TArray<FVector> vertices;
 	TArray<FVector> normals;
@@ -232,16 +239,16 @@ void AHapticsHandler::CreateBrushCursor(float brushSize = 10.0f)
 	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
 
 	vertices.Add(FVector(0.0f, 1.0f, spacing / 2));
-	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
+	vertexColors.Add(brushColor); //red
 
 	vertices.Add(FVector(0.0f, 1.0f, -spacing / 2));
-	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //red
+	vertexColors.Add(brushColor); //red
 
 	vertices.Add(FVector(0.0f, -1.0f, spacing / 2));
-	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //red
+	vertexColors.Add(brushColor); //red
 
 	vertices.Add(FVector(0.0f, -1.0f, -spacing / 2));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //red
+	vertexColors.Add(brushColor); //red
 
 
 	for (int32 y = 0; y < height; y++)
@@ -280,8 +287,8 @@ void AHapticsHandler::CreateBrushCursor(float brushSize = 10.0f)
 			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
 		}
 	}
-	plane->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
-	plane->SetMaterial(0, Material);
+	brush->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	brush->SetMaterial(0, Material);
 
 }
 
