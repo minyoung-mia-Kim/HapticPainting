@@ -11,8 +11,16 @@ ADrawingHandler::ADrawingHandler()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	this->brushinfo = new FBrushInfo(Draw, 10.f, FLinearColor::White);
 	prvPositon = FVector(0, 0, 0);
+
+	// Add the brush list (Materials)
+	BrushArray.Add("Material'/Game/M_Color.M_Color'");
+	BrushArray.Add("Material'/Game/M_NonLight.M_NonLight''");
+	BrushArray.Add("Material'/Game/M_Test.M_Test''");
+	BrushArray.Add("Material'/Game/HDAssets/M_Texture_test.M_Texture_test''");
+	BrushArray.Add("Material'/Game/HDAssets/M_Texture_test2.M_Texture_test2''");
+
+	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, BrushArray[0], 10.f, FLinearColor::White);
 
 }
 
@@ -20,7 +28,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 {
 	//FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
 	DrawingDirection = FVector(position - prvPositon);
-	if (brushinfo->mode == BRUSHMODE::Draw)
+	if (brushinfo->state == BRUSHSTATE::Draw)
 	{
 		if (!hasClicked)
 		{
@@ -75,7 +83,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(position, position, mesh));
-	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color);
+	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, brushinfo->mode);
 	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
@@ -95,14 +103,34 @@ void ADrawingHandler::ChangeBrushMode(char key)
 	if (key == 'E')
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Erase Mode"));
-		brushinfo->mode = BRUSHMODE::Eraser;
+		brushinfo->state = BRUSHSTATE::Eraser;
 
 	}
 	else if (key == 'D')
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Draw Mode"));
-		brushinfo->mode = BRUSHMODE::Draw;
+		brushinfo->state = BRUSHSTATE::Draw;
 
+	}
+	else if (key == '1')
+	{
+		brushinfo->mode = BrushArray[0];
+	}
+	else if (key == '2')
+	{
+		brushinfo->mode = BrushArray[1];
+	}
+	else if (key == '3')
+	{
+		brushinfo->mode = BrushArray[2];
+	}
+	else if (key == '4')
+	{
+		brushinfo->mode = BrushArray[3];
+	}
+	else if (key == '5')
+	{
+		brushinfo->mode = BrushArray[4];
 	}
 }
 
@@ -161,9 +189,9 @@ void ADrawingHandler::BeginPlay()
 	Super::BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm Drawing handler"));
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
-	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
-	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
+	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
+	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
+	InputComponent->BindKey(EKeys::B, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
 
 	InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
 	InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
@@ -172,7 +200,11 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
 	InputComponent->BindKey(EKeys::Z, IE_Pressed, this, &ADrawingHandler::UndoStroke);
 
-
+	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'1'>);
+	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'2'>);
+	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'3'>);
+	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'4'>);
+	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);
 }
 
 // Called every frame

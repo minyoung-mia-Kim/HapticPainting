@@ -52,7 +52,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	void Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color);
+	void Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color, FString mode);
 	void Update(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color) ;
 
 	virtual void OnConstruction(const FTransform& Transform) override;

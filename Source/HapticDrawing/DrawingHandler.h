@@ -8,7 +8,7 @@
 #include "DrawingHandler.generated.h"
 
 UENUM()
-enum BRUSHMODE
+enum BRUSHSTATE
 {
 	Draw,
 	Eraser,
@@ -20,13 +20,15 @@ struct FBrushInfo
 {
 	GENERATED_BODY()
 		FBrushInfo() {}
-	FBrushInfo(BRUSHMODE _mode, float _size, FLinearColor _color)
+	FBrushInfo(BRUSHSTATE _state, FString _mode, float _size, FLinearColor _color)
 	{
+		state = _state;
 		mode = _mode;
 		size = _size;
 		color = _color;
 	}
-	BRUSHMODE mode;
+	BRUSHSTATE state;
+	FString mode;
 	float size;
 	FLinearColor color;
 };
@@ -55,13 +57,17 @@ class HAPTICDRAWING_API ADrawingHandler : public AActor
 {
 	GENERATED_BODY()
 
-
+	//	Drawing stroke array
 	UPROPERTY()
 		TArray<FStroke> StrokeArray;
 	UPROPERTY()
 		TArray<FVector> PositionArray;
 	UPROPERTY()
 		TArray<FRotator> RotationArray;
+	
+	//	Brush list
+	UPROPERTY()
+		TArray<FString> BrushArray;
 	//UPROPERTY()
 	//	FStroke& CurrentStroke = nullptr;
 

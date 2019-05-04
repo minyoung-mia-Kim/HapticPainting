@@ -14,9 +14,8 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 	//pm->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	pm->SetEnableGravity(false);
 	SetRootComponent(pm);
-	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
-	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
-	pm->SetMaterial(0, Material);
+	//FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
+
 
 	width = 2;
 	height = 2;
@@ -68,10 +67,13 @@ void AProceduralPlaneMesh::Tick(float DeltaTime)
 //	nGeneratedSection++;
 //}
 
-void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color)
+void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color, FString mode)
 {
 	ClearMeshData();
 	float uvSpacing = 1.0f / FMath::Max(height, width);
+
+	Material = LoadObject<UMaterialInterface>(nullptr, *mode);
+	pm->SetMaterial(0, Material);
 
 	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)))));
 	//vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
