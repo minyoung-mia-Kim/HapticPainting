@@ -48,8 +48,7 @@ struct FStroke
 	FVector endPos;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrushDelegate, float, brushSize, FLinearColor, brushColor);
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrushInfoDelegate, float, brushSize, FLinearColor, brushColor);
 
 UCLASS()
 class HAPTICDRAWING_API ADrawingHandler : public AActor
@@ -72,7 +71,7 @@ public:
 	ADrawingHandler();
 
 	UPROPERTY()
-		FBrushDelegate FBrushUpdateDelegate;
+		FBrushInfoDelegate FBrushUpdateDelegate;
 
 	float dt = 0.0f;
 	float prvDt = 0.0f;
@@ -89,12 +88,15 @@ public:
 		void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
 		void regenerateStroke(FVector position, FRotator rotation, FVector direction);
-	UFUNCTION()
-		void EraseStroke();
+	template<char key>
+	void ChangeBrushMode();
+	void ChangeBrushMode(char key);
 	UFUNCTION()
 		void BrushsizeUp();
 	UFUNCTION()
 		void BrushsizeDown();
+	UFUNCTION()
+		void UndoStroke();
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

@@ -76,7 +76,6 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)))));
 	//vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 
-
 	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, -spacing/2)))));
 	//vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
 
@@ -189,11 +188,10 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
 
 	//Normal : Mesh front - Forward
-	//FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]),FVector(vertices[1] - vertices[3]));
+	FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]),FVector(vertices[1] - vertices[3]));
 	
 	//Normal : Hapatic - Forward
-	FVector Normal = -rotation.Vector();
-
+	//FVector Normal = -rotation.Vector();
 	Normal.Normalize();
 	UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
 

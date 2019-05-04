@@ -25,22 +25,24 @@ AHapticsHandler::AHapticsHandler()
 
 	cursor = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
 	// set up a notification for when this component overlaps something
-	cursor->OnComponentBeginOverlap.AddDynamic(this, &AHapticsHandler::OnComponentBeginOverlap);
-	cursor->OnComponentEndOverlap.AddDynamic(this, &AHapticsHandler::OnComponentEndOverlap);
-	cursor->SetEnableGravity(false);
-	cursor->SetSimulatePhysics(false);
 	//cursor->SetNotifyRigidBodyCollision(true);
 	//cursor->BodyInstance.SetCollisionProfileName("BlockAll");
 	//cursor->OnComponentHit.AddDynamic(this, &AHapticsHandler::OnHit);
 
 	cursor->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	//cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	cursor->bHiddenInGame = false;
 	SetRootComponent(cursor);
 
 	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	brush->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 	CreateBrushCursor(10.0f, FLinearColor::White);
+
+	cursor->OnComponentBeginOverlap.AddDynamic(this, &AHapticsHandler::OnComponentBeginOverlap);
+	cursor->OnComponentEndOverlap.AddDynamic(this, &AHapticsHandler::OnComponentEndOverlap);
+	cursor->SetEnableGravity(false);
+	cursor->SetSimulatePhysics(false);
 }
 
 /**
@@ -172,17 +174,15 @@ void AHapticsHandler::button2Clicked()
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
 	//UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
 	SbuttonInputDelegate.Broadcast(position, hasSBClicked);
-
-
 }
 /*
 * Collistion event
 */
 void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-
+	FVector brushNormal = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal;
 	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
-	//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal);
+	UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), brushNormal.X, brushNormal.Y, brushNormal.Z);
 	//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), -);
 
 
@@ -190,18 +190,34 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
 	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(SweepResult.GetComponent()->GetName()));
 	////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), (bFromSweep ? TEXT("True") : TEXT("False")));
-	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), SweepResult.Location.X, SweepResult.Location.Y, SweepResult.Location.Z);
+	UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
+	if (!hasFBClicked)
+	{
+		for (int i = 0; i < detectMesh->GetNumSections(); i++)
+		{
+			FProcMeshSection* ms = detectMesh->GetProcMeshSection(i);
+			//UE_LOG(LogTemp, Warning, TEXT("buffer Normal X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Normal.X, ms->ProcVertexBuffer[0].Normal.Y, ms->ProcVertexBuffer[0].Normal.Z);
+
+			if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.03f))
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Found it"));
+				setForceToApply(ms->ProcVertexBuffer[0].Normal);
+			}
+
+		}
+	}
+	
+	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), detectMesh->);
 	//UE_LOG(LogTemp, Warning, TEXT("bDepth : %d"), SweepResult.bStartPenetrating);
 
 	//UE_LOG(LogTemp, Warning, TEXT("Depth : %f"), SweepResult.PenetrationDepth);
 	////DrawDebugSphere(GetWorld(), SweepResult.Location, 16, 32, FColor(255, 0, 0), false, 3.0f);
-	//if(!hasFBClicked)
-	//	setForceToApply(FVector(1.0f, 1.0f, 1.0f));
+	//
+	//	
 
 
 
 }
-
 void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Finished"));
@@ -237,17 +253,17 @@ void AHapticsHandler::CreateBrushCursor(float brushSize, FLinearColor brushColor
 
 	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
 	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
-
-	vertices.Add(FVector(0.0f, 1.0f, spacing / 2));
+	
+	vertices.Add(FVector(cursor->GetScaledSphereRadius(), 1.0f, spacing / 2));
 	vertexColors.Add(brushColor); //red
 
-	vertices.Add(FVector(0.0f, 1.0f, -spacing / 2));
+	vertices.Add(FVector(cursor->GetScaledSphereRadius(), 1.0f, -spacing / 2));
 	vertexColors.Add(brushColor); //red
 
-	vertices.Add(FVector(0.0f, -1.0f, spacing / 2));
+	vertices.Add(FVector(cursor->GetScaledSphereRadius(), -1.0f, spacing / 2));
 	vertexColors.Add(brushColor); //red
 
-	vertices.Add(FVector(0.0f, -1.0f, -spacing / 2));
+	vertices.Add(FVector(cursor->GetScaledSphereRadius(), -1.0f, -spacing / 2));
 	vertexColors.Add(brushColor); //red
 
 
@@ -299,6 +315,7 @@ void AHapticsHandler::CreateBrushCursor(float brushSize, FLinearColor brushColor
 //		UE_LOG(LogTemp, Warning, TEXT("Hitted(Blocked)"));
 //		UE_LOG(LogTemp, Warning, TEXT("Depth : %f"), Hit.PenetrationDepth);
 //
+
 //	}
 //
 //}

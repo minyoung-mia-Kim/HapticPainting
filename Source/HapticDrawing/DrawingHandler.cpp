@@ -20,29 +20,31 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 {
 	//FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
 	DrawingDirection = FVector(position - prvPositon);
-
-	if (!hasClicked)
+	if (brushinfo->mode == BRUSHMODE::Draw)
 	{
-		if (!(DrawingDirection.Size() < 1.0))
+		if (!hasClicked)
 		{
-			generateStroke(position, rotation, DrawingDirection);
+			if (!(DrawingDirection.Size() < 1.0))
+			{
+				generateStroke(position, rotation, DrawingDirection);
+			}
 		}
-	}
-	else
-	{
-		if (dt - prvDt > 0.03 && StrokeArray.Num() > 0)
+		else
 		{
-			PositionArray.Add(position);
-			RotationArray.Add(rotation);
-			UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
+			if (dt - prvDt > 0.03 && StrokeArray.Num() > 0)
+			{
+				PositionArray.Add(position);
+				RotationArray.Add(rotation);
+				UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
-			if (FMath::Abs(FVector::Dist(position, prvPositon)))
-				regenerateStroke(position, rotation, DrawingDirection);
+				if (FMath::Abs(FVector::Dist(position, prvPositon)))
+					regenerateStroke(position, rotation, DrawingDirection);
 
-			prvDt = dt;
-			//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
+				prvDt = dt;
+				//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
+			}
+
 		}
-
 	}
 
 	prvPositon = position;
@@ -71,10 +73,9 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVector direction)
 {
 	UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
-	//AMyProcedualMesh* mesh1 = GetWorld()->SpawnActor<AMyProcedualMesh>(AMyProcedualMesh::StaticClass());
-	AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
-	StrokeArray.Add(FStroke(position, position, mesh1));
-	mesh1->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color);
+	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
+	StrokeArray.Add(FStroke(position, position, mesh));
+	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color);
 	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
@@ -84,9 +85,25 @@ void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVec
 	UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
 	StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
 }
-
-void ADrawingHandler::EraseStroke()
+template<char key>
+void ADrawingHandler::ChangeBrushMode()
 {
+	ChangeBrushMode(key);
+}
+void ADrawingHandler::ChangeBrushMode(char key)
+{
+	if (key == 'E')
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Erase Mode"));
+		brushinfo->mode = BRUSHMODE::Eraser;
+
+	}
+	else if (key == 'D')
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Draw Mode"));
+		brushinfo->mode = BRUSHMODE::Draw;
+
+	}
 }
 
 void ADrawingHandler::BrushsizeUp()
@@ -99,6 +116,19 @@ void ADrawingHandler::BrushsizeUp()
 
 void ADrawingHandler::BrushsizeDown()
 {
+	brushinfo->size -= 0.5f;
+	UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+}
+
+void ADrawingHandler::UndoStroke()
+{
+	if (StrokeArray.Num() != 0)
+	{
+		StrokeArray.RemoveAt(StrokeArray.Num() - 1);
+		StrokeArray.Last().mesh->Destroy();
+
+	}
 }
 
 void ADrawingHandler::ChangeColorG()
@@ -122,7 +152,7 @@ void ADrawingHandler::ChangeColorR()
 	brushinfo->color = FLinearColor::Red;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
 	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
-
+	
 }
 
 // Called when the game starts or when spawned
@@ -134,6 +164,14 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
 	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
 	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
+
+	InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
+	InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
+	
+	InputComponent->BindKey(EKeys::E, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'E'>);
+	InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
+	InputComponent->BindKey(EKeys::Z, IE_Pressed, this, &ADrawingHandler::UndoStroke);
+
 
 }
 

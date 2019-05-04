@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "Components/SphereComponent.h"
+#include "Components/BoxComponent.h"
 #include "Haptico/Public/HapticsManager.h"
 #include "HapticHandler.generated.h"
 
