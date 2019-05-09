@@ -2,6 +2,8 @@
 
 #include "ProceduralPlaneMesh.h"
 #include "DrawDebugHelpers.h"
+#include "Engine/Engine.h"
+
 
 // Sets default values
 AProceduralPlaneMesh::AProceduralPlaneMesh()
@@ -14,8 +16,6 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 	//pm->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	pm->SetEnableGravity(false);
 	SetRootComponent(pm);
-	//FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
-
 
 	width = 2;
 	height = 2;
@@ -72,14 +72,17 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 	ClearMeshData();
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
+	//	Set material
 	Material = LoadObject<UMaterialInterface>(nullptr, *mode);
 	pm->SetMaterial(0, Material);
 
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)))));
 	//vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, -spacing/2)))));
+	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)))));
 	//vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
+	uvs.Add(FVector2D(0, 0));
+	uvs.Add(FVector2D(1, 0));
 
 }
 /* // Old function
@@ -172,7 +175,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	/* Mesh component's coordination is always 0, 0, 0 since its not moving */
 
 	UE_LOG(LogTemp, Warning, TEXT("update haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-	float uvSpacing = 1.0f / FMath::Max(height, width);
+	float uvSpacing = 1.0f / FMath::Max(nGeneratedSection, width);
 
 
 	// The distance between this mesh component and the haptic position
@@ -181,17 +184,17 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	UE_LOG(LogTemp, Warning, TEXT("Distance X:%f, Y:%f, Z:%f"), dis.X, dis.Y, dis.Z);
 
 
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)));
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
 	//vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //blue
 	UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
 
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing/2)));
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
 	//vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
 	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
 
 	//Normal : Mesh front - Forward
-	FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]),FVector(vertices[1] - vertices[3]));
-	
+	FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]), FVector(vertices[1] - vertices[3]));
+
 	//Normal : Hapatic - Forward
 	//FVector Normal = -rotation.Vector();
 	Normal.Normalize();
@@ -199,55 +202,86 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 
+	FVector surfaceTangent = vertices[2] - vertices[3]; //p1 to p3 being FVectors
+	//	FVector::GetSafeNormal:
+	//	Gets a normalized copy of the vector, checking it is safe to do so based on the length. 
+	//	Returns zero vector if vector length is too small to safely normalize.
+	surfaceTangent = surfaceTangent.GetSafeNormal();
+
+	if (surfaceTangent == FVector().ZeroVector)
+		UE_LOG(LogTemp, Warning, TEXT("vector length is too small to safely normalize"));
+
+
 
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
 			normals.Add(Normal);
-			vertexColors.Add(color); 
-			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
-			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
+			vertexColors.Add(color);
+			//uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
+			tangents.Add(FProcMeshTangent(surfaceTangent, true));
 		}
 	}
 	GenerateTriangles();
-
-	//TODO :: Fix the error
-	//for (int32 i = 0; i < 4; i++)
-	//{
-	//	vertices.Add(vertices[i]);
-	//	vertexColors.Add(vertexColors[i]);
-	//	normals.Add(normals[i]);
-	//	uvs.Add(uvs[i]);
-	//	tangents.Add(tangents[i]);
-	//}
+	//	Two-sided front-faces
 	GenerateOppositeTriangles();
 
 	/* Add a mesh section */
 	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, true);
 	//pm->bUseComplexAsSimpleCollision = false;
 	pm->SetCollisionConvexMeshes({ vertices });
+
+
+	/*	Get the first material of the static mesh and turn it into a material instance */
+	UMaterialInstanceDynamic* DynamicMatInstance = pm->CreateAndSetMaterialInstanceDynamic(0);
+	//UMaterialInstanceDynamic* DynamicMatInstance = UMaterialInstanceDynamic::Create(Material, this);
+
+	//If we have a valid dynamic material instance, modify its parameters
+	if (DynamicMatInstance)
+	{
+		float ex;
+		DynamicMatInstance->GetScalarParameterValue(FName("UTiling"), ex);
+		DynamicMatInstance->SetScalarParameterValue(FName("UTiling"), ex - 0.001);
+	}
 	pm->SetMaterial(nGeneratedSection, Material);
 
 	/* increase section idx */
 	nGeneratedSection++;
-
 	UE_LOG(LogTemp, Warning, TEXT("Total # of section : %d"), nGeneratedSection);
 
 	ClearMeshData();
 
 	/* For the next mesh section */
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing/2)));
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
 	//vertexColors.Add(color); //white
 	//vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 	UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
 
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing/2)));
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
 	//vertexColors.Add(color); //white
 	//vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
 	UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
 
+	/* UVs */
+	for (int i = pm->GetNumSections()-1; i > 0; i--)
+	{
+		if (i != 0)
+		{
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, FMath::Sin(90 / pm->GetNumSections()-i));
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, FMath::Sin(90 / pm->GetNumSections()-i));
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, FMath::Sin(90 / pm->GetNumSections()-i+1));
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, FMath::Sin(90 / pm->GetNumSections()-i+1));
+		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("v: %f"), FMath::Sin(90 / i + 1)));
+			UE_LOG(LogTemp, Warning, TEXT("%d : %f"),i, FMath::Sin(90 / pm->GetNumSections()- i + 1));
 
+		}
+		//else
+		//{
+		//	pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, FMath::Sin(90 / i+1));
+		//	pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, FMath::Sin(90 / i+1));
+		//}
+	}
 }
 
 void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)

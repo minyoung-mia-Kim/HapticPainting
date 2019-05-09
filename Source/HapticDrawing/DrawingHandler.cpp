@@ -14,6 +14,7 @@ ADrawingHandler::ADrawingHandler()
 	prvPositon = FVector(0, 0, 0);
 
 	// Add the brush list (Materials)
+	BrushArray.Add("Material'/Game/HDAssets/M_BasicBrush.M_BasicBrush'");
 	BrushArray.Add("Material'/Game/M_Color.M_Color'");
 	BrushArray.Add("Material'/Game/M_NonLight.M_NonLight''");
 	BrushArray.Add("Material'/Game/M_Test.M_Test''");

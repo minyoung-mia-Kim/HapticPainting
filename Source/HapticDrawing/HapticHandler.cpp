@@ -180,19 +180,19 @@ void AHapticsHandler::button2Clicked()
 */
 void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
-	FVector brushNormal = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal;
-	UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
-	UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), brushNormal.X, brushNormal.Y, brushNormal.Z);
-	//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), -);
-
-
-	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
-	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
-	//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(SweepResult.GetComponent()->GetName()));
-	////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), (bFromSweep ? TEXT("True") : TEXT("False")));
-	UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
 	if (!hasFBClicked)
 	{
+		FVector brushNormal = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal;
+		UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
+		UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), brushNormal.X, brushNormal.Y, brushNormal.Z);
+		//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), -);
+
+
+		//UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
+		//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
+		//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(SweepResult.GetComponent()->GetName()));
+		////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), (bFromSweep ? TEXT("True") : TEXT("False")));
+		UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
 		for (int i = 0; i < detectMesh->GetNumSections(); i++)
 		{
 			FProcMeshSection* ms = detectMesh->GetProcMeshSection(i);
@@ -206,7 +206,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 
 		}
 	}
-	
+
 	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), detectMesh->);
 	//UE_LOG(LogTemp, Warning, TEXT("bDepth : %d"), SweepResult.bStartPenetrating);
 
@@ -223,8 +223,8 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 	//UE_LOG(LogTemp, Warning, TEXT("Finished"));
 	////UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
 	////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
-	//if (!hasFBClicked)
-	//	setForceToApply(FVector(0.0f, 0.0f, 0.0f));
+	if (!hasFBClicked)
+		setForceToApply(FVector(0.0f, 0.0f, 0.0f));
 
 }
 
@@ -253,7 +253,7 @@ void AHapticsHandler::CreateBrushCursor(float brushSize, FLinearColor brushColor
 
 	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
 	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
-	
+
 	vertices.Add(FVector(cursor->GetScaledSphereRadius(), 1.0f, spacing / 2));
 	vertexColors.Add(brushColor); //red
 
