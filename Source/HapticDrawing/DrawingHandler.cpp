@@ -152,11 +152,10 @@ void ADrawingHandler::BrushsizeDown()
 
 void ADrawingHandler::UndoStroke()
 {
-	if (StrokeArray.Num() != 0)
+	if (StrokeArray.Num() > 0)
 	{
-		StrokeArray.RemoveAt(StrokeArray.Num() - 1);
 		StrokeArray.Last().mesh->Destroy();
-
+		StrokeArray.RemoveAt(StrokeArray.Num() - 1);
 	}
 }
 
@@ -197,8 +196,8 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
 	InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
 	
-	InputComponent->BindKey(EKeys::E, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'E'>);
-	InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
+	//InputComponent->BindKey(EKeys::E, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'E'>);
+	//InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
 	InputComponent->BindKey(EKeys::Z, IE_Pressed, this, &ADrawingHandler::UndoStroke);
 
 	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'1'>);

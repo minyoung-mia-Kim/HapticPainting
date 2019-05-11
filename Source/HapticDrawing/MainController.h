@@ -17,8 +17,8 @@ UCLASS()
 class HAPTICDRAWING_API AMainController : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
+
+public:
 	// Sets default values for this actor's properties
 	AMainController();
 	//Response Delegate
@@ -27,27 +27,34 @@ public:
 
 	UFUNCTION()
 		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
-	
+
 	UFUNCTION()
 		void BindToBrushUpdate(float brushSize, FLinearColor brushColor);
 
 
 protected:
 	UPROPERTY()
-	class AHapticsHandler* HHandler;
+		class AHapticsHandler* HHandler;
 	UPROPERTY()
-	class ADrawingHandler* DHandler;
+		class ADrawingHandler* DHandler;
+
 
 	FVector CurrentLocation;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	/* Adjust Haptic Handler position */
+	FRotator DefaultPosition = FRotator(0.0f, 180.f, 0.0f);
+	FRotator DefaultDirection = FRotator(0.0f, 180.0f, 0.0f);
 
-	
-	
+
+	UFUNCTION()
+		void SetHapticTurn(FRotator rotator);
+
+
 };

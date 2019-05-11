@@ -2,6 +2,7 @@
 
 #include "MainController.h"
 #include "TimerManager.h"
+#include "Engine/Engine.h"
 
 
 // Sets default values
@@ -42,10 +43,14 @@ void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
+	APainterPawn* PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	
+	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
 	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
 
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
+	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
 
 	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
@@ -60,15 +65,31 @@ void AMainController::Tick(float DeltaTime)
 	FRotator rotation;
 
 	//Bilboard with cam
-	//auto aa = GetWorld()->GetFirstPlayerController();
+	auto aa = GetWorld()->GetFirstPlayerController();
+	location = aa->GetPawn()->GetActorLocation();
+	rotation = aa->GetPawn()->GetActorRotation();
+
 	//aa->GetPlayerViewPoint(location, rotation);
 	////rotation.Pitch = -rotation.Pitch; //updown
 	////rotation.Yaw += 180.f;			  //RL
 
 	//Follow the pawn's camera view
-	//HHandler->SetActorLocation(rotation.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
-	HHandler->SetActorLocation(HHandler->getHapticDevicePositionInUnrealCoordinates() + location);
-	HHandler->SetActorRotation(HHandler->getHapticDeviceRotationAsUnrealRotator());
+	//HHandler->SetActorLocation(rotation.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()));
 
+	/* Follow the pawn's location*/
+	//DefaultPosition = DefaultPosition + rotation;
+	HHandler->SetActorLocation(DefaultPosition.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
+	HHandler->SetActorRotation(DefaultDirection + HHandler->getHapticDeviceRotationAsUnrealRotator());
+	//HHandler->SetCursorRotation(rotation);
+}
+
+void AMainController::SetHapticTurn(FRotator rotator)
+{
+	DefaultPosition += rotator;
+	DefaultDirection += rotator;
+	UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
+	UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
+	//HHandler->SetCursorRotation(rotator);
 }
 

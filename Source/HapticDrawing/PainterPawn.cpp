@@ -2,6 +2,8 @@
 
 #include "PainterPawn.h"
 #include "Components/ShapeComponent.h"
+#include "Components/InputComponent.h"
+#include "Engine/Engine.h"
 
 
 // Sets default values
@@ -9,34 +11,111 @@ APainterPawn::APainterPawn()
 {
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	SetRootComponent((USceneComponent*)GetCollisionComponent());
+	/*SetRootComponent((USceneComponent*)GetCollisionComponent());
 	SetActorEnableCollision(false);
-	GetRootComponent()->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));
+	GetRootComponent()->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));*/
+	RComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
+	SetRootComponent(RComponent);
+	VRcamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PawnCamera"));
+
+	MC_Left = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Left"));
+	MC_Left->Hand = EControllerHand::Left;
+	MC_Left->SetupAttachment(RootComponent);
+
+	MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
+	MC_Right->Hand = EControllerHand::Right;
+	MC_Right->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void APainterPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	//EnableInput(GetWorld()->GetFirstPlayerController());
+
 }
 
 // Called every frame
 void APainterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	//AddMovementInput(GetActorForwardVector() * MovementVector.Y + GetActorRightVector() * MovementVector.X, 1);
 }
 
 // Called to bind functionality to input
 void APainterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	
+	//Motion controller bindings
+	InputComponent->BindAxis("MoveForward", this, &APainterPawn::MoveForward);
+	InputComponent->BindAxis("MoveRight", this, &APainterPawn::MoveRight);
+	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Pressed, this, &APainterPawn::MotionControlRightTriggerPressed);
+	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Released, this, &APainterPawn::MotionControlRightTriggerReleased);
+}
 
+// Left Trigger Press
+float APainterPawn::TurnLeft()
+{
+	float minus = -1;
+	return minus;
+}
+
+// Left Trigger Release
+float APainterPawn::TurnRight()
+{
+	float plus = 1;
+	return plus;
+}
+
+void APainterPawn::RotateBrush()
+{
+	TArray<AActor*> Children;
+	this->GetAttachedActors(Children);
 }
 
 
+/**
+ * function: getHMDType
+ * This method communicates with the Unreal Engine to determine what type of HMD
+ * is attached to host device.
+ *
+ * @return FString    name of the HMD device; "None" if there is no HMD
+ */
+//FString APainterPawn::getHMDType() {
+//	IHeadMountedDisplay* hmd = (IHeadMountedDisplay*)(GEngine->HMDDevice.Get());
+//	if (hmd) {
+//		EHMDDeviceType::Type current_hmd = hmd->GetHMDDeviceType();
+//
+//		switch (current_hmd) {
+//		case EHMDDeviceType::DT_ES2GenericStereoMesh:
+//			return FString("Generic");
+//			break;
+//		case EHMDDeviceType::DT_GearVR:
+//			return FString("GearVR");
+//			break;
+//		case EHMDDeviceType::DT_Morpheus:
+//			return FString("PSVR");
+//			break;
+//		case EHMDDeviceType::DT_OculusRift:
+//			return FString("OculusRift");
+//			break;
+//		case EHMDDeviceType::DT_SteamVR:
+//			return FString("SteamVR");
+//			break;
+//		default:
+//			return FString("None");
+//			break;
+//		}
+//	}
+//
+//	return FString("None");
+//}
+
 void APainterPawn::MoveRight(float Val)
 {
+
+
 	if (Val != 0.f)
 	{
 		if (Controller)
@@ -52,6 +131,7 @@ void APainterPawn::MoveRight(float Val)
 
 void APainterPawn::MoveForward(float Val)
 {
+
 	if (Val != 0.f)
 	{
 		if (Controller)
@@ -74,15 +154,15 @@ void APainterPawn::MoveUp_World(float Val)
 	}
 }
 
-void APainterPawn::TurnAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds() * CustomTimeDilation);
-}
-
-void APainterPawn::LookUpAtRate(float Rate)
-{
-	// calculate delta for this frame from the rate information
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds() * CustomTimeDilation);
-}
+//void APainterPawn::TurnAtRate(float Rate)
+//{
+//	// calculate delta for this frame from the rate information
+//	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds() * CustomTimeDilation);
+//}
+//
+//void APainterPawn::LookUpAtRate(float Rate)
+//{
+//	// calculate delta for this frame from the rate information
+//	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds() * CustomTimeDilation);
+//}
 

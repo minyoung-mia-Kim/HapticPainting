@@ -26,16 +26,17 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 		bool noHapticDevice;
 
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-	USceneComponent* rc = nullptr;
+		USceneComponent* rc = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-	USphereComponent* cursor = nullptr;
+		USphereComponent* cursor = nullptr;
 
 public:
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-	UProceduralMeshComponent* brush = nullptr;
+		UProceduralMeshComponent* brush = nullptr;
 	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
-	UMaterialInterface* Material;
-
+		UMaterialInterface* Material;
+	UPROPERTY()
+		FVector CurrentForce;
 public:
 
 	AHapticsHandler();
@@ -43,14 +44,16 @@ public:
 	* The multicast delegate that is fired every tick and provides the up to date haptic data
 	*/
 	UPROPERTY(BlueprintAssignable)
-	FNewHapticDeviceData OnHapticHandlerTick;
+		FNewHapticDeviceData OnHapticHandlerTick;
 	UPROPERTY()
-	FFbuttonDelegate FbuttonInputDelegate;
+		FFbuttonDelegate FbuttonInputDelegate;
 	UPROPERTY()
-	FSbuttonDelegate SbuttonInputDelegate;
+		FSbuttonDelegate SbuttonInputDelegate;
 
+	/* Haptic status */
 	bool hasFBClicked;
 	bool hasSBClicked;
+	bool isOverlapping;
 
 protected:
 
@@ -132,26 +135,28 @@ public:
 	* Collision event
 	*/
 	UFUNCTION()
-	void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
-								UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, 
-								bool bFromSweep, const FHitResult& SweepResult);
+		void OnComponentBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+			bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
-	void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, 
-								UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+		void OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+			UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 	//UFUNCTION()
 	//void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 	//			UPrimitiveComponent* OtherComp, FVector NormalImpulse, 
 	//			const FHitResult& Hit);
 
+public:
 	/*
 	* Redraw the cursor
 	*/
 	UFUNCTION()
-	void RefreshBrushCursor(float brushSize, FLinearColor brushColor);
+		void RefreshBrushCursor(float brushSize, FLinearColor brushColor);
 
 	UFUNCTION()
-	void CreateBrushCursor(float brushSize, FLinearColor brushColor);
-	
+		void CreateBrushCursor(float brushSize, FLinearColor brushColor);
+	UFUNCTION()
+		void SetCursorRotation(FRotator rotation);
 
 };

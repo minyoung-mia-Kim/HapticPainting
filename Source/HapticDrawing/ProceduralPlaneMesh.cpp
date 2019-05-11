@@ -192,11 +192,13 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	//vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
 	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
 
+	/* Normal and Tangent */
 	//Normal : Mesh front - Forward
 	FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]), FVector(vertices[1] - vertices[3]));
 
 	//Normal : Hapatic - Forward
 	//FVector Normal = -rotation.Vector();
+	Normal = -Normal;
 	Normal.Normalize();
 	UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
 
@@ -211,6 +213,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	if (surfaceTangent == FVector().ZeroVector)
 		UE_LOG(LogTemp, Warning, TEXT("vector length is too small to safely normalize"));
 
+	DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 
 	for (int32 y = 0; y < height; y++)

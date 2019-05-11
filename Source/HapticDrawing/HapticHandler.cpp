@@ -9,7 +9,7 @@
 #include "HapticThreadInput.h"
 #include "HapticThreadOutput.h"
 #include "MainController.h"
-
+#include "Engine/Engine.h"
 #include "DrawDebugHelpers.h"
 
 /**
@@ -56,9 +56,10 @@ void AHapticsHandler::BeginPlay()
 	//if (!IHaptico::connect)
 	//	noHapticDevice = true;
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm handler"));
+	/* Haptic status */
 	hasFBClicked = false;
 	hasSBClicked = false;
-
+	isOverlapping = false;
 }
 
 /**
@@ -79,14 +80,29 @@ void AHapticsHandler::Tick(float DeltaTime)
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
 
-	FRotator MyRotation = this->getHapticDeviceRotationAsUnrealRotator();
+	FVector MyLocation = this->GetActorLocation();
+	FRotator MyRotation = this->GetActorRotation();
 	FVector Direction = -MyRotation.Vector();
 	Direction.Normalize();
 	DrawDebugLine(GetWorld(), brush->GetComponentLocation(), brush->GetComponentLocation() + Direction * 10.0f, FColor::Red, false, 0, 0, 0.5);
 
+	
+	FVector v1 = FVector(MyLocation.X, MyLocation.Y, MyLocation.Z) + MyRotation.RotateVector(FVector(0.0f, 0.0f, 5.0f));
+	FVector v2 = FVector(MyLocation.X, MyLocation.Y, MyLocation.Z) + MyRotation.RotateVector(FVector(0.0f, 0.0f, -5.0f));
+	
+	FVector surfaceTangent = v1- v2;
+	surfaceTangent = surfaceTangent.GetSafeNormal();
+
+	if (surfaceTangent == FVector().ZeroVector)
+		UE_LOG(LogTemp, Warning, TEXT("vector length is too small to safely normalize"));
+
+	DrawDebugLine(GetWorld(), brush->GetComponentLocation(), brush->GetComponentLocation()+ surfaceTangent * 5.0f, FColor::Blue, false, 0, 0, 0.5);
+
 	for (int i = 0; i < brush->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
 	{
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Normal = Direction;
+		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Tangent = FProcMeshTangent(surfaceTangent, true);
+
 	}
 }
 
@@ -180,11 +196,15 @@ void AHapticsHandler::button2Clicked()
 */
 void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
+	isOverlapping = true;
+
 	if (!hasFBClicked)
 	{
 		FVector brushNormal = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal;
-		UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
-		UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), brushNormal.X, brushNormal.Y, brushNormal.Z);
+		FVector brushTangent = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Tangent.TangentX;
+
+		//UE_LOG(LogTemp, Warning, TEXT("Overlapped"));
+		//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), brushNormal.X, brushNormal.Y, brushNormal.Z);
 		//UE_LOG(LogTemp, Warning, TEXT("brush Normal X:%f, Y:%f, Z:%f"), -);
 
 
@@ -192,19 +212,41 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
 		//UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(SweepResult.GetComponent()->GetName()));
 		////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), (bFromSweep ? TEXT("True") : TEXT("False")));
+
 		UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
-		for (int i = 0; i < detectMesh->GetNumSections(); i++)
+		if (detectMesh != nullptr)
 		{
-			FProcMeshSection* ms = detectMesh->GetProcMeshSection(i);
-			//UE_LOG(LogTemp, Warning, TEXT("buffer Normal X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Normal.X, ms->ProcVertexBuffer[0].Normal.Y, ms->ProcVertexBuffer[0].Normal.Z);
-
-			if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.03f))
+			for (int i = 0; i < detectMesh->GetNumSections(); i++)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("Found it"));
-				setForceToApply(ms->ProcVertexBuffer[0].Normal);
-			}
+				FProcMeshSection* ms = detectMesh->GetProcMeshSection(i);
+				//UE_LOG(LogTemp, Warning, TEXT("buffer Normal X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Normal.X, ms->ProcVertexBuffer[0].Normal.Y, ms->ProcVertexBuffer[0].Normal.Z);
 
+				if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.03f) &&
+					ms->ProcVertexBuffer[0].Tangent.TangentX.Equals(brushTangent, 0.03f))
+				{
+					//UE_LOG(LogTemp, Warning, TEXT("Found it"));
+
+					/* Debug */
+					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Overlapped")));
+					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("brush Normal X:%f, Y:%f, Z:%f"), brushNormal.X, brushNormal.Y, brushNormal.Z));
+					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("brush Tangent X:%f, Y:%f, Z:%f"), brushTangent.X, brushTangent.Y, brushTangent.Z));
+
+					UE_LOG(LogTemp, Warning, TEXT("Tangent X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Tangent.TangentX.X,
+						ms->ProcVertexBuffer[0].Tangent.TangentX.Y, ms->ProcVertexBuffer[0].Tangent.TangentX.Z);
+
+					CurrentForce = ms->ProcVertexBuffer[0].Normal;
+					setForceToApply(CurrentForce);
+				}
+
+				//if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.03f))
+				//{
+				//	UE_LOG(LogTemp, Warning, TEXT("Found it"));
+				//	CurrentForce = ms->ProcVertexBuffer[0].Normal;
+				//	setForceToApply(CurrentForce);
+				//}
+			}
 		}
+
 	}
 
 	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), detectMesh->);
@@ -220,17 +262,23 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 }
 void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	isOverlapping = false;
+
 	//UE_LOG(LogTemp, Warning, TEXT("Finished"));
 	////UE_LOG(LogTemp, Warning, TEXT("OverlappedComponent : %s"), *(OverlappedComp->GetName()));
 	////UE_LOG(LogTemp, Warning, TEXT("OtherComp : %s"), *(OtherComp->GetName()));
 	if (!hasFBClicked)
-		setForceToApply(FVector(0.0f, 0.0f, 0.0f));
-
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Finished")));
+		setForceToApply(FMath::Lerp(CurrentForce, FVector(0.0f, 0.0f, 0.0f), 0.5));
+		CurrentForce = FVector(0.0f, 0.0f, 0.0f);
+	}
 }
 
 /*
 	Redraw the cursor by the new brush information
 */
+
 void AHapticsHandler::RefreshBrushCursor(float brushSize, FLinearColor brushColor)
 {
 	brush->ClearAllMeshSections();
@@ -306,6 +354,12 @@ void AHapticsHandler::CreateBrushCursor(float brushSize, FLinearColor brushColor
 	brush->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, false);
 	brush->SetMaterial(0, Material);
 
+}
+
+void AHapticsHandler::SetCursorRotation(FRotator rotation)
+{
+	//cursor->AddWorldRotation(rotation);
+	//brush->AddWorldRotation(rotation);
 }
 
 //void AHapticsHandler::OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComp, FVector NormalImpulse, const FHitResult & Hit)

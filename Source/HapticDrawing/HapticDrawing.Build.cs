@@ -17,6 +17,11 @@ public class HapticDrawing : ModuleRules
         PrivateDependencyModuleNames.AddRange(new string[] { "Haptico" });
         PrivateIncludePathModuleNames.AddRange(new string[] { "Haptico" });
         PublicIncludePathModuleNames.AddRange(new string[] { "Haptico" });
+
+        /* VR Required Modules */
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SteamVR", "SteamVRController", "HeadMountedDisplay" });
+        PrivateDependencyModuleNames.AddRange(new string[] { "HeadMountedDisplay", "SteamVR" });
+
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 
