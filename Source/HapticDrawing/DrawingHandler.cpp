@@ -75,7 +75,8 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 
 	if (!hasClicked)
 	{
-		BrushsizeUp();
+		//UE_LOG(LogTemp, Warning, TEXT("ddd"));
+		//UndoStroke();
 	}
 }
 
@@ -154,6 +155,8 @@ void ADrawingHandler::UndoStroke()
 {
 	if (StrokeArray.Num() > 0)
 	{
+		UE_LOG(LogTemp, Warning, TEXT(">>"));
+
 		StrokeArray.Last().mesh->Destroy();
 		StrokeArray.RemoveAt(StrokeArray.Num() - 1);
 	}
@@ -188,6 +191,7 @@ void ADrawingHandler::BeginPlay()
 {
 	Super::BeginPlay();
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm Drawing handler"));
+
 	EnableInput(GetWorld()->GetFirstPlayerController());
 	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
 	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
@@ -198,13 +202,16 @@ void ADrawingHandler::BeginPlay()
 	
 	//InputComponent->BindKey(EKeys::E, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'E'>);
 	//InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
-	InputComponent->BindKey(EKeys::Z, IE_Pressed, this, &ADrawingHandler::UndoStroke);
+	//InputComponent->BindKey(EKeys::Z, IE_Pressed, this, &ADrawingHandler::UndoStroke);
 
 	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'1'>);
 	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'2'>);
 	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'3'>);
 	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'4'>);
 	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);
+
+	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke);
+
 }
 
 // Called every frame

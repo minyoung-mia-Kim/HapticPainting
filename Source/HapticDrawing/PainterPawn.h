@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/DefaultPawn.h"
 #include "Engine/World.h"
 #include "HeadMountedDisplay.h"
 #include "Camera/CameraComponent.h"
@@ -11,6 +10,8 @@
 #include "PainterPawn.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPawnInfoDelegate, FRotator, pawnRotator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FVRInputDelegate);
+
 class UMotionControllerComponent;
 
 UCLASS()
@@ -43,8 +44,8 @@ public:
 	UPROPERTY(BlueprintCallable)
 		FPawnInfoDelegate FPawnUpdateDelegate;
 
-	UFUNCTION(BlueprintCallable)
-		void RotateBrush();
+	UPROPERTY(BlueprintCallable)
+		FVRInputDelegate FVRInputTriggerDelegate;
 
 	//UFUNCTION()
 		//FString getHMDType();

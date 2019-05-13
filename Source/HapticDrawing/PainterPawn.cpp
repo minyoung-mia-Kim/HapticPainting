@@ -32,7 +32,6 @@ void APainterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	//EnableInput(GetWorld()->GetFirstPlayerController());
-
 }
 
 // Called every frame
@@ -68,11 +67,6 @@ float APainterPawn::TurnRight()
 	return plus;
 }
 
-void APainterPawn::RotateBrush()
-{
-	TArray<AActor*> Children;
-	this->GetAttachedActors(Children);
-}
 
 
 /**

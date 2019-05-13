@@ -202,7 +202,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	Normal.Normalize();
 	UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
 
-	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+	//DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 
 	FVector surfaceTangent = vertices[2] - vertices[3]; //p1 to p3 being FVectors
 	//	FVector::GetSafeNormal:
@@ -213,7 +213,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	if (surfaceTangent == FVector().ZeroVector)
 		UE_LOG(LogTemp, Warning, TEXT("vector length is too small to safely normalize"));
 
-	DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+	//DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 
 	for (int32 y = 0; y < height; y++)
