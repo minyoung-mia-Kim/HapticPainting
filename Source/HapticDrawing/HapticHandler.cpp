@@ -282,7 +282,7 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 void AHapticsHandler::RefreshBrushCursor(float brushSize, FLinearColor brushColor)
 {
 	brush->ClearAllMeshSections();
-	UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushColor.ToString()));
+	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushColor.ToString()));
 	CreateBrushCursor(brushSize, brushColor);
 }
 

@@ -11,8 +11,8 @@ UENUM()
 enum BRUSHSTATE
 {
 	Draw,
-	Eraser,
-	Recolor
+	Recolor,
+	Resize
 };
 
 USTRUCT()
@@ -79,10 +79,15 @@ public:
 	UPROPERTY()
 		FBrushInfoDelegate FBrushUpdateDelegate;
 
+	/* Deltatime for haptic button */
 	float dt = 0.0f;
 	float prvDt = 0.0f;
+	float FButtonDt = 0.0f;
+	float SButtonDt = 0.0f;
+
 	//Drawing Data
 	FBrushInfo* brushinfo;
+	bool isResizing;
 	//Drawing function
 	FVector prvPositon;
 	FVector DrawingDirection;
@@ -98,9 +103,9 @@ public:
 	void ChangeBrushMode();
 	void ChangeBrushMode(char key);
 	UFUNCTION()
-		void BrushsizeUp();
+		void BrushsizeUp(float val);
 	UFUNCTION()
-		void BrushsizeDown();
+		void BrushsizeDown(float val);
 	UFUNCTION()
 		void UndoStroke();
 protected:

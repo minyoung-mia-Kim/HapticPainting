@@ -102,13 +102,7 @@ void ADrawingHandler::ChangeBrushMode()
 }
 void ADrawingHandler::ChangeBrushMode(char key)
 {
-	if (key == 'E')
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Erase Mode"));
-		brushinfo->state = BRUSHSTATE::Eraser;
-
-	}
-	else if (key == 'D')
+	if (key == 'D')
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Draw Mode"));
 		brushinfo->state = BRUSHSTATE::Draw;
@@ -136,19 +130,27 @@ void ADrawingHandler::ChangeBrushMode(char key)
 	}
 }
 
-void ADrawingHandler::BrushsizeUp()
+void ADrawingHandler::BrushsizeUp(float val)
 {
-	brushinfo->size += 0.5f;
-	UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
-	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+	if (val == 1 && brushinfo->size < 30.0f)
+	{
+		brushinfo->size += 0.1f;
+		UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
+		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+
+	}
 
 }
 
-void ADrawingHandler::BrushsizeDown()
+void ADrawingHandler::BrushsizeDown(float val)
 {
-	brushinfo->size -= 0.5f;
-	UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
-	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+	if (val == 1 && brushinfo->size > 1.0f)
+	{
+		brushinfo->size -= 0.1f;
+		UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
+		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+
+	}
 }
 
 void ADrawingHandler::UndoStroke()
@@ -197,8 +199,8 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
 	InputComponent->BindKey(EKeys::B, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
 
-	InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
-	InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
+	//InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
+	//InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
 	
 	//InputComponent->BindKey(EKeys::E, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'E'>);
 	//InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
@@ -211,6 +213,10 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);
 
 	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke);
+	InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
+	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);
+
+
 
 }
 
