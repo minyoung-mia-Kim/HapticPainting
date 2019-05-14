@@ -36,6 +36,7 @@ AHapticsHandler::AHapticsHandler()
 
 	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	brush->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
 	brush->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 	CreateBrushCursor(10.0f, FLinearColor::White);
 
@@ -302,16 +303,16 @@ void AHapticsHandler::CreateBrushCursor(float brushSize, FLinearColor brushColor
 	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
 	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
 
-	vertices.Add(FVector(cursor->GetScaledSphereRadius(), 1.0f, spacing / 2));
+	vertices.Add(FVector(0.0f, 1.0f, spacing / 2));
 	vertexColors.Add(brushColor); //red
 
-	vertices.Add(FVector(cursor->GetScaledSphereRadius(), 1.0f, -spacing / 2));
+	vertices.Add(FVector(0.0f, 1.0f, -spacing / 2));
 	vertexColors.Add(brushColor); //red
 
-	vertices.Add(FVector(cursor->GetScaledSphereRadius(), -1.0f, spacing / 2));
+	vertices.Add(FVector(0.0f, -1.0f, spacing / 2));
 	vertexColors.Add(brushColor); //red
 
-	vertices.Add(FVector(cursor->GetScaledSphereRadius(), -1.0f, -spacing / 2));
+	vertices.Add(FVector(0.0f, -1.0f, -spacing / 2));
 	vertexColors.Add(brushColor); //red
 
 
