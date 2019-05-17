@@ -3,6 +3,7 @@
 #include "PainterPawn.h"
 #include "Components/ShapeComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Engine/Engine.h"
 
 
@@ -25,6 +26,8 @@ APainterPawn::APainterPawn()
 	MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
 	MC_Right->Hand = EControllerHand::Right;
 	MC_Right->SetupAttachment(RootComponent);
+
+
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +35,9 @@ void APainterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	//EnableInput(GetWorld()->GetFirstPlayerController());
+	//Cpicker = GetWorld()->SpawnActor<AColorPicker>(AColorPicker::StaticClass());
+	//Cpicker->AttachToComponent(MC_Left, FAttachmentTransformRules::KeepRelativeTransform);
+
 }
 
 // Called every frame

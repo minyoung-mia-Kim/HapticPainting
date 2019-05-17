@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ColorPicker.h"
 #include "Engine/World.h"
 #include "HeadMountedDisplay.h"
 #include "Camera/CameraComponent.h"
@@ -26,9 +27,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "MyPawn")
 		USceneComponent* RComponent;
 	/* VR */
-	UPROPERTY(EditDefaultsOnly, Category = "MyPawn")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UMotionControllerComponent* MC_Left;
-	UPROPERTY(EditDefaultsOnly, Category = "MyPawn")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UMotionControllerComponent* MC_Right;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UCameraComponent* VRcamera;
@@ -46,6 +47,16 @@ public:
 
 	UPROPERTY(BlueprintCallable)
 		FVRInputDelegate FVRInputTriggerDelegate;
+
+	/* Color picker */
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ColorPicker")
+		AColorPicker* Cpicker;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ColorPicker")
+		UUserWidget* WB_Cpicker;
+
+
+
+		  
 
 	//UFUNCTION()
 		//FString getHMDType();

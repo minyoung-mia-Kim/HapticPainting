@@ -149,7 +149,7 @@ public:
 
 public:
 	/*
-	* Redraw the cursor
+	* Redraw the brush cursor
 	*/
 	UFUNCTION()
 		void RefreshBrushCursor(float brushSize, FLinearColor brushColor);
@@ -158,5 +158,6 @@ public:
 		void CreateBrushCursor(float brushSize, FLinearColor brushColor);
 	UFUNCTION()
 		void SetCursorRotation(FRotator rotation);
+	
 
 };

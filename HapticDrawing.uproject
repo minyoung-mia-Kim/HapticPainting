@@ -8,10 +8,11 @@
 			"Name": "HapticDrawing",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-      "AdditionalDependencies": [
-        "Engine",
-        "ProceduralMeshComponent"
-      ]
+			"AdditionalDependencies": [
+				"Engine",
+				"ProceduralMeshComponent",
+				"UMG"
+			]
 		}
 	],
 	"Plugins": [
