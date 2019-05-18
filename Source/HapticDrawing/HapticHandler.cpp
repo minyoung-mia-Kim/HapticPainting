@@ -61,6 +61,7 @@ void AHapticsHandler::BeginPlay()
 	hasFBClicked = false;
 	hasSBClicked = false;
 	isOverlapping = false;
+	CurrentForce = FVector::ZeroVector;
 }
 
 /**
@@ -81,6 +82,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
 
+	/* Brush Normal and Tangent */
 	FVector MyLocation = this->GetActorLocation();
 	FRotator MyRotation = this->GetActorRotation();
 	FVector Direction = -MyRotation.Vector();
@@ -103,8 +105,24 @@ void AHapticsHandler::Tick(float DeltaTime)
 	{
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Normal = Direction;
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Tangent = FProcMeshTangent(surfaceTangent, true);
-
 	}
+
+	/* status */
+	if (isOverlapping)
+	{
+		setForceToApply(FMath::Lerp(FVector(0.0f, 0.0f, 0.0f), CurrentForce, 0.1));
+		if (hasFBClicked)
+		{
+			setForceToApply(FMath::Lerp(CurrentForce, FVector(0.0f, 0.0f, 0.0f), 0.1));
+		}
+	}
+	else
+	{
+		setForceToApply(FMath::Lerp(CurrentForce, FVector(0.0f, 0.0f, 0.0f), 0.1));
+	}
+
+	if (CurrentForce == FVector::ZeroVector)
+		isOverlapping = false;
 }
 
 /**
@@ -222,8 +240,8 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 				FProcMeshSection* ms = detectMesh->GetProcMeshSection(i);
 				//UE_LOG(LogTemp, Warning, TEXT("buffer Normal X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Normal.X, ms->ProcVertexBuffer[0].Normal.Y, ms->ProcVertexBuffer[0].Normal.Z);
 
-				if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.03f) &&
-					ms->ProcVertexBuffer[0].Tangent.TangentX.Equals(brushTangent, 0.03f))
+				if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.05f) &&
+					ms->ProcVertexBuffer[0].Tangent.TangentX.Equals(brushTangent, 0.05f))
 				{
 					//UE_LOG(LogTemp, Warning, TEXT("Found it"));
 
@@ -235,8 +253,8 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 					UE_LOG(LogTemp, Warning, TEXT("Tangent X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Tangent.TangentX.X,
 						ms->ProcVertexBuffer[0].Tangent.TangentX.Y, ms->ProcVertexBuffer[0].Tangent.TangentX.Z);
 
-					CurrentForce = ms->ProcVertexBuffer[0].Normal;
-					setForceToApply(CurrentForce);
+					float pDepth = FVector::Distance(OverlappedComp->GetComponentLocation(), ms->ProcVertexBuffer[0].Position);
+					CurrentForce = (-brushNormal);
 				}
 
 				//if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.03f))
@@ -271,7 +289,6 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 	if (!hasFBClicked)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Finished")));
-		setForceToApply(FMath::Lerp(CurrentForce, FVector(0.0f, 0.0f, 0.0f), 0.5));
 		CurrentForce = FVector(0.0f, 0.0f, 0.0f);
 	}
 }

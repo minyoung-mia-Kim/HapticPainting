@@ -202,7 +202,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	Normal.Normalize();
 	UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
 
-	//DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 
 	FVector surfaceTangent = vertices[2] - vertices[3]; //p1 to p3 being FVectors
 	//	FVector::GetSafeNormal:
@@ -213,7 +213,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	if (surfaceTangent == FVector().ZeroVector)
 		UE_LOG(LogTemp, Warning, TEXT("vector length is too small to safely normalize"));
 
-	//DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+	DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 
 	for (int32 y = 0; y < height; y++)
@@ -257,33 +257,49 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	/* For the next mesh section */
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
-	//vertexColors.Add(color); //white
+	vertexColors.Add(color); //white
 	//vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
 	UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
 
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
-	//vertexColors.Add(color); //white
+	vertexColors.Add(color); //white
 	//vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
 	UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
 
 	/* UVs */
+	UE_LOG(LogTemp, Warning, TEXT("###: %d"), pm->GetNumSections());
+	float NSection = float(pm->GetNumSections());
+	float newV;
+	float newV1;
+
 	for (int i = pm->GetNumSections()-1; i > 0; i--)
 	{
 		if (i != 0)
 		{
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, FMath::Sin(90 / pm->GetNumSections()-i));
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, FMath::Sin(90 / pm->GetNumSections()-i));
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, FMath::Sin(90 / pm->GetNumSections()-i+1));
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, FMath::Sin(90 / pm->GetNumSections()-i+1));
+			UE_LOG(LogTemp, Warning, TEXT("i = %d, N= %f"), i, NSection);
+			float n = float(i + 1);
+			newV = n*100 / NSection;
+			//newV = FGenericPlatformMath::Fmod(n*100, NSection);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, newV/100);
+			UE_LOG(LogTemp, Warning, TEXT("0000 %f : %f"), n, newV/100);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, newV / 100);
+
+			newV1 = (n-1) * 100 / NSection;
+			//newV1 = FGenericPlatformMath::Fmod((n-1)*100, NSection);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, newV1/100);
+			UE_LOG(LogTemp, Warning, TEXT("2222 %f : %f"), n-1, newV1/100);
+
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, newV1 / 100);
+
 		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("v: %f"), FMath::Sin(90 / i + 1)));
-			UE_LOG(LogTemp, Warning, TEXT("%d : %f"),i, FMath::Sin(90 / pm->GetNumSections()- i + 1));
+			UE_LOG(LogTemp, Warning, TEXT("uv3 U:%f, V:%f"), pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.X, pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.Y);
 
 		}
-		//else
-		//{
-		//	pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, FMath::Sin(90 / i+1));
-		//	pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, FMath::Sin(90 / i+1));
-		//}
+		else
+		{
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, FMath::Sin(0));
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, FMath::Sin(0));
+		}
 	}
 }
 

@@ -9,6 +9,8 @@
 #include "Components/BoxComponent.h"
 #include "ColorPicker.generated.h"
 
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FColorUpdateDelegate, FLinearColor, selectedColor);
+
 UCLASS()
 class HAPTICDRAWING_API AColorPicker : public AActor
 {
