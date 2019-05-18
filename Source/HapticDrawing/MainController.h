@@ -31,6 +31,9 @@ public:
 	UFUNCTION()
 		void BindToBrushUpdate(float brushSize, FLinearColor brushColor);
 
+	/* Color Picker Input */
+	UFUNCTION()
+		void BindToBrushInput(FLinearColor selectedColor);
 
 protected:
 	UPROPERTY()

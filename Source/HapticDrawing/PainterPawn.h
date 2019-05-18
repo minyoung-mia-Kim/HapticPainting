@@ -11,6 +11,7 @@
 #include "PainterPawn.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPawnInfoDelegate, FRotator, pawnRotator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSColorUpdateDelegate, FLinearColor, sColor);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FVRInputDelegate);
 
 class UMotionControllerComponent;
@@ -48,13 +49,14 @@ public:
 	UPROPERTY(BlueprintCallable)
 		FVRInputDelegate FVRInputTriggerDelegate;
 
+	UPROPERTY(BlueprintCallable)
+		FSColorUpdateDelegate FSelectedColorUpdateDelegate;
+
 	/* Color picker */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ColorPicker")
 		AColorPicker* Cpicker;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ColorPicker")
-		UUserWidget* WB_Cpicker;
-
-
+	UFUNCTION()
+		void Color(FLinearColor sColor);
 
 		  
 

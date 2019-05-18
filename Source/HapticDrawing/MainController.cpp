@@ -37,17 +37,22 @@ void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor
 
 }
 
+void AMainController::BindToBrushInput(FLinearColor selectedColor)
+{
+	DHandler->SetBrushColor(selectedColor);
+	//UE_LOG(LogTemp, Warning, TEXT("selected Color: %s"), *(selectedColor.ToString()));
 
+}
 
 // Called when the game starts or when spawned
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
 	APainterPawn* PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	
 	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
+	PainterInstance->FSelectedColorUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
+	
 	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
-
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
 	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);

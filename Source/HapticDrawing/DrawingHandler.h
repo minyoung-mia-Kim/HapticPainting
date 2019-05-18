@@ -115,12 +115,15 @@ protected:
 public:		// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	/* Color */
 	UFUNCTION()
-		void ChangeColorR();
-	UFUNCTION()
-		void ChangeColorG();
-	UFUNCTION()
-		void ChangeColorB();
-
+		void SetBrushColor(FLinearColor sColor);
+	/* Deprecated */
+	//UFUNCTION()
+	//	void ChangeColorR();
+	//UFUNCTION()
+	//	void ChangeColorG();
+	//UFUNCTION()
+	//	void ChangeColorB();
 
 };

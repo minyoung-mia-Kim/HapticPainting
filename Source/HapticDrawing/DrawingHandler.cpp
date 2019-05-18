@@ -14,11 +14,12 @@ ADrawingHandler::ADrawingHandler()
 	prvPositon = FVector(0, 0, 0);
 
 	// Add the brush list (Materials)
-	BrushArray.Add("Material'/Game/HDAssets/M_grunge1.M_grunge1'");
+	BrushArray.Add("Material'/Game/HDAssets/M_silky1.M_silky1'");
 	BrushArray.Add("Material'/Game/HDAssets/M_BasicBrush.M_BasicBrush'");
+	BrushArray.Add("Material'/Game/HDAssets/M_silky2.M_silky2'");
+	BrushArray.Add("Material'/Game/HDAssets/M_grunge1.M_grunge1'");
 	BrushArray.Add("Material'/Game/M_Color.M_Color'");
 	BrushArray.Add("Material'/Game/M_NonLight.M_NonLight''");
-	BrushArray.Add("Material'/Game/M_Test.M_Test''");
 	BrushArray.Add("Material'/Game/HDAssets/M_Texture_test.M_Texture_test''");
 	BrushArray.Add("Material'/Game/HDAssets/M_Texture_test2.M_Texture_test2''");
 
@@ -95,6 +96,7 @@ void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVec
 {
 	UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
 	StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
+
 }
 template<char key>
 void ADrawingHandler::ChangeBrushMode()
@@ -165,28 +167,37 @@ void ADrawingHandler::UndoStroke()
 	}
 }
 
-void ADrawingHandler::ChangeColorG()
+/* Deprecated :: Change color by keyboard input */
+//
+//void ADrawingHandler::ChangeColorG()
+//{
+//	brushinfo->color = FLinearColor::Green;
+//	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+//	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
+//
+//}
+//
+//void ADrawingHandler::ChangeColorB()
+//{
+//	brushinfo->color = FLinearColor::Blue;
+//	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+//	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
+//
+//}
+//
+//
+//void ADrawingHandler::ChangeColorR()
+//{
+//	brushinfo->color = FLinearColor::Red;
+//	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+//	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
+//	
+//}
+
+void ADrawingHandler::SetBrushColor(FLinearColor sColor)
 {
-	brushinfo->color = FLinearColor::Green;
+	brushinfo->color = sColor;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
-	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
-
-}
-
-void ADrawingHandler::ChangeColorB()
-{
-	brushinfo->color = FLinearColor::Blue;
-	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
-	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
-
-}
-
-void ADrawingHandler::ChangeColorR()
-{
-	brushinfo->color = FLinearColor::Red;
-	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
-	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
-	
 }
 
 // Called when the game starts or when spawned
@@ -196,9 +207,9 @@ void ADrawingHandler::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm Drawing handler"));
 
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
-	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
-	InputComponent->BindKey(EKeys::B, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
+	//InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
+	//InputComponent->BindKey(EKeys::G, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
+	//InputComponent->BindKey(EKeys::B, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
 
 	//InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
 	//InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);

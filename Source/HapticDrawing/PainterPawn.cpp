@@ -35,9 +35,8 @@ void APainterPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	//EnableInput(GetWorld()->GetFirstPlayerController());
-	//Cpicker = GetWorld()->SpawnActor<AColorPicker>(AColorPicker::StaticClass());
-	//Cpicker->AttachToComponent(MC_Left, FAttachmentTransformRules::KeepRelativeTransform);
-
+	//Cpicker = Cast<AColorPicker>(MC_Left->GetChildComponent(0));
+	Cpicker->FColorUpdateDelegate.AddDynamic(this, &APainterPawn::Color);
 }
 
 // Called every frame
@@ -127,6 +126,11 @@ void APainterPawn::MoveRight(float Val)
 		}
 	}
 
+}
+
+void APainterPawn::Color(FLinearColor sColor)
+{
+	FSelectedColorUpdateDelegate.Broadcast(sColor);
 }
 
 void APainterPawn::MoveForward(float Val)
