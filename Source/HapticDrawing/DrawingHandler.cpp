@@ -46,7 +46,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 			{
 				PositionArray.Add(position);
 				RotationArray.Add(rotation);
-				UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
+				//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
 				if (FMath::Abs(FVector::Dist(position, prvPositon)))
 					regenerateStroke(position, rotation, DrawingDirection);
@@ -84,17 +84,17 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 
 void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVector direction)
 {
-	UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
+	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(position, position, mesh));
 	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, brushinfo->mode);
-	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
 
 void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVector direction)
 {
-	UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
+	//UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
 	StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
 
 }

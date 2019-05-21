@@ -36,7 +36,7 @@ AHapticsHandler::AHapticsHandler()
 
 	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-	brush->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
+	//brush->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
 	brush->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 	CreateBrushCursor(10.0f, FLinearColor::White);
 
@@ -240,8 +240,8 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 				FProcMeshSection* ms = detectMesh->GetProcMeshSection(i);
 				//UE_LOG(LogTemp, Warning, TEXT("buffer Normal X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Normal.X, ms->ProcVertexBuffer[0].Normal.Y, ms->ProcVertexBuffer[0].Normal.Z);
 
-				if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.05f) &&
-					ms->ProcVertexBuffer[0].Tangent.TangentX.Equals(brushTangent, 0.05f))
+				if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.1f) &&
+					ms->ProcVertexBuffer[0].Tangent.TangentX.Equals(brushTangent, 0.1f))
 				{
 					//UE_LOG(LogTemp, Warning, TEXT("Found it"));
 
@@ -249,12 +249,37 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Overlapped")));
 					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("brush Normal X:%f, Y:%f, Z:%f"), brushNormal.X, brushNormal.Y, brushNormal.Z));
 					GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("brush Tangent X:%f, Y:%f, Z:%f"), brushTangent.X, brushTangent.Y, brushTangent.Z));
+					//UE_LOG(LogTemp, Warning, TEXT("Tangent X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Tangent.TangentX.X, ms->ProcVertexBuffer[0].Tangent.TangentX.Y, ms->ProcVertexBuffer[0].Tangent.TangentX.Z);
 
-					UE_LOG(LogTemp, Warning, TEXT("Tangent X:%f, Y:%f, Z:%f"), ms->ProcVertexBuffer[0].Tangent.TangentX.X,
-						ms->ProcVertexBuffer[0].Tangent.TangentX.Y, ms->ProcVertexBuffer[0].Tangent.TangentX.Z);
+					FHitResult OutHit;
+					FVector cursorTip = FVector(OverlappedComp->GetComponentLocation().X + cursor->GetScaledSphereRadius(), OverlappedComp->GetComponentLocation().Y, OverlappedComp->GetComponentLocation().Z);
+					FVector Start = cursorTip;
 
-					float pDepth = FVector::Distance(OverlappedComp->GetComponentLocation(), ms->ProcVertexBuffer[0].Position);
-					CurrentForce = (-brushNormal);
+					FVector ForwardVector = OverlappedComp->GetForwardVector();
+					FVector End = ((ForwardVector * 1000.f) + Start);
+					FCollisionQueryParams CollisionParams;
+
+					DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1, 0, 1);
+
+					if (GetWorld()->LineTraceSingleByChannel(OutHit, Start, End, ECC_Visibility, CollisionParams))
+					{
+							GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetActor()->GetName()));
+							GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
+							GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
+							UE_LOG(LogTemp, Warning, TEXT("hitting %s"), *OutHit.GetActor()->GetName());
+							UE_LOG(LogTemp, Warning, TEXT("Impact %s"), *OutHit.ImpactPoint.ToString());
+							UE_LOG(LogTemp, Warning, TEXT("Normal %s"), *CurrentForce.ToString());
+					}
+
+					float dist = FVector::PointPlaneDist(cursorTip, ms->ProcVertexBuffer[0].Position, ms->ProcVertexBuffer[0].Normal);
+					UE_LOG(LogTemp, Warning, TEXT("distance %f"), dist);
+					//float pDepth = FVector::Distance(OverlappedComp->GetComponentLocation(), ms->ProcVertexBuffer[0].Position);
+					CurrentForce = cursorTip/dist * (cursor->GetScaledSphereRadius()-dist);
+					UE_LOG(LogTemp, Warning, TEXT("Force %s"), *CurrentForce.ToString());
+
+					//GEngine->AddOnScreenDebugMessage(-1, 30.f, FColor::Cyan, FString::Printf(TEXT("Force X:%f, Y:%f, Z:%f"), CurrentForce.X, CurrentForce.Y, brushNormal.Z));
+
+
 				}
 
 				//if (ms->ProcVertexBuffer[0].Normal.Equals(brushNormal, 0.03f))
@@ -289,7 +314,7 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 	if (!hasFBClicked)
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Finished")));
-		CurrentForce = FVector(0.0f, 0.0f, 0.0f);
+		//CurrentForce = FVector(0.0f, 0.0f, 0.0f);
 	}
 }
 

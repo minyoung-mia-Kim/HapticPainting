@@ -174,24 +174,20 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	/* Mesh component's coordination is always 0, 0, 0 since its not moving */
 
-	UE_LOG(LogTemp, Warning, TEXT("update haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
 	float uvSpacing = 1.0f / FMath::Max(nGeneratedSection, width);
-	UE_LOG(LogTemp, Warning, TEXT("selected Color: %s"), *(color.ToString()));
 
 
 	// The distance between this mesh component and the haptic position
 	// Actually, it's the same with the haptic position itself since the mesh component coordination is (0,0,0).
 	FVector dis = GetTransform().TransformVector(position);
-	UE_LOG(LogTemp, Warning, TEXT("Distance X:%f, Y:%f, Z:%f"), dis.X, dis.Y, dis.Z);
 
 
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
 	//vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //blue
-	UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
 
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
 	//vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
-	UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
+
 
 	/* Normal and Tangent */
 	//Normal : Mesh front - Forward
@@ -201,9 +197,8 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	//FVector Normal = -rotation.Vector();
 	Normal = -Normal;
 	Normal.Normalize();
-	UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
 
-	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+
 
 	FVector surfaceTangent = vertices[2] - vertices[3]; //p1 to p3 being FVectors
 	//	FVector::GetSafeNormal:
@@ -214,6 +209,14 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	if (surfaceTangent == FVector().ZeroVector)
 		UE_LOG(LogTemp, Warning, TEXT("vector length is too small to safely normalize"));
 
+	/* Debug */
+	//UE_LOG(LogTemp, Warning, TEXT("update haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+	//UE_LOG(LogTemp, Warning, TEXT("selected Color: %s"), *(color.ToString()));
+	//UE_LOG(LogTemp, Warning, TEXT("Distance X:%f, Y:%f, Z:%f"), dis.X, dis.Y, dis.Z);
+	//UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
+	//UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
+	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
+	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 	DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 
@@ -223,7 +226,6 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 		{
 			normals.Add(Normal);
 			vertexColors.Add(color);
-			//uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
 			tangents.Add(FProcMeshTangent(surfaceTangent, true));
 		}
 	}
@@ -239,7 +241,6 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	/*	Get the first material of the static mesh and turn it into a material instance */
 	UMaterialInstanceDynamic* DynamicMatInstance = pm->CreateAndSetMaterialInstanceDynamic(0);
-	//UMaterialInstanceDynamic* DynamicMatInstance = UMaterialInstanceDynamic::Create(Material, this);
 
 	//If we have a valid dynamic material instance, modify its parameters
 	if (DynamicMatInstance)
@@ -252,20 +253,20 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	/* increase section idx */
 	nGeneratedSection++;
-	UE_LOG(LogTemp, Warning, TEXT("Total # of section : %d"), nGeneratedSection);
-
 	ClearMeshData();
 
 	/* For the next mesh section */
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
 	//vertexColors.Add(color); //white
 	//vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
-	UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
 
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
 	//vertexColors.Add(color); //white
 	//vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
-	UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
+
+	/* Debug */
+	//UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
+	//UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
 
 	/* UVs */
 	UE_LOG(LogTemp, Warning, TEXT("###: %d"), pm->GetNumSections());
@@ -279,20 +280,18 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("i = %d, N= %f"), i, NSection);
 			float n = float(i + 1);
-			newV = n*100 / NSection;
-			//newV = FGenericPlatformMath::Fmod(n*100, NSection);
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, newV / 100);
-			//UE_LOG(LogTemp, Warning, TEXT("0000 %f : %f"), n, newV/100);
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, newV / 100);
-
 			newV1 = (n-1) * 100 / NSection;
-			//newV1 = FGenericPlatformMath::Fmod((n-1)*100, NSection);
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, newV1 / 100);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, newV1 / 100);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, newV1 / 100);
+
+			newV = n*100 / NSection;
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, newV / 100);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, newV / 100);
+
+			/* Debug */
+			//UE_LOG(LogTemp, Warning, TEXT("0000 %f : %f"), n, newV/100);
 			//UE_LOG(LogTemp, Warning, TEXT("2222 %f : %f"), n-1, newV1/100);
-
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, newV1 / 100);
-
-		//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("v: %f"), FMath::Sin(90 / i + 1)));
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("v: %f"), FMath::Sin(90 / i + 1)));
 			//UE_LOG(LogTemp, Warning, TEXT("uv3 U:%f, V:%f"), pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.X, pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.Y);
 
 		}
