@@ -83,6 +83,7 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 	//vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
 	uvs.Add(FVector2D(0, 0));
 	uvs.Add(FVector2D(1, 0));
+	prvPos = position;
 
 }
 /* // Old function
@@ -190,11 +191,11 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 
 	/* Normal and Tangent */
-	//Normal : Mesh front - Forward
-	FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]), FVector(vertices[1] - vertices[3]));
+	//Normal 1 : Mesh front - Forward
+	//FVector Normal = FVector::CrossProduct(FVector(vertices[2] - vertices[3]), FVector(vertices[1] - vertices[3]));
 
-	//Normal : Hapatic - Forward
-	//FVector Normal = -rotation.Vector();
+	//Normal 2 : Hapatic - Forward
+	FVector Normal = rotation.Vector();
 	Normal = -Normal;
 	Normal.Normalize();
 
@@ -251,8 +252,16 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	}
 	pm->SetMaterial(nGeneratedSection, Material);
 
+
 	/* increase section idx */
 	nGeneratedSection++;
+
+	/* Store mesh's location */
+	centerPos.Add(FVector((prvPos + position)/2));
+	centerNormals.Add(Normal);
+	prvPos = position;
+
+	/* Clean mesh data for next mesh section*/
 	ClearMeshData();
 
 	/* For the next mesh section */

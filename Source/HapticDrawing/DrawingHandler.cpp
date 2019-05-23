@@ -14,8 +14,8 @@ ADrawingHandler::ADrawingHandler()
 	prvPositon = FVector(0, 0, 0);
 
 	// Add the brush list (Materials)
-	BrushArray.Add("Material'/Game/HDAssets/M_silky1.M_silky1'");
 	BrushArray.Add("Material'/Game/HDAssets/M_BasicBrush.M_BasicBrush'");
+	BrushArray.Add("Material'/Game/HDAssets/M_silky1.M_silky1'");
 	BrushArray.Add("Material'/Game/HDAssets/M_silky2.M_silky2'");
 	BrushArray.Add("Material'/Game/HDAssets/M_grunge1.M_grunge1'");
 	BrushArray.Add("Material'/Game/M_Color.M_Color'");
@@ -24,7 +24,7 @@ ADrawingHandler::ADrawingHandler()
 	BrushArray.Add("Material'/Game/HDAssets/M_Texture_test2.M_Texture_test2''");
 
 	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, BrushArray[0], 10.f, FLinearColor::White);
-
+	isHapticMode = false;
 }
 
 void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool hasClicked)
@@ -57,23 +57,14 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 
 		}
 	}
-
 	prvPositon = position;
 
 }
 
 void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool hasClicked)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("receivedSbutton : I'm Drawing handler"));
-	/*for (int i = 0; i < PositionArray.Num(); i++)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), PositionArray[i].X, PositionArray[i].Y, PositionArray[i].Z);
-	}
-	UE_LOG(LogTemp, Warning, TEXT("Number of : %d"), PositionArray.Num());*/
-
-
-	//AProceduralPlaneMesh* mesh1 = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
-	//mesh1->Initialize(PositionArray, RotationArray);
+	//UE_LOG(LogTemp, Warning, TEXT("Haptic mode ON"));
+	
 
 	if (!hasClicked)
 	{
@@ -198,6 +189,11 @@ void ADrawingHandler::SetBrushColor(FLinearColor sColor)
 {
 	brushinfo->color = sColor;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+}
+
+void ADrawingHandler::CalculateForce(FVector position)
+{
+
 }
 
 // Called when the game starts or when spawned

@@ -49,16 +49,23 @@ void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
 	APainterPawn* PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
+	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
+	FHandler = GetWorld()->SpawnActor<AForceHandler>(AForceHandler::StaticClass());
+	
+	
 	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
 	PainterInstance->FSelectedColorUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
 	
-	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
+	HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
 	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
 
-	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
+
+	FHandler->HapticForceUpdate.AddDynamic(this, &AMainController::SetHapticForce);
+	HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
 
 }
 
@@ -86,6 +93,10 @@ void AMainController::Tick(float DeltaTime)
 	HHandler->SetActorLocation(DefaultPosition.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
 	HHandler->SetActorRotation(DefaultDirection + HHandler->getHapticDeviceRotationAsUnrealRotator());
 	//HHandler->SetCursorRotation(rotation);
+
+	/* Keep update cursorPosition in Forcehandler to compute the realtime distance */
+	FHandler->CursorPosition = HHandler->GetActorLocation();
+	FHandler->CursorPosition.X += HHandler->cursor->GetScaledSphereRadius();
 }
 
 void AMainController::SetHapticTurn(FRotator rotator)
@@ -96,5 +107,10 @@ void AMainController::SetHapticTurn(FRotator rotator)
 	UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
 	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
 	//HHandler->SetCursorRotation(rotator);
+}
+
+void AMainController::SetHapticForce(FVector hForce)
+{
+	HHandler->setForceToApply(hForce);
 }
 

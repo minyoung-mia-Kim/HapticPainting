@@ -8,11 +8,17 @@
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
 #include "Haptico/Public/HapticsManager.h"
+#include "Components/StaticMeshComponent.h"
 #include "HapticHandler.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FNewHapticDeviceData, FVector, Position, FMatrix, Rotation, FVector, LinearVelocity, FVector, AngularVelocity);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FHapticCollisionDelegate, FVector, msPosition, FVector, msNormal, FVector, msTangent, FVector, cPosition);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSbuttonDelegate, FVector, Position, bool, hasClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFbuttonDelegate, FVector, Position, bool, hasClicked);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FHapticModeDelegate);
+
+
+class UStaticMeshComponent;
 
 UCLASS(BlueprintType)
 class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
@@ -27,16 +33,36 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 		USceneComponent* rc = nullptr;
-	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-		USphereComponent* cursor = nullptr;
 
 public:
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-		UProceduralMeshComponent* brush = nullptr;
-	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
-		UMaterialInterface* Material;
+		USphereComponent* cursor = nullptr;
+	UPROPERTY(VisibleAnywhere, Category = "Cursor")
+		USphereComponent* proxy = nullptr;
+	//UPROPERTY(VisibleAnywhere, Category = "Cursor")
+	//	UStaticMeshComponent* ProxcyMeshComponent;
 	UPROPERTY()
 		FVector CurrentForce;
+	UPROPERTY()
+		FVector PreviousForce;
+
+	UPROPERTY()
+		float dotFN;
+
+
+	UPROPERTY(VisibleAnywhere, Category = "Cursor")
+		UProceduralMeshComponent* brush = nullptr;
+	UPROPERTY()
+		float brushSize;
+	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
+		UMaterialInterface* Material;
+
+	/* Button DeltaTime & status check*/
+	bool prvFBstat = false;
+	float FButtonDt = 0.0f;
+	float SButtonDt = 0.0f;
+
+
 public:
 
 	AHapticsHandler();
@@ -46,9 +72,13 @@ public:
 	UPROPERTY(BlueprintAssignable)
 		FNewHapticDeviceData OnHapticHandlerTick;
 	UPROPERTY()
+		FHapticCollisionDelegate HapticCollisionData;
+	UPROPERTY()
 		FFbuttonDelegate FbuttonInputDelegate;
 	UPROPERTY()
 		FSbuttonDelegate SbuttonInputDelegate;
+	UPROPERTY()
+		FHapticModeDelegate FHapticModeUpdateDelegate;
 
 	/* Haptic status */
 	bool hasFBClicked;
@@ -152,10 +182,10 @@ public:
 	* Redraw the brush cursor
 	*/
 	UFUNCTION()
-		void RefreshBrushCursor(float brushSize, FLinearColor brushColor);
+		void RefreshBrushCursor(float bSize, FLinearColor brushColor);
 
 	UFUNCTION()
-		void CreateBrushCursor(float brushSize, FLinearColor brushColor);
+		void CreateBrushCursor(float bSize, FLinearColor brushColor);
 	UFUNCTION()
 		void SetCursorRotation(FRotator rotation);
 	

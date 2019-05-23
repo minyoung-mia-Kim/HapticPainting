@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "HapticHandler.h"
 #include "DrawingHandler.h"
+#include "ForceHandler.h"
 #include "GameFramework/DefaultPawn.h"
 #include "HapticDrawingGameModeBase.h"
 #include "MainController.generated.h"
@@ -40,6 +41,8 @@ protected:
 		class AHapticsHandler* HHandler;
 	UPROPERTY()
 		class ADrawingHandler* DHandler;
+	UPROPERTY()
+		class AForceHandler* FHandler;
 
 
 	FVector CurrentLocation;
@@ -58,6 +61,9 @@ public:
 
 	UFUNCTION()
 		void SetHapticTurn(FRotator rotator);
+
+	UFUNCTION()
+		void SetHapticForce(FVector hForce);
 
 
 };

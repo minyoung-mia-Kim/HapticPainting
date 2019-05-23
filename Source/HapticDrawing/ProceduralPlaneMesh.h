@@ -46,6 +46,14 @@ public:
 		float spacing;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
 		bool generateMesh;
+
+	/*Mesh's center location list*/
+	UPROPERTY()
+		TArray<FVector> centerPos;
+	UPROPERTY()
+		TArray<FVector> centerNormals;
+	FVector prvPos;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

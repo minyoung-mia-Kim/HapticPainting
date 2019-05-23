@@ -51,6 +51,8 @@ struct FStroke
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrushInfoDelegate, float, brushSize, FLinearColor, brushColor);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHapticModeDelegate, FVector, brushPos);
+
 
 UCLASS()
 class HAPTICDRAWING_API ADrawingHandler : public AActor
@@ -71,13 +73,16 @@ class HAPTICDRAWING_API ADrawingHandler : public AActor
 	//UPROPERTY()
 	//	FStroke& CurrentStroke = nullptr;
 
-
+	//Haptic Mode
+	bool isHapticMode;
 public:
 	// Sets default values for this actor's properties
 	ADrawingHandler();
 
 	UPROPERTY()
 		FBrushInfoDelegate FBrushUpdateDelegate;
+
+
 
 	/* Deltatime for haptic button */
 	float dt = 0.0f;
@@ -118,6 +123,9 @@ public:		// Called every frame
 	/* Color */
 	UFUNCTION()
 		void SetBrushColor(FLinearColor sColor);
+	/* Haptic Mode */
+	UFUNCTION()
+		void CalculateForce(FVector position);
 	/* Deprecated */
 	//UFUNCTION()
 	//	void ChangeColorR();
