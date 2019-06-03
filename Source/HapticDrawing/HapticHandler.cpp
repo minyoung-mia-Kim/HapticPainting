@@ -19,9 +19,6 @@ AHapticsHandler::AHapticsHandler()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	noHapticDevice = false;
-	rc = CreateDefaultSubobject<USceneComponent>(TEXT("Transform"));
-	//rc->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-	//SetRootComponent(rc);
 
 	// set up a notification for when this component overlaps something
 	//cursor->SetNotifyRigidBodyCollision(true);
@@ -33,20 +30,6 @@ AHapticsHandler::AHapticsHandler()
 	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
 	cursor->bHiddenInGame = false;
 	SetRootComponent(cursor);
-
-	proxy = CreateDefaultSubobject<USphereComponent>(TEXT("CursorProxy"));
-	proxy->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
-	proxy->SetWorldLocation(FVector::ZeroVector);
-	proxy->SetSphereRadius(5.0f);
-	proxy->bHiddenInGame = false;
-
-	//ProxcyMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("proxy"));
-	//static ConstructorHelpers::FObjectFinder<UStaticMesh> MeshToUse(TEXT("StaticMesh'/Game/StarterContent/Shapes/Shape_Sphere.Shape_Sphere'"));
-	//ProxcyMeshComponent->SetStaticMesh(MeshToUse.Object);
-	//ProxcyMeshComponent->SetWorldLocation(FVector::ZeroVector);
-	//ProxcyMeshComponent->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
-	////ProxcyMeshComponent->SetupAttachment(RootComponent);
-	
 
 	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
@@ -75,8 +58,6 @@ void AHapticsHandler::BeginPlay()
 	hasFBClicked = false;
 	hasSBClicked = false;
 	isOverlapping = false;
-	CurrentForce = FVector::ZeroVector;
-	setForceToApply(CurrentForce);
 }
 
 /**
@@ -108,9 +89,6 @@ void AHapticsHandler::Tick(float DeltaTime)
 	else
 		SButtonDt = 0.0f;
 
-	
-		
-
 	/* Brush Normal and Tangent */
 	FVector MyLocation = this->GetActorLocation();
 	FRotator MyRotation = this->GetActorRotation();
@@ -136,7 +114,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Tangent = FProcMeshTangent(surfaceTangent, true);
 	}
 
-	
+
 }
 
 
@@ -146,6 +124,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 
+	UE_LOG(LogTemp, Warning, TEXT("gotit time %f Clicked %s"), SButtonDt, hasSBClicked ? TEXT("True") : TEXT("False"));
 	if (hasSBClicked && SButtonDt > 0.5)
 	{
 		isOverlapping = true;
@@ -153,12 +132,10 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		FVector brushTangent = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Tangent.TangentX;
 
 		/* Second force rendering */
-		float inerialDist = 0.0f;
 		AProceduralPlaneMesh* detectStrokeActor = Cast<AProceduralPlaneMesh>(OtherActor);
 		UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
 		if (detectStrokeActor != nullptr)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Center pos # %d"), detectStrokeActor->centerPos.Num());
 			//UE_LOG(LogTemp, Warning, TEXT("mesh sec # %d"), detectMesh->GetNumSections());
 
 			setForceToApply(FVector::ZeroVector);
@@ -171,26 +148,18 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 					refinedCPosition.X += cursor->GetScaledSphereRadius();
 
 					FVector centerPosition = detectStrokeActor->centerPos[i];
-					DrawDebugPoint(GetWorld(), centerPosition, 5.f, FColor::Green, true, 1, 0);
+					DrawDebugPoint(GetWorld(), centerPosition, 10.f, FColor::Green, true, 1, 0);
 					HapticCollisionData.Broadcast(detectStrokeActor->centerPos[i],
 												  detectStrokeActor->centerNormals[i],
 												  detectMesh->GetProcMeshSection(i)->ProcVertexBuffer[0].Tangent.TangentX, 
 						   						  refinedCPosition);
 
-					/* Set cursor proxy location as contacted mesh section's position */
-					proxy->SetWorldLocation(centerPosition);
-					//ProxcyMeshComponent->SetWorldLocation(centerPosition);
-					//ProxcyMeshComponent->ApplyWorldOffset(centerPosition, true);
 
-					//FVector centerTangent = detectMesh->GetProcMeshSection(i)->ProcVertexBuffer[0].Tangent.TangentX;
-
-					//UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
+					UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
 					//UE_LOG(LogTemp, Warning, TEXT("tangent %s"), *centerTangent.ToString());
 					//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *detectStrokeActor->centerNormals[i].ToString());
 					////UE_LOG(LogTemp, Warning, TEXT("dist %f"), dist);
-					////UE_LOG(LogTemp, Warning, TEXT("dot %f"), dotFN);
 					////UE_LOG(LogTemp, Warning, TEXT("intensity %f"), intensity * dot);
-					//UE_LOG(LogTemp, Warning, TEXT("Force %s"), *CurrentForce.ToString());
 				}
 
 			}
@@ -212,7 +181,6 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 		if (!hasFBClicked)
 		{
 			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Finished")));
-			//CurrentForce = FVector(0.0f, 0.0f, 0.0f);
 		}
 	}
 }

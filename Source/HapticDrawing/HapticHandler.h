@@ -31,25 +31,9 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 		*/
 		bool noHapticDevice;
 
-	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-		USceneComponent* rc = nullptr;
-
 public:
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 		USphereComponent* cursor = nullptr;
-	UPROPERTY(VisibleAnywhere, Category = "Cursor")
-		USphereComponent* proxy = nullptr;
-	//UPROPERTY(VisibleAnywhere, Category = "Cursor")
-	//	UStaticMeshComponent* ProxcyMeshComponent;
-	UPROPERTY()
-		FVector CurrentForce;
-	UPROPERTY()
-		FVector PreviousForce;
-
-	UPROPERTY()
-		float dotFN;
-
-
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 		UProceduralMeshComponent* brush = nullptr;
 	UPROPERTY()

@@ -35,6 +35,9 @@ public:
 
 	float SPRING_TOLERANCE = 0.000000005;
 	float springK = 1.2f;
+	float ForceClamp = 1.f;
+
+
 	UPROPERTY()
 		FHapticForceDelegate HapticForceUpdate;
 
@@ -49,6 +52,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION()
+	float ClampForce(float force);
 	UFUNCTION()
 		void getForceInfo(FVector msPosition, FVector msNormal, FVector msTangent, FVector cPosition);
 	UFUNCTION()

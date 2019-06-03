@@ -103,7 +103,7 @@ public:
 	UFUNCTION()
 		void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
-		void regenerateStroke(FVector position, FRotator rotation, FVector direction);
+		void extendStroke(FVector position, FRotator rotation, FVector direction);
 	template<char key>
 	void ChangeBrushMode();
 	void ChangeBrushMode(char key);
@@ -123,9 +123,7 @@ public:		// Called every frame
 	/* Color */
 	UFUNCTION()
 		void SetBrushColor(FLinearColor sColor);
-	/* Haptic Mode */
-	UFUNCTION()
-		void CalculateForce(FVector position);
+
 	/* Deprecated */
 	//UFUNCTION()
 	//	void ChangeColorR();

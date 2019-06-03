@@ -44,7 +44,6 @@ protected:
 	UPROPERTY()
 		class AForceHandler* FHandler;
 
-
 	FVector CurrentLocation;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

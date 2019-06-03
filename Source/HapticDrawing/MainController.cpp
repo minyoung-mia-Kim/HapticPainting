@@ -90,9 +90,8 @@ void AMainController::Tick(float DeltaTime)
 
 	/* Follow the pawn's location*/
 	//DefaultPosition = DefaultPosition + rotation;
-	HHandler->SetActorLocation(DefaultPosition.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()) + location);
+	HHandler->SetActorLocation(DefaultPosition.RotateVector((HHandler->getHapticDevicePositionInUnrealCoordinates()) - FVector(0.0f, 0.0f, 50.f)) + location);
 	HHandler->SetActorRotation(DefaultDirection + HHandler->getHapticDeviceRotationAsUnrealRotator());
-	//HHandler->SetCursorRotation(rotation);
 
 	/* Keep update cursorPosition in Forcehandler to compute the realtime distance */
 	FHandler->CursorPosition = HHandler->GetActorLocation();

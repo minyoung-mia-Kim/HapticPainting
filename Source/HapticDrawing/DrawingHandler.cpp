@@ -49,7 +49,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 				//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
 				if (FMath::Abs(FVector::Dist(position, prvPositon)))
-					regenerateStroke(position, rotation, DrawingDirection);
+					extendStroke(position, rotation, DrawingDirection);
 
 				prvDt = dt;
 				//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
@@ -83,7 +83,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 
 }
 
-void ADrawingHandler::regenerateStroke(FVector position, FRotator rotation, FVector direction)
+void ADrawingHandler::extendStroke(FVector position, FRotator rotation, FVector direction)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
 	StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
@@ -129,7 +129,7 @@ void ADrawingHandler::BrushsizeUp(float val)
 	if (val == 1 && brushinfo->size < 30.0f)
 	{
 		brushinfo->size += 0.1f;
-		UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
+		//UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
 		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
 
 	}
@@ -141,7 +141,7 @@ void ADrawingHandler::BrushsizeDown(float val)
 	if (val == 1 && brushinfo->size > 1.0f)
 	{
 		brushinfo->size -= 0.1f;
-		UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
+		//UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
 		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
 
 	}
@@ -191,10 +191,6 @@ void ADrawingHandler::SetBrushColor(FLinearColor sColor)
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
 }
 
-void ADrawingHandler::CalculateForce(FVector position)
-{
-
-}
 
 // Called when the game starts or when spawned
 void ADrawingHandler::BeginPlay()
