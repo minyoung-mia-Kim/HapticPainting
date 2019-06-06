@@ -23,9 +23,9 @@ APainterPawn::APainterPawn()
 	MC_Left->Hand = EControllerHand::Left;
 	MC_Left->SetupAttachment(RootComponent);
 
-	MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
-	MC_Right->Hand = EControllerHand::Right;
-	MC_Right->SetupAttachment(RootComponent);
+	//MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
+	//MC_Right->Hand = EControllerHand::Right;
+	//MC_Right->SetupAttachment(RootComponent);
 
 
 }

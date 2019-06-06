@@ -22,12 +22,15 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 	spacing = 10.0f;
 	nGeneratedSection = 0;
 	generateMesh = true;
+	/* Clean mesh data for next mesh section*/
+	ClearMeshData();
 }
 
 
 // Called when the game starts or when spawned
 void AProceduralPlaneMesh::BeginPlay()
 {
+
 	Super::BeginPlay();
 
 }
@@ -69,7 +72,7 @@ void AProceduralPlaneMesh::Tick(float DeltaTime)
 
 void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color, FString mode)
 {
-	ClearMeshData();
+	//ClearMeshData();
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
 	//	Set material
@@ -217,7 +220,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	//UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
-	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+	//DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 	//DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 

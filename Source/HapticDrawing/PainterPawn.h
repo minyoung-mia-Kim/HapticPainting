@@ -30,8 +30,8 @@ public:
 	/* VR */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UMotionControllerComponent* MC_Left;
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
-		UMotionControllerComponent* MC_Right;
+	/*UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
+		UMotionControllerComponent* MC_Right;*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UCameraComponent* VRcamera;
 
