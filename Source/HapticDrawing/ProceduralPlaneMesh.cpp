@@ -72,7 +72,7 @@ void AProceduralPlaneMesh::Tick(float DeltaTime)
 
 void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color, FString mode)
 {
-	//ClearMeshData();
+	ClearMeshData();
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
 	//	Set material

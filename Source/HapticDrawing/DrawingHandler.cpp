@@ -14,16 +14,16 @@ ADrawingHandler::ADrawingHandler()
 	prvPositon = FVector(0, 0, 0);
 
 	// Add the brush list (Materials)
-	BrushArray.Add("Material'/Game/HDAssets/M_silky1.M_silky1'");
 	BrushArray.Add("Material'/Game/HDAssets/M_grunge1.M_grunge1'");
 	BrushArray.Add("Material'/Game/HDAssets/M_BasicBrush.M_BasicBrush'");
+	BrushArray.Add("Material'/Game/HDAssets/M_silky1.M_silky1'");
 	BrushArray.Add("Material'/Game/HDAssets/M_silky2.M_silky2'");
-	BrushArray.Add("Material'/Game/M_Color.M_Color'");
-	BrushArray.Add("Material'/Game/M_NonLight.M_NonLight''");
-	BrushArray.Add("Material'/Game/HDAssets/M_Texture_test.M_Texture_test''");
-	BrushArray.Add("Material'/Game/HDAssets/M_Texture_test2.M_Texture_test2''");
+	ViscosityArray.Add(5.0f);
+	ViscosityArray.Add(4.0f);
+	ViscosityArray.Add(3.0f);
+	ViscosityArray.Add(3.5f);
 
-	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, BrushArray[0], 10.f, FLinearColor::White);
+	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, 0, ViscosityArray[0], 10.f, FLinearColor::White);
 	isHapticMode = false;
 }
 
@@ -78,7 +78,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(position, position, mesh));
-	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, brushinfo->mode);
+	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
 	//UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
@@ -89,40 +89,52 @@ void ADrawingHandler::extendStroke(FVector position, FRotator rotation, FVector 
 	StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
 
 }
-template<char key>
+//template<char key>
 void ADrawingHandler::ChangeBrushMode()
 {
-	ChangeBrushMode(key);
-}
-void ADrawingHandler::ChangeBrushMode(char key)
-{
-	if (key == 'D')
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Draw Mode"));
-		brushinfo->state = BRUSHSTATE::Draw;
+	UE_LOG(LogTemp, Warning, TEXT("grip"));
 
-	}
-	else if (key == '1')
+	if (brushinfo->type == BrushArray.Num() - 1)
 	{
-		brushinfo->mode = BrushArray[0];
+		brushinfo->type = 0;
 	}
-	else if (key == '2')
+	else
 	{
-		brushinfo->mode = BrushArray[1];
+		brushinfo->type += 1;	
 	}
-	else if (key == '3')
-	{
-		brushinfo->mode = BrushArray[2];
-	}
-	else if (key == '4')
-	{
-		brushinfo->mode = BrushArray[3];
-	}
-	else if (key == '5')
-	{
-		brushinfo->mode = BrushArray[4];
-	}
+	brushinfo->viscosity = ViscosityArray[brushinfo->type];
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+
 }
+//void ADrawingHandler::ChangeBrushMode(char key)
+//{
+//	if (key == 'D')
+//	{
+//		UE_LOG(LogTemp, Warning, TEXT("Draw Mode"));
+//		brushinfo->state = BRUSHSTATE::Draw;
+//
+//	}
+//	else if (key == '1')
+//	{
+//		brushinfo->mode = BrushArray[0];
+//	}
+//	else if (key == '2')
+//	{
+//		brushinfo->mode = BrushArray[1];
+//	}
+//	else if (key == '3')
+//	{
+//		brushinfo->mode = BrushArray[2];
+//	}
+//	else if (key == '4')
+//	{
+//		brushinfo->mode = BrushArray[3];
+//	}
+//	else if (key == '5')
+//	{
+//		brushinfo->mode = BrushArray[4];
+//	}
+//}
 
 void ADrawingHandler::BrushsizeUp(float val)
 {
@@ -130,7 +142,7 @@ void ADrawingHandler::BrushsizeUp(float val)
 	{
 		brushinfo->size += 0.1f;
 		//UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
-		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 
 	}
 
@@ -142,7 +154,7 @@ void ADrawingHandler::BrushsizeDown(float val)
 	{
 		brushinfo->size -= 0.1f;
 		//UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
-		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+		FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 
 	}
 }
@@ -188,7 +200,7 @@ void ADrawingHandler::UndoStroke()
 void ADrawingHandler::SetBrushColor(FLinearColor sColor)
 {
 	brushinfo->color = sColor;
-	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 }
 
 
@@ -209,14 +221,16 @@ void ADrawingHandler::BeginPlay()
 	//InputComponent->BindKey(EKeys::E, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'E'>);
 	//InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
 	//InputComponent->BindKey(EKeys::Z, IE_Pressed, this, &ADrawingHandler::UndoStroke);
-
+/*
 	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'1'>);
 	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'2'>);
 	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'3'>);
 	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'4'>);
-	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);
+	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);*/
 
 	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke);
+	InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
+
 	InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
 	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);
 

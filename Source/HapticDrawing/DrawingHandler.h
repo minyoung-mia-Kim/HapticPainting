@@ -20,17 +20,20 @@ struct FBrushInfo
 {
 	GENERATED_BODY()
 		FBrushInfo() {}
-	FBrushInfo(BRUSHSTATE _state, FString _mode, float _size, FLinearColor _color)
+	FBrushInfo(BRUSHSTATE _state, int _mode, float _vis, float _size, FLinearColor _color)
 	{
 		state = _state;
-		mode = _mode;
+		type = _mode;
+		viscosity = _vis;
 		size = _size;
 		color = _color;
 	}
 	BRUSHSTATE state;
-	FString mode;
+	int type;
+	float viscosity;
 	float size;
 	FLinearColor color;
+
 };
 
 USTRUCT()
@@ -50,8 +53,9 @@ struct FStroke
 	FVector endPos;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrushInfoDelegate, float, brushSize, FLinearColor, brushColor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FBrushInfoDelegate, float, brushSize, FLinearColor, brushColor, float, viscosity, FString, brushTex);
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHapticModeDelegate, FVector, brushPos);
+
 
 
 UCLASS()
@@ -70,6 +74,8 @@ class HAPTICDRAWING_API ADrawingHandler : public AActor
 	//	Brush list
 	UPROPERTY()
 		TArray<FString> BrushArray;
+	UPROPERTY()
+		TArray<float> ViscosityArray;
 	//UPROPERTY()
 	//	FStroke& CurrentStroke = nullptr;
 
@@ -104,9 +110,9 @@ public:
 		void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
 		void extendStroke(FVector position, FRotator rotation, FVector direction);
-	template<char key>
+	//template<char key>
 	void ChangeBrushMode();
-	void ChangeBrushMode(char key);
+	//void ChangeBrushMode(char key);
 	UFUNCTION()
 		void BrushsizeUp(float val);
 	UFUNCTION()

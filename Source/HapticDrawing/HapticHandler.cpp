@@ -11,6 +11,8 @@
 #include "MainController.h"
 #include "Engine/Engine.h"
 #include "DrawDebugHelpers.h"
+#include "ConstructorHelpers.h"
+
 
 /**
  * constructs an instance of the haptic manager
@@ -35,12 +37,25 @@ AHapticsHandler::AHapticsHandler()
 	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	brush->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
 	brush->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	CreateBrushCursor(10.0f, FLinearColor::White);
+	CreateBrushCursor(10.0f, FLinearColor::White, "Material'/Game/HDAssets/M_grunge1.M_grunge1'");
 
+	/* Collision overlap check with storke*/
 	cursor->OnComponentBeginOverlap.AddDynamic(this, &AHapticsHandler::OnComponentBeginOverlap);
 	cursor->OnComponentEndOverlap.AddDynamic(this, &AHapticsHandler::OnComponentEndOverlap);
 	cursor->SetEnableGravity(false);
 	cursor->SetSimulatePhysics(false);
+
+	DrawingPlane = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DrawingPlane"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshOb_plane(TEXT("StaticMesh'/Engine/BasicShapes/Plane.Plane'"));
+	if (StaticMeshOb_plane.Object)
+		DrawingPlane->SetStaticMesh(StaticMeshOb_plane.Object);
+	DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
+	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
+	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
+	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
+	DrawingPlane->SetMaterial(0, PlaneMaterial);
+
 }
 
 /**
@@ -79,10 +94,18 @@ void AHapticsHandler::Tick(float DeltaTime)
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
 
+	//UE_LOG(LogTemp, Warning, TEXT("hasFBClicked %s"), hasFBClicked ? TEXT("True") : TEXT("False"));
+
+
 	/* Button Up = Finish Drawing */
 	if (prvFBstat == true && hasFBClicked == false)
 		FHapticModeUpdateDelegate.Broadcast();
 
+	/* Texture haptic force*/
+	if (hasFBClicked)
+		setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
+	else
+		setForceToApply(FVector::ZeroVector);
 
 	if (hasSBClicked)
 		SButtonDt += DeltaTime;
@@ -114,7 +137,11 @@ void AHapticsHandler::Tick(float DeltaTime)
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Tangent = FProcMeshTangent(surfaceTangent, true);
 	}
 
-
+	
+}
+void AHapticsHandler::setViscosity(float v)
+{
+	this->viscosity = v;
 }
 
 
@@ -124,8 +151,9 @@ void AHapticsHandler::Tick(float DeltaTime)
 void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedComp, AActor * OtherActor, UPrimitiveComponent * OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult & SweepResult)
 {
 
+	/* Spring-mass Force */
 	UE_LOG(LogTemp, Warning, TEXT("gotit time %f Clicked %s"), SButtonDt, hasSBClicked ? TEXT("True") : TEXT("False"));
-	if (hasSBClicked && SButtonDt > 0.5)
+	if (hasSBClicked && SButtonDt > 0.5f)
 	{
 		isOverlapping = true;
 		FVector brushNormal = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal;
@@ -136,9 +164,9 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
 		if (detectStrokeActor != nullptr)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("mesh sec # %d"), detectMesh->GetNumSections());
+			UE_LOG(LogTemp, Warning, TEXT("mesh sec # %d"), detectMesh->GetNumSections());
 
-			setForceToApply(FVector::ZeroVector);
+			//setForceToApply(FVector::ZeroVector);
 
 			for (int i = 0; i < detectStrokeActor->centerPos.Num(); i++)
 			{
@@ -166,7 +194,14 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		}
 
 	}
+	///* Intersection Force */
+	//if (hasFBClicked)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("intersect with stroke %s"), *(getHapticDeviceLinearVelocity().ToString()));
+	//	bIntersected = true;
+	//	setForceToApply(getHapticDeviceLinearVelocity() * -5.f);
 
+	//}
 }
 void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
@@ -183,6 +218,13 @@ void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp,
 			GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Finished")));
 		}
 	}
+/*
+	if (bIntersected)
+	{
+		bIntersected = false;
+		setForceToApply(FVector::ZeroVector);
+		UE_LOG(LogTemp, Warning, TEXT("intersection finished"));
+	}*/
 }
 
 
@@ -246,7 +288,7 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
 	//Re-adjusted the position
-	return FVector(position.X * 1000, -position.Y * 1000, (position.Z * 1000 + 65.0f));
+	return FVector((position.X * 1000) - 80.f, -position.Y * 1000, (position.Z * 1000));
 }
 
 /**
@@ -271,20 +313,27 @@ void AHapticsHandler::button2Clicked()
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
 	//UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
 	SbuttonInputDelegate.Broadcast(position, hasSBClicked);
+
+	DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+	DrawingPlane->SetWorldLocation(cursor->GetComponentLocation());
+	
 }
 
 /*
 	Redraw the cursor by the new brush information
 */
 
-void AHapticsHandler::RefreshBrushCursor(float bSize, FLinearColor brushColor)
+void AHapticsHandler::RefreshBrushCursor(float bSize, FLinearColor brushColor, float viscosity, FString tex)
 {
 	brush->ClearAllMeshSections();
 	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushColor.ToString()));
-	CreateBrushCursor(bSize, brushColor);
+	this->viscosity = viscosity;
+	CreateBrushCursor(bSize, brushColor, tex);
+	UE_LOG(LogTemp, Warning, TEXT("viscosity: %f"), viscosity);
+
 }
 
-void AHapticsHandler::CreateBrushCursor(float bSize, FLinearColor brushColor)
+void AHapticsHandler::CreateBrushCursor(float bSize, FLinearColor brushColor, FString tex)
 {
 	TArray<FVector> vertices;
 	TArray<FVector> normals;
@@ -297,8 +346,7 @@ void AHapticsHandler::CreateBrushCursor(float bSize, FLinearColor brushColor)
 	brushSize = bSize;
 	float uvSpacing = 1.0f / FMath::Max(height, width);
 
-	FString MaterialAddress = "Material'/Game/ArchVis/Materials/M_Carptet_Mat.M_Carptet_Mat'";
-	Material = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Color.M_Color'"));
+	Material = LoadObject<UMaterialInterface>(nullptr, *tex);
 
 	vertices.Add(FVector(0.0f, 1.0f, brushSize / 2));
 	vertexColors.Add(brushColor); //red

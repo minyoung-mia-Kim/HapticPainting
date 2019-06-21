@@ -30,9 +30,9 @@ void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
 	DHandler->receivedSbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
 }
 
-void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor)
+void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor, float viscosity, FString tex)
 {
-	HHandler->RefreshBrushCursor(brushSize, brushColor);
+	HHandler->RefreshBrushCursor(brushSize, brushColor, viscosity, tex);
 	//UE_LOG(LogTemp, Warning, TEXT("middle Color: %s"), *(brushColor.ToString()));
 
 }

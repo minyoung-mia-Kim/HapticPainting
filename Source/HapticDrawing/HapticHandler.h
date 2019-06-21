@@ -40,12 +40,19 @@ public:
 		float brushSize;
 	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
 		UMaterialInterface* Material;
+	UPROPERTY(VisibleAnywhere, Category = "VirtualDrawingPlane")
+		UStaticMeshComponent* DrawingPlane = nullptr;
 
 	/* Button DeltaTime & status check*/
 	bool prvFBstat = false;
 	float FButtonDt = 0.0f;
 	float SButtonDt = 0.0f;
 
+	/* Texture haptic force*/
+	float viscosity = 5.0f;
+
+	UFUNCTION()
+		void setViscosity(float v);
 
 public:
 
@@ -68,6 +75,8 @@ public:
 	bool hasFBClicked;
 	bool hasSBClicked;
 	bool isOverlapping;
+
+	bool bIntersected;
 
 protected:
 
@@ -166,10 +175,10 @@ public:
 	* Redraw the brush cursor
 	*/
 	UFUNCTION()
-		void RefreshBrushCursor(float bSize, FLinearColor brushColor);
+		void RefreshBrushCursor(float bSize, FLinearColor brushColor, float viscosity, FString tex);
 
 	UFUNCTION()
-		void CreateBrushCursor(float bSize, FLinearColor brushColor);
+		void CreateBrushCursor(float bSize, FLinearColor brushColor, FString tex);
 	UFUNCTION()
 		void SetCursorRotation(FRotator rotation);
 	

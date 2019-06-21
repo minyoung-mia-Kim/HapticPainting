@@ -30,7 +30,7 @@ public:
 		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
 
 	UFUNCTION()
-		void BindToBrushUpdate(float brushSize, FLinearColor brushColor);
+		void BindToBrushUpdate(float brushSize, FLinearColor brushColor, float viscosity, FString tex);
 
 	/* Color Picker Input */
 	UFUNCTION()
