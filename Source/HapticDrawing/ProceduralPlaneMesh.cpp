@@ -14,6 +14,7 @@ AProceduralPlaneMesh::AProceduralPlaneMesh()
 	pm = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	pm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
 	//pm->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+	pm->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	pm->SetEnableGravity(false);
 	SetRootComponent(pm);
 

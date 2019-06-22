@@ -32,6 +32,9 @@ class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 		bool noHapticDevice;
 
 public:
+	UPROPERTY(EditDefaultsOnly, Category = "rc")
+		USceneComponent* RComponent;
+
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 		USphereComponent* cursor = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
@@ -43,6 +46,15 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = "VirtualDrawingPlane")
 		UStaticMeshComponent* DrawingPlane = nullptr;
 
+
+	/* Haptic status */
+	bool hasFBClicked;
+	bool hasSBClicked;
+	bool bIsSpringOn;
+
+	bool bIntersected;
+
+
 	/* Button DeltaTime & status check*/
 	bool prvFBstat = false;
 	float FButtonDt = 0.0f;
@@ -53,6 +65,11 @@ public:
 
 	UFUNCTION()
 		void setViscosity(float v);
+
+	/* VDP Functions & Variables */
+	FHitResult OutHit;
+	bool bIsOnVDP = false;
+	FVector bforce = FVector::ZeroVector;
 
 public:
 
@@ -70,13 +87,6 @@ public:
 		FSbuttonDelegate SbuttonInputDelegate;
 	UPROPERTY()
 		FHapticModeDelegate FHapticModeUpdateDelegate;
-
-	/* Haptic status */
-	bool hasFBClicked;
-	bool hasSBClicked;
-	bool isOverlapping;
-
-	bool bIntersected;
 
 protected:
 
@@ -169,6 +179,10 @@ public:
 	//void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, 
 	//			UPrimitiveComponent* OtherComp, FVector NormalImpulse, 
 	//			const FHitResult& Hit);
+	//UFUNCTION()
+	//	void OnBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	//		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex,
+	//		bool bFromSweep, const FHitResult& SweepResult);
 
 public:
 	/*
