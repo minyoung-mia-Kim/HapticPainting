@@ -104,7 +104,8 @@ void AForceHandler::Tick(float DeltaTime)
 		//DrawDebugLine(GetWorld(), MeshPosition, MeshPosition + (-lMp * pf), FColor::Black, false, 0, 0, 0.5);
 
 		//lMp.Y = -lMp.Y;
-		HapticForceUpdate.Broadcast(FVector(-dPos.X, dPos.Y, dPos.Z)*(-1.0f * pf/5));
+		FVector force = HHandlerRotator.RotateVector(FVector(-dPos.X, dPos.Y, dPos.Z));
+		HapticForceUpdate.Broadcast(force*(-1.0f * pf/5));
 		//HapticForceUpdate.Broadcast(FVector(0.0f, 1.0f, 0.0f));
 
 		//UE_LOG(LogTemp, Warning, TEXT("localProj * Prog %s"), *(lMp.ToString()));

@@ -32,6 +32,7 @@ public:
 	UPROPERTY()
 		FVector CurrentForce;
 	UPROPERTY()
+		FRotator HHandlerRotator;
 
 	float SPRING_TOLERANCE = 0.000000005;
 	float springK = 1.2f;

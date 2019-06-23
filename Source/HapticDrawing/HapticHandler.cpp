@@ -143,10 +143,10 @@ void AHapticsHandler::Tick(float DeltaTime)
 		//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1, 0, 1);
 		if (GetWorld()->LineTraceSingleByObjectType(OutHit, Start, End, TraceObjectTypes))
 		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetComponent()->GetName()));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("D: %f"), OutHit.Distance));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetComponent()->GetName()));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Impact Point: %s"), *OutHit.ImpactPoint.ToString()));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
+			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("D: %f"), OutHit.Distance));
 			//DrawDebugPoint(GetWorld(), brush->GetComponentLocation(), 5.5f, FColor::Magenta, true, 5.f);
 
 
@@ -197,7 +197,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 				force = n * (k1 + k2 * (vdp - dmax) / dmax);
 
 			}
-			setForceToApply(FVector(-force.X, force.Y, force.Z));
+			setForceToApply(GetActorRotation().RotateVector(FVector(-force.X, force.Y, force.Z)));
 			bforce = force;
 		}
 
