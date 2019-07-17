@@ -51,7 +51,7 @@ AHapticsHandler::AHapticsHandler()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshOb_plane(TEXT("StaticMesh'/Engine/BasicShapes/Plane.Plane'"));
 	if (StaticMeshOb_plane.Object)
 		DrawingPlane->SetStaticMesh(StaticMeshOb_plane.Object);
-	DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	//DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	DrawingPlane->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
@@ -154,8 +154,8 @@ void AHapticsHandler::Tick(float DeltaTime)
 			float d = OutHit.Distance;
 			float r = cursor->GetScaledSphereRadius();
 			float k1 = 3.5f;
-			float k2 = 5.5f;
-			float dp = FVector(OutHit.Location - brush->GetComponentLocation()).Size();
+			float k2 = 4.0f;
+			float dp = FVector(OutHit.Location - brush->GetComponentLocation()).Size(); //->AB = B-A
 
 			FVector n = OutHit.ImpactNormal;
 			float vdp = FVector::DotProduct(n, (OutHit.Location - brush->GetComponentLocation()));
@@ -167,15 +167,27 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//DrawDebugLine(GetWorld(), Start, Start + OutHit.Location, FColor::Red, true, 5.f, 0, 1);
 			UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
 			UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
+			UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
+			UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(DDirection.RotateVector(n).ToString()));
+			n = DDirection.RotateVector(n);
 
 
 			//if(dp > r)
+			//if (dmax + vdp >= 6.4)
+			//{
+
+			//	force = FVector::ZeroVector;
+			//	OutHit.Reset();
+
+			//}
+			//else if (dmax + vdp < 6.4)
+			//{
+			//	force = n;
+			//}
 			if (vdp <= 0)
 			{
 
 				force = FVector::ZeroVector;
-				UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
-
 				OutHit.Reset();
 
 			}
@@ -183,7 +195,9 @@ void AHapticsHandler::Tick(float DeltaTime)
 			else if (vdp > 0 && vdp <= dmax)
 			{
 				//force = FVector(n * (k1 / lp) * dp);
-				force = FVector(n * k1 * vdp / dmax);
+				//force = FVector(n * k1 * vdp / dmax);
+				force = FVector(n * (k1 / dmax) * vdp);
+
 
 				//setForceToApply(n * 3.5f );
 
@@ -194,10 +208,18 @@ void AHapticsHandler::Tick(float DeltaTime)
 				//setForceToApply(n * (1.5f + 3.0f * (d - r) / r));
 				//force = n * (k1 + (k2/lp) * (dp - lp));
 
-				force = n * (k1 + k2 * (vdp - dmax) / dmax);
+				//force = FVector(n * (k1 + k2 * (vdp - dmax) / dmax));
+				force = FVector(n * (k1 + (k2 / dmax) * (vdp - dmax)));
 
 			}
-			setForceToApply(GetActorRotation().RotateVector(FVector(-force.X, force.Y, force.Z)));
+			UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+			UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
+
+			setForceToApply(FVector(-force.X, force.Y, force.Z));
+			//setForceToApply(DDirection.RotateVector(FVector(1.0f, 0.0f, 0.0f)));
+
+				//setForceToApply(FVector(1.0f, 0.0f, 1.0f));
+
 			bforce = force;
 		}
 
@@ -258,23 +280,26 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		/* Second force rendering */
 		AProceduralPlaneMesh* detectStrokeActor = Cast<AProceduralPlaneMesh>(OtherActor);
 		UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
+
+		FVector refinedCPosition = OverlappedComp->GetComponentLocation();
+		refinedCPosition.X += cursor->GetScaledSphereRadius();
+
 		if (detectStrokeActor != nullptr)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("mesh sec # %d"), detectMesh->GetNumSections());
 
-			//setForceToApply(FVector::ZeroVector);
-
 			for (int i = 0; i < detectStrokeActor->centerPos.Num(); i++)
 			{
-				if (OverlappedComp->GetComponentLocation().Equals(detectStrokeActor->centerPos[i], brushSize / 3))
+
+				if (refinedCPosition.Equals(detectStrokeActor->centerPos[i], brushSize / 3))
 				{
-					FVector refinedCPosition = OverlappedComp->GetComponentLocation();
-					refinedCPosition.X += cursor->GetScaledSphereRadius();
+					UE_LOG(LogTemp, Warning, TEXT("Ta-da"));
+
 
 					FVector centerPosition = detectStrokeActor->centerPos[i];
 					DrawDebugPoint(GetWorld(), centerPosition, 10.f, FColor::Green, true, 1, 0);
-					HapticCollisionData.Broadcast(detectStrokeActor->centerPos[i],
-						detectStrokeActor->centerNormals[i],
+					HapticCollisionData.Broadcast(DDirection.RotateVector(detectStrokeActor->centerPos[i]),
+						DDirection.RotateVector(detectStrokeActor->centerNormals[i]),
 						detectMesh->GetProcMeshSection(i)->ProcVertexBuffer[0].Tangent.TangentX,
 						refinedCPosition);
 
@@ -438,13 +463,13 @@ void AHapticsHandler::button2Clicked()
 	//UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
 	SbuttonInputDelegate.Broadcast(position, hasSBClicked);
 
-	FRotator Rr = RootComponent->GetComponentRotation();
-	FRotator r = FRotator(90.f, 0.f, 0.f);
-	DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.05f));
-	DrawingPlane->SetWorldRotation(Rr);
-	DrawingPlane->AddLocalRotation(r);
-	DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-	bIsOnVDP = true;
+	//FRotator Rr = RootComponent->GetComponentRotation();
+	//FRotator r = FRotator(90.f, 0.f, 0.f);
+	//DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.05f));
+	//DrawingPlane->SetWorldRotation(Rr);
+	//DrawingPlane->AddLocalRotation(r);
+	//DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	//bIsOnVDP = true;
 
 }
 

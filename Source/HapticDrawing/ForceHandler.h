@@ -54,8 +54,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION()
-	float ClampForce(float force);
-	UFUNCTION()
 		void getForceInfo(FVector msPosition, FVector msNormal, FVector msTangent, FVector cPosition);
 	UFUNCTION()
 		void cleanForceInfo();

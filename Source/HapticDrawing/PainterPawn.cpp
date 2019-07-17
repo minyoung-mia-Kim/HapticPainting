@@ -56,6 +56,7 @@ void APainterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	InputComponent->BindAxis("MoveRight", this, &APainterPawn::MoveRight);
 	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Pressed, this, &APainterPawn::MotionControlRightTriggerPressed);
 	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Released, this, &APainterPawn::MotionControlRightTriggerReleased);
+
 }
 
 // Left Trigger Press

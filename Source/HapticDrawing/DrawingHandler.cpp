@@ -3,6 +3,8 @@
 #include "DrawingHandler.h"
 #include "MyProcedualMesh.h"
 #include "Components/InputComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "MemoryReader.h"
 #include "Engine/World.h"
 
 
@@ -64,7 +66,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool hasClicked)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Haptic mode ON"));
-	
+
 
 	if (!hasClicked)
 	{
@@ -100,7 +102,7 @@ void ADrawingHandler::ChangeBrushMode()
 	}
 	else
 	{
-		brushinfo->type += 1;	
+		brushinfo->type += 1;
 	}
 	brushinfo->viscosity = ViscosityArray[brushinfo->type];
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
@@ -172,30 +174,30 @@ void ADrawingHandler::UndoStroke()
 
 /* Deprecated :: Change color by keyboard input */
 //
-//void ADrawingHandler::ChangeColorG()
-//{
-//	brushinfo->color = FLinearColor::Green;
-//	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
-//	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
-//
-//}
-//
-//void ADrawingHandler::ChangeColorB()
-//{
-//	brushinfo->color = FLinearColor::Blue;
-//	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
-//	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
-//
-//}
-//
-//
-//void ADrawingHandler::ChangeColorR()
-//{
-//	brushinfo->color = FLinearColor::Red;
-//	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color);
-//	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
-//	
-//}
+void ADrawingHandler::ChangeColorG()
+{
+	brushinfo->color = FLinearColor::Green;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
+
+}
+
+void ADrawingHandler::ChangeColorB()
+{
+	brushinfo->color = FLinearColor::Blue;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
+
+}
+
+
+void ADrawingHandler::ChangeColorR()
+{
+	brushinfo->color = FLinearColor::Red;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushinfo->color.ToString()));
+
+}
 
 void ADrawingHandler::SetBrushColor(FLinearColor sColor)
 {
@@ -211,13 +213,13 @@ void ADrawingHandler::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm Drawing handler"));
 
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	//InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
-	//InputComponent->BindKey(EKeys::G, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
-	//InputComponent->BindKey(EKeys::B, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
+	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
+	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
+	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
 
 	//InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
 	//InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
-	
+
 	//InputComponent->BindKey(EKeys::E, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'E'>);
 	//InputComponent->BindKey(EKeys::D, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'D'>);
 	//InputComponent->BindKey(EKeys::Z, IE_Pressed, this, &ADrawingHandler::UndoStroke);
@@ -228,11 +230,15 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'4'>);
 	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);*/
 
-	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke);
-	InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
+	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke); //z
+	InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);//c
 
 	InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
 	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);
+
+	//Save and load
+	InputComponent->BindKey(EKeys::S, IE_Pressed, this, &ADrawingHandler::ActorSaveDataSaved);
+	InputComponent->BindKey(EKeys::L, IE_Pressed, this, &ADrawingHandler::ActorSaveDataLoaded);
 
 
 
@@ -250,12 +256,123 @@ void ADrawingHandler::Tick(float DeltaTime)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
 
-    // Respond when our "Grow" key is pressed or released.
-    InputComponent->BindAction("Grow", IE_Pressed, this, &AMyPawn::StartGrowing);
-    InputComponent->BindAction("Grow", IE_Released, this, &AMyPawn::StopGrowing);
+	// Respond when our "Grow" key is pressed or released.
+	InputComponent->BindAction("Grow", IE_Pressed, this, &AMyPawn::StartGrowing);
+	InputComponent->BindAction("Grow", IE_Released, this, &AMyPawn::StopGrowing);
 
-    // Respond every frame to the values of our two movement axes, "MoveX" and "MoveY".
-    InputComponent->BindAxis("MoveX", this, &AMyPawn::Move_XAxis);
-    InputComponent->BindAxis("MoveY", this, &AMyPawn::Move_YAxis);
+	// Respond every frame to the values of our two movement axes, "MoveX" and "MoveY".
+	InputComponent->BindAxis("MoveX", this, &AMyPawn::Move_XAxis);
+	InputComponent->BindAxis("MoveY", this, &AMyPawn::Move_YAxis);
 
 }*/
+
+void ADrawingHandler::ActorSaveDataSaved()
+{
+	/*FString MyPlayerName = TEXT("PlayerOne");
+	USaveNLoadHandler* SaveGameInstance = Cast<USaveNLoadHandler>(UGameplayStatics::CreateSaveGameObject(USaveNLoadHandler::StaticClass()));
+	SaveGameInstance->PlayerName = MyPlayerName;
+	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
+*/
+	///////////////*INTERFACE*////////////////////
+	TArray<AActor*> Actors;
+	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), USaveableActorInterface::StaticClass(), Actors);
+
+	for (auto Actor : Actors)
+	{
+		//Saving each actor to record
+		FActorSaveData ActorRecord;
+		ActorRecord.ActorName = FName(*Actor->GetName());
+		ActorRecord.ActorClass = Actor->GetClass()->GetPathName();
+		ActorRecord.ActorTransform = Actor->GetTransform();
+		ActorRecord.ProcMeshSections = Cast<AProceduralPlaneMesh>(Actor)->getAllMeshsections();
+
+		FMemoryWriter MemoryWriter(ActorRecord.ActorData, true);
+		FSaveGameArchive Ar(MemoryWriter);
+		Actor->Serialize(Ar);
+
+		SavedActors.Add(ActorRecord);
+		ISaveableActorInterface::Execute_ActorSaveDataSaved(Actor);
+	}
+
+	FSaveGameData SaveGameData;
+
+	SaveGameData.GameID = "1234";
+	SaveGameData.Timestamp = FDateTime::Now();
+	SaveGameData.SavedActors = SavedActors;
+
+	FBufferArchive BinaryData;
+
+	BinaryData << SaveGameData;
+	FString FileName = FString(TEXT("TestSave"));
+	FileName.Append(SaveGameData.Timestamp.ToString());
+	FileName.AppendChars(TEXT(".sav"), 4);
+
+	if (FFileHelper::SaveArrayToFile(BinaryData, *FileName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Save Success! %s"), FPlatformProcess::BaseDir());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Save Failed!"));
+	}
+
+	BinaryData.FlushCache();
+	BinaryData.Empty();
+}
+
+void ADrawingHandler::ActorSaveDataLoaded()
+{
+
+	//USaveNLoadHandler* LoadGameInstance = Cast<USaveNLoadHandler>(UGameplayStatics::CreateSaveGameObject(USaveNLoadHandler::StaticClass()));
+	//LoadGameInstance = Cast<USaveNLoadHandler>(UGameplayStatics::LoadGameFromSlot(LoadGameInstance->SaveSlotName, LoadGameInstance->UserIndex));
+	//FString PlayerNameToDisplay = LoadGameInstance->PlayerName;
+	//if (GEngine)
+	//{
+	//	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, PlayerNameToDisplay);
+	//}
+
+
+
+	TArray<uint8> BinaryData;
+	UE_LOG(LogTemp, Warning, TEXT("Loading"));
+
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.07.17-15.27.44.sav")))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
+		return;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Load Succeeded!"));
+	}
+
+
+	FMemoryReader FromBinary = FMemoryReader(BinaryData, true);
+	FromBinary.Seek(0);
+
+	FSaveGameData SaveGameData;
+	FromBinary << SaveGameData;
+
+	FromBinary.FlushCache();
+	BinaryData.Empty();
+	FromBinary.Close();
+
+	for (FActorSaveData ActorRecord : SaveGameData.SavedActors)
+	{
+		FVector SpawnPos = ActorRecord.ActorTransform.GetLocation();
+		FRotator SpawnRot = ActorRecord.ActorTransform.Rotator();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.Name = ActorRecord.ActorName;
+		UClass* SpawnClass = FindObject<UClass>(ANY_PACKAGE, *ActorRecord.ActorClass);
+		if (SpawnClass)
+		{
+			AActor* NewActor = GWorld->SpawnActor(SpawnClass, &SpawnPos, &SpawnRot, SpawnParams);
+			FMemoryReader MemoryReader(ActorRecord.ActorData, true);
+			FSaveGameArchive Ar(MemoryReader);
+			NewActor->Serialize(Ar);
+			NewActor->SetActorTransform(ActorRecord.ActorTransform);
+			Cast<AProceduralPlaneMesh>(NewActor)->LoadMeshsections(ActorRecord.ProcMeshSections);
+			ISaveableActorInterface::Execute_ActorSaveDataLoaded(NewActor);
+		}
+	}
+}

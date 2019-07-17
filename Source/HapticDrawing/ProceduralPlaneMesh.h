@@ -6,12 +6,17 @@
 #include "GameFramework/Actor.h"
 #include "ProceduralMeshComponent.h"
 #include "Runtime/Engine/Classes/Materials/MaterialInstanceDynamic.h"
+#include "USaveableActorInterface.h"
 #include "ProceduralPlaneMesh.generated.h"
 
 UCLASS()
-class HAPTICDRAWING_API AProceduralPlaneMesh : public AActor
+class HAPTICDRAWING_API AProceduralPlaneMesh : public AActor, public ISaveableActorInterface
 {
 	GENERATED_BODY()
+
+
+	UPROPERTY(SaveGame)
+	int VariableToSave;
 
 	UPROPERTY(VisibleAnywhere, Category = "MyProceduralMesh")
 	UProceduralMeshComponent* pm = nullptr;
@@ -72,6 +77,15 @@ public:
 	void GenerateOppositeTriangles();
 	void ClearMeshData();
 
-	
-	
+public:
+	//Save and Load
+	virtual void ActorSaveDataLoaded_Implementation() override;
+	virtual void ActorSaveDataSaved_Implementation() override;
+	FMeshSectionData ArrMeshesections;
+	TArray<FVector> TotalVertice;
+	FVector MeshColor;
+	FMeshSectionData getAllMeshsections();
+
+	void LoadMeshsections(FMeshSectionData vertices);
+
 };

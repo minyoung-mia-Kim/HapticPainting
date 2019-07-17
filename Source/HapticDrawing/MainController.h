@@ -14,7 +14,7 @@
 #include "MainController.generated.h"
 
 
-UCLASS()
+UCLASS(BlueprintType)
 class HAPTICDRAWING_API AMainController : public AActor
 {
 	GENERATED_BODY()
@@ -66,3 +66,4 @@ public:
 
 
 };
+

@@ -71,6 +71,9 @@ public:
 	bool bIsOnVDP = false;
 	FVector bforce = FVector::ZeroVector;
 
+	/* Adjust Haptic Handler */
+	FRotator DDirection = FRotator::ZeroRotator;
+
 public:
 
 	AHapticsHandler();

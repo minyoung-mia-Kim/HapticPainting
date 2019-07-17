@@ -5,6 +5,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "ProceduralPlaneMesh.h"
+#include "Archive.h"
+#include "FileHelper.h"
+#include "BufferArchive.h"
+#include "SaveNLoadHandler.h"
+#include "USaveableActorInterface.h"
 #include "DrawingHandler.generated.h"
 
 UENUM()
@@ -63,14 +68,14 @@ class HAPTICDRAWING_API ADrawingHandler : public AActor
 {
 	GENERATED_BODY()
 
-	//	Drawing stroke array
-	UPROPERTY()
+		//	Drawing stroke array
+		UPROPERTY()
 		TArray<FStroke> StrokeArray;
 	UPROPERTY()
 		TArray<FVector> PositionArray;
 	UPROPERTY()
 		TArray<FRotator> RotationArray;
-	
+
 	//	Brush list
 	UPROPERTY()
 		TArray<FString> BrushArray;
@@ -131,11 +136,17 @@ public:		// Called every frame
 		void SetBrushColor(FLinearColor sColor);
 
 	/* Deprecated */
-	//UFUNCTION()
-	//	void ChangeColorR();
-	//UFUNCTION()
-	//	void ChangeColorG();
-	//UFUNCTION()
-	//	void ChangeColorB();
+	UFUNCTION()
+		void ChangeColorR();
+	UFUNCTION()
+		void ChangeColorG();
+	UFUNCTION()
+		void ChangeColorB();
+
+public:
+	//Save and Load
+	TArray<FActorSaveData> SavedActors;
+	void ActorSaveDataLoaded();
+	void ActorSaveDataSaved();
 
 };

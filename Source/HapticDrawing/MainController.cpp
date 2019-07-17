@@ -5,6 +5,9 @@
 #include "Engine/Engine.h"
 
 
+
+
+
 // Sets default values
 AMainController::AMainController()
 {
@@ -52,15 +55,17 @@ void AMainController::BeginPlay()
 	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
 	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
 	FHandler = GetWorld()->SpawnActor<AForceHandler>(AForceHandler::StaticClass());
-	
-	
+
+
 	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
 	PainterInstance->FSelectedColorUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
-	
+
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
 	HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
 	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
+	//HHandler->DDirection = DefaultDirection;
+
 
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
@@ -94,7 +99,7 @@ void AMainController::Tick(float DeltaTime)
 	HHandler->SetActorRotation(DefaultDirection + HHandler->getHapticDeviceRotationAsUnrealRotator());
 
 	/* Keep update cursorPosition in Forcehandler to compute the realtime distance */
-	FHandler->CursorPosition = HHandler->brush->GetComponentLocation();
+	FHandler->CursorPosition = HHandler->DDirection.RotateVector(HHandler->brush->GetComponentLocation());
 	//FHandler->CursorPosition.X += HHandler->cursor->GetScaledSphereRadius();
 	FHandler->HHandlerRotator = HHandler->GetActorRotation();
 
@@ -104,6 +109,7 @@ void AMainController::SetHapticTurn(FRotator rotator)
 {
 	DefaultPosition += rotator;
 	DefaultDirection += rotator;
+	HHandler->DDirection += rotator.GetInverse();
 	UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
 	UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
 	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
