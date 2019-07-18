@@ -59,12 +59,20 @@ void AForceHandler::Tick(float DeltaTime)
 		FVector desirePos = CursorPosition - (distDotNorm / MeshNormal.Size()) * MeshNormal;
 		float absDot = FMath::Abs(distDotNorm);
 		// Have direction
+		// Direction: Normal
 		FVector dPos = FVector(desirePos - CursorPosition);
 		dPos.Normalize();
+		//FVector force = FVector(-dPos.X, dPos.Y, dPos.Z)* absDot * 0.15;
+
+		// Direction: Cursor to mesh
+		distance.Normalize();
+		FVector force = -FVector(-distance.X, distance.Y, distance.Z)* absDot * 0.15;
+
+
 		UE_LOG(LogTemp, Warning, TEXT("normal %s"), *(MeshNormal.ToString()));
 		UE_LOG(LogTemp, Warning, TEXT("CursorPosition - Desire %s"), *(dPos.ToString()));
 
-		FVector force = FVector(-dPos.X, dPos.Y, dPos.Z)* absDot * 0.15;
+
 		UE_LOG(LogTemp, Warning, TEXT("force %s"), *(force.ToString()));
 		//DrawDebugLine(GetWorld(), desirePos, desirePos + (dPos * -absDot), FColor::Green, false, 0, 0, 0.5);
 
