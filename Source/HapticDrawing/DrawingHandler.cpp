@@ -199,9 +199,10 @@ void ADrawingHandler::ChangeColorR()
 
 }
 
-void ADrawingHandler::SetBrushColor(FLinearColor sColor)
+void ADrawingHandler::SetBrushColor(FLinearColor sColor, float sSize)
 {
 	brushinfo->color = sColor;
+	brushinfo->size = sSize;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 }
 
@@ -230,11 +231,11 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'4'>);
 	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);*/
 
-	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke); //z
-	InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);//c
+	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke); 
+	InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
 
-	InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
-	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);
+	/*InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
+	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);*/
 
 	//Save and load
 	InputComponent->BindKey(EKeys::S, IE_Pressed, this, &ADrawingHandler::ActorSaveDataSaved);
@@ -336,7 +337,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.07.17-15.27.44.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("fin_starrynight_fin.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;

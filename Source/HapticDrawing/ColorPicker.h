@@ -10,7 +10,7 @@
 #include "ColorPicker.generated.h"
 
 /* Update brush color from picked color*/
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FColorDelegate, FLinearColor, selectedColor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrushDelegate, FLinearColor, selectedColor, float, selectedSize);
 
 UCLASS()
 class HAPTICDRAWING_API AColorPicker : public AActor
@@ -36,11 +36,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Colorpicker")
 		FLinearColor SelectedColor;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Colorpicker")
+		float SelectedBrushSize;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Colorpicker")
 		UMaterialInstanceDynamic* DynamicMatInstance;
 
 	/* Function Picker */
 	UPROPERTY(BlueprintCallable)
-		FColorDelegate FColorUpdateDelegate;
+		FBrushDelegate FSelelctedBrushUpdateDelegate;
 
 protected:
 	// Called when the game starts or when spawned

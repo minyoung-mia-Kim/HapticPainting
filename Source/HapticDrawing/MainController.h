@@ -34,7 +34,7 @@ public:
 
 	/* Color Picker Input */
 	UFUNCTION()
-		void BindToBrushInput(FLinearColor selectedColor);
+		void BindToBrushInput(FLinearColor selectedColor, float selectedSize);
 
 protected:
 	UPROPERTY()

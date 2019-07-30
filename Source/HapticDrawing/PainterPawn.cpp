@@ -36,7 +36,7 @@ void APainterPawn::BeginPlay()
 	Super::BeginPlay();
 	//EnableInput(GetWorld()->GetFirstPlayerController());
 	//Cpicker = Cast<AColorPicker>(MC_Left->GetChildComponent(0));
-	Cpicker->FColorUpdateDelegate.AddDynamic(this, &APainterPawn::Color);
+	Cpicker->FSelelctedBrushUpdateDelegate.AddDynamic(this, &APainterPawn::Color);
 }
 
 // Called every frame
@@ -56,6 +56,8 @@ void APainterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	InputComponent->BindAxis("MoveRight", this, &APainterPawn::MoveRight);
 	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Pressed, this, &APainterPawn::MotionControlRightTriggerPressed);
 	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Released, this, &APainterPawn::MotionControlRightTriggerReleased);
+
+	InputComponent->BindAction("VDP", IE_Pressed, this, &APainterPawn::ActivateVDP);
 
 }
 
@@ -129,9 +131,15 @@ void APainterPawn::MoveRight(float Val)
 
 }
 
-void APainterPawn::Color(FLinearColor sColor)
+void APainterPawn::Color(FLinearColor sColor, float sSize)
 {
-	FSelectedColorUpdateDelegate.Broadcast(sColor);
+	FSelectedBrushUpdateDelegate.Broadcast(sColor, sSize);
+}
+
+void APainterPawn::ActivateVDP()
+{
+	FActivateVDPDelegate.Broadcast();
+
 }
 
 void APainterPawn::MoveForward(float Val)

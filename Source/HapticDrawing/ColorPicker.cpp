@@ -18,6 +18,7 @@ AColorPicker::AColorPicker()
 	
 	Hue = FLinearColor(1.0f, 0.0f, 0.0f);
 	SelectedColor = Hue;
+	SelectedBrushSize = 10.f;
 
 }
 

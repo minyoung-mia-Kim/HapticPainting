@@ -8,7 +8,6 @@
 #include "Archive.h"
 #include "FileHelper.h"
 #include "BufferArchive.h"
-#include "SaveNLoadHandler.h"
 #include "USaveableActorInterface.h"
 #include "DrawingHandler.generated.h"
 
@@ -133,7 +132,7 @@ public:		// Called every frame
 
 	/* Color */
 	UFUNCTION()
-		void SetBrushColor(FLinearColor sColor);
+		void SetBrushColor(FLinearColor sColor, float sSize);
 
 	/* Deprecated */
 	UFUNCTION()

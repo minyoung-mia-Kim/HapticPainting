@@ -11,8 +11,10 @@
 #include "PainterPawn.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPawnInfoDelegate, FRotator, pawnRotator);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSColorUpdateDelegate, FLinearColor, sColor);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSBrushUpdateDelegate, FLinearColor, sColor, float, sSize);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FVRInputDelegate);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FActivateHapticDelegate);
+
 
 class UMotionControllerComponent;
 
@@ -50,15 +52,20 @@ public:
 		FVRInputDelegate FVRInputTriggerDelegate;
 
 	UPROPERTY(BlueprintCallable)
-		FSColorUpdateDelegate FSelectedColorUpdateDelegate;
+		FSBrushUpdateDelegate FSelectedBrushUpdateDelegate;
+
+	UPROPERTY(BlueprintCallable)
+		FActivateHapticDelegate FActivateVDPDelegate;
 
 	/* Color picker */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ColorPicker")
 		AColorPicker* Cpicker;
 	UFUNCTION()
-		void Color(FLinearColor sColor);
+		void Color(FLinearColor sColor, float sSize);
 
-		  
+	UFUNCTION()
+		void ActivateVDP();
+
 
 	//UFUNCTION()
 		//FString getHMDType();

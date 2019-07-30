@@ -40,9 +40,9 @@ void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor
 
 }
 
-void AMainController::BindToBrushInput(FLinearColor selectedColor)
+void AMainController::BindToBrushInput(FLinearColor selectedColor, float selectedSize)
 {
-	DHandler->SetBrushColor(selectedColor);
+	DHandler->SetBrushColor(selectedColor, selectedSize);
 	//UE_LOG(LogTemp, Warning, TEXT("selected Color: %s"), *(selectedColor.ToString()));
 
 }
@@ -58,7 +58,8 @@ void AMainController::BeginPlay()
 
 
 	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
-	PainterInstance->FSelectedColorUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
+	PainterInstance->FSelectedBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
+	PainterInstance->FActivateVDPDelegate.AddDynamic(HHandler, &AHapticsHandler::ActivateVDP);
 
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
