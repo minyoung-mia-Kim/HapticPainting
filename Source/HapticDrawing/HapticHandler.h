@@ -74,6 +74,9 @@ public:
 	/* Adjust Haptic Handler */
 	FRotator DDirection = FRotator::ZeroRotator;
 
+	/* Activate Virtual Drawing Plane */
+	UFUNCTION()
+		void ActivateVDP();
 public:
 
 	AHapticsHandler();

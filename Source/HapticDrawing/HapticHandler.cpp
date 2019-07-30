@@ -14,6 +14,7 @@
 #include "ConstructorHelpers.h"
 
 
+
 /**
  * constructs an instance of the haptic manager
 */
@@ -51,13 +52,16 @@ AHapticsHandler::AHapticsHandler()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> StaticMeshOb_plane(TEXT("StaticMesh'/Engine/BasicShapes/Plane.Plane'"));
 	if (StaticMeshOb_plane.Object)
 		DrawingPlane->SetStaticMesh(StaticMeshOb_plane.Object);
-	//DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+	DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	DrawingPlane->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
+	DrawingPlane->SetVisibility(false);
+
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
+
 	DrawingPlane->SetNotifyRigidBodyCollision(true);
 	DrawingPlane->SetEnableGravity(false);
 	DrawingPlane->BodyInstance.SetCollisionProfileName("OverlapAll");
@@ -159,7 +163,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 			FVector n = OutHit.ImpactNormal;
 			float vdp = FVector::DotProduct(n, (OutHit.Location - brush->GetComponentLocation()));
-			float dmax = -FVector::DotProduct(n, (OutHit.Location - cursor->GetComponentLocation()));
+			float dmax = FVector::DotProduct(n, (OutHit.Location - cursor->GetComponentLocation()));
 
 			float lp = FVector::DotProduct(n, FVector(brush->GetComponentLocation() - cursor->GetComponentLocation()));
 
@@ -167,58 +171,48 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//DrawDebugLine(GetWorld(), Start, Start + OutHit.Location, FColor::Red, true, 5.f, 0, 1);
 			UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
 			UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
-			UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
-			UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(DDirection.RotateVector(n).ToString()));
+			UE_LOG(LogTemp, Warning, TEXT("distance: %f"), d);
+
+			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
+			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(DDirection.RotateVector(n).ToString()));
 			n = DDirection.RotateVector(n);
 
+			UE_LOG(LogTemp, Warning, TEXT("fsize : %f"), forceMag);
+			UE_LOG(LogTemp, Warning, TEXT("plus : %f"), -(vdp + dmax));
+			UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
+			UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+			
+			float forceMag = FMath::LogX(0.5f, -(vdp + dmax)) + 3.f;
+			if (forceMag > 0.0f)
+			{
+				force = FVector(n * forceMag);
+				setForceToApply(FVector(-force.X, force.Y, force.Z));
+			}
 
-			//if(dp > r)
-			//if (dmax + vdp >= 6.4)
+
+
+			//f (vdp >= 0)
 			//{
-
+			//}
+			//if (vdp <= 0)
+			//{
 			//	force = FVector::ZeroVector;
 			//	OutHit.Reset();
-
 			//}
-			//else if (dmax + vdp < 6.4)
+			//else if (vdp > 0 && vdp <= dmax)
 			//{
-			//	force = n;
+			//	force = FVector(n * (k1 / dmax) * vdp);
 			//}
-			if (vdp <= 0)
-			{
-
-				force = FVector::ZeroVector;
-				OutHit.Reset();
-
-			}
-			//if (r/2 < dp && dp <= r)
-			else if (vdp > 0 && vdp <= dmax)
-			{
-				//force = FVector(n * (k1 / lp) * dp);
-				//force = FVector(n * k1 * vdp / dmax);
-				force = FVector(n * (k1 / dmax) * vdp);
-
-
-				//setForceToApply(n * 3.5f );
-
-			}
-			//else if (dp <= r/2)
-			else if (vdp > dmax && vdp > 0)
-			{
-				//setForceToApply(n * (1.5f + 3.0f * (d - r) / r));
-				//force = n * (k1 + (k2/lp) * (dp - lp));
-
-				//force = FVector(n * (k1 + k2 * (vdp - dmax) / dmax));
-				force = FVector(n * (k1 + (k2 / dmax) * (vdp - dmax)));
-
-			}
-			UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
-			UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
-
-			setForceToApply(FVector(-force.X, force.Y, force.Z));
+			//else if (vdp > 0 && vdp > dmax)
+			//{
+			//	force = FVector(n * (k1 + (k2 / dmax) * (vdp - dmax)));
+			//}
+			/*
+			 force = FMath::log(1/2, vdp);
+			 if(vdp
+			*/
 			//setForceToApply(DDirection.RotateVector(FVector(1.0f, 0.0f, 0.0f)));
 
-				//setForceToApply(FVector(1.0f, 0.0f, 1.0f));
 
 			bforce = force;
 		}
@@ -258,6 +252,28 @@ void AHapticsHandler::setViscosity(float v)
 	this->viscosity = v;
 }
 
+void AHapticsHandler::ActivateVDP()
+{
+	if (DrawingPlane->bVisible)
+	{
+		DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		FRotator Rr = RootComponent->GetComponentRotation();
+		FRotator r = FRotator(90.f, 0.f, 0.f);
+		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.05f));
+		DrawingPlane->SetWorldRotation(Rr);
+		DrawingPlane->AddLocalRotation(r);
+		bIsOnVDP = false;
+		DrawingPlane->SetVisibility(false);
+	}
+	else
+	{
+		//bIsOnVDP = true;
+		DrawingPlane->SetVisibility(true);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("%s"), bIsOnVDP ? TEXT("true") : TEXT("false"));
+
+}
 
 /*
 * Collistion event
@@ -266,7 +282,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 {
 	/* Check overlappedComp */
 	FString overComp = OtherComp->GetName();
-	UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
+	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
 
 	/* Spring-mass Force */
 	if (hasSBClicked && SButtonDt > 0.5f && overComp == "ProceduralMesh")
@@ -326,7 +342,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 	/* Haptic Force : Virtual drawing plane */
 	if (overComp == "DrawingPlane")
 	{
-		UStaticMeshComponent* DPlane = Cast<UStaticMeshComponent>(OtherComp);
+		//UStaticMeshComponent* DPlane = Cast<UStaticMeshComponent>(OtherComp);
 		//if (hasSBClicked)
 		//{
 		//	bIsOnVDP = false;
@@ -463,14 +479,16 @@ void AHapticsHandler::button2Clicked()
 	//UE_LOG(LogTemp, Warning, TEXT("I'm handler b2 clicked"));
 	SbuttonInputDelegate.Broadcast(position, hasSBClicked);
 
-	//FRotator Rr = RootComponent->GetComponentRotation();
-	//FRotator r = FRotator(90.f, 0.f, 0.f);
-	//DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.05f));
-	//DrawingPlane->SetWorldRotation(Rr);
-	//DrawingPlane->AddLocalRotation(r);
-	//DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
-	//bIsOnVDP = true;
-
+	if (DrawingPlane->bVisible)
+	{
+		bIsOnVDP = true;
+		FRotator Rr = RootComponent->GetComponentRotation();
+		FRotator r = FRotator(90.f, 0.f, 0.f);
+		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.05f));
+		DrawingPlane->SetWorldRotation(Rr);
+		DrawingPlane->AddLocalRotation(r);
+		DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+	}
 }
 
 /*
@@ -483,7 +501,7 @@ void AHapticsHandler::RefreshBrushCursor(float bSize, FLinearColor brushColor, f
 	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushColor.ToString()));
 	this->viscosity = viscosity;
 	CreateBrushCursor(bSize, brushColor, tex);
-	UE_LOG(LogTemp, Warning, TEXT("viscosity: %f"), viscosity);
+	//UE_LOG(LogTemp, Warning, TEXT("viscosity: %f"), viscosity);
 
 }
 
