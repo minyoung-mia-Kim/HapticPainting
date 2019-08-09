@@ -55,9 +55,9 @@ AHapticsHandler::AHapticsHandler()
 	DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	DrawingPlane->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
-	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
+	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius()*2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	DrawingPlane->SetVisibility(false);
+	DrawingPlane->SetVisibility(true);
 
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
@@ -65,6 +65,7 @@ AHapticsHandler::AHapticsHandler()
 	DrawingPlane->SetNotifyRigidBodyCollision(true);
 	DrawingPlane->SetEnableGravity(false);
 	DrawingPlane->BodyInstance.SetCollisionProfileName("OverlapAll");
+	VDPnormal = FVector::ZeroVector;
 	//DrawingPlane->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 
 	//cursor->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
@@ -109,12 +110,12 @@ void AHapticsHandler::Tick(float DeltaTime)
 	prvFBstat = hasFBClicked;
 	hasFBClicked = BHandler->button1AlreadyPressed;
 	hasSBClicked = BHandler->button2AlreadyPressed;
-
 	//UE_LOG(LogTemp, Warning, TEXT("hasFBClicked %s"), hasFBClicked ? TEXT("True") : TEXT("False"));
 
+	//setTorqueToApply(FVector(0.f, 0.f, 12.f));
 
 	/* Button Up = Finish Drawing */
-	if (prvFBstat == true && hasFBClicked == false)
+	if (prvFBstat == true && hasFBClicked == false && !bIsOnVDP)
 	{
 		FHapticModeUpdateDelegate.Broadcast();
 		//bIsOnVDP = false;
@@ -137,14 +138,21 @@ void AHapticsHandler::Tick(float DeltaTime)
 	if (bIsOnVDP && !bIsSpringOn)
 	{
 
-		FVector Start = cursor->GetComponentLocation();
+		FVector Start = cursor->GetComponentLocation() - cursor->GetForwardVector() * 30.f;
 		FVector End = ((this->GetActorForwardVector() * 1000.f) + Start);
+
+		FVector distance = FVector(DrawingPlane->GetComponentLocation() - Start); // start to plane
+		float distDotNorm = FVector::DotProduct(distance, VDPnormal); // |dist||Mn|cos(theta)
+		FVector projEnd = (Start - (distDotNorm / VDPnormal.Size()) * VDPnormal);
+		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0, 0, 0.5);
+
+		UE_LOG(LogTemp, Warning, TEXT("DotDist: %f"), distDotNorm);
+
 		TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
 		FVector force = FVector::ZeroVector;
 
 		TraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 
-		//DrawDebugLine(GetWorld(), Start, End, FColor::Green, false, 1, 0, 1);
 		if (GetWorld()->LineTraceSingleByObjectType(OutHit, Start, End, TraceObjectTypes))
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetComponent()->GetName()));
@@ -152,43 +160,41 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("Normal Point: %s"), *OutHit.ImpactNormal.ToString()));
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("D: %f"), OutHit.Distance));
 			//DrawDebugPoint(GetWorld(), brush->GetComponentLocation(), 5.5f, FColor::Magenta, true, 5.f);
-
-
-
-			float d = OutHit.Distance;
 			float r = cursor->GetScaledSphereRadius();
-			float k1 = 3.5f;
-			float k2 = 4.0f;
-			float dp = FVector(OutHit.Location - brush->GetComponentLocation()).Size(); //->AB = B-A
 
 			FVector n = OutHit.ImpactNormal;
-			float vdp = FVector::DotProduct(n, (OutHit.Location - brush->GetComponentLocation()));
+			float vdp = FVector::DotProduct(n, (OutHit.Location - brush->GetComponentLocation())); // brush to location
 			float dmax = FVector::DotProduct(n, (OutHit.Location - cursor->GetComponentLocation()));
+			FVector point = brush->GetComponentLocation() + (vdp * n);
 
-			float lp = FVector::DotProduct(n, FVector(brush->GetComponentLocation() - cursor->GetComponentLocation()));
+			//standard distance = vdp
 
-			//DrawDebugLine(GetWorld(), OutHit.ImpactPoint, OutHit.ImpactPoint + n*5.f, FColor::Cyan, true, 5.f, 0, 1);
+
+			//DrawDebugLine(GetWorld(), OutHit.Location, OutHit.Location + n*10.f, FColor::Magenta, true, 5.f, 0, 1);
 			//DrawDebugLine(GetWorld(), Start, Start + OutHit.Location, FColor::Red, true, 5.f, 0, 1);
 			UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
-			UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
-			UE_LOG(LogTemp, Warning, TEXT("distance: %f"), d);
+			//UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
 
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(DDirection.RotateVector(n).ToString()));
-			n = DDirection.RotateVector(n);
+			n = DDirection.RotateVector(n);//only for applying force
+
+			//UE_LOG(LogTemp, Warning, TEXT("plus : %f"), -(vdp + dmax));
+			//UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
+			float add = vdp + dmax;
+			float forceMag = FMath::LogX(0.5f, FMath::Abs(vdp)+0.5) + 3.f;
+			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
+			FVector damping = 1.5f * getHapticDeviceLinearVelocity();
+			UE_LOG(LogTemp, Warning, TEXT("damping : %s"), *(damping.ToString()));
+			//UE_LOG(LogTemp, Warning, TEXT("add : %f"), add);
 
 			UE_LOG(LogTemp, Warning, TEXT("fsize : %f"), forceMag);
-			UE_LOG(LogTemp, Warning, TEXT("plus : %f"), -(vdp + dmax));
-			UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
-			UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
-			
-			float forceMag = FMath::LogX(0.5f, -(vdp + dmax)) + 3.f;
 			if (forceMag > 0.0f)
 			{
-				force = FVector(n * forceMag);
-				setForceToApply(FVector(-force.X, force.Y, force.Z));
+				force = FVector(n * forceMag) - damping;
+				UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
 			}
-
+			setForceToApply(FVector(-force.X, force.Y, force.Z));
 
 
 			//f (vdp >= 0)
@@ -217,15 +223,16 @@ void AHapticsHandler::Tick(float DeltaTime)
 			bforce = force;
 		}
 
+
 	}
 
 	/* Brush Normal and Tangent */
 
 	FVector MyLocation = this->GetActorLocation();
 	FRotator MyRotation = this->GetActorRotation();
-	FVector Direction = -MyRotation.Vector();
-	Direction.Normalize();
-	DrawDebugLine(GetWorld(), brush->GetComponentLocation(), brush->GetComponentLocation() + Direction * 10.0f, FColor::Red, false, 0, 0, 0.5);
+	BrushNormal = -MyRotation.Vector();
+	BrushNormal.Normalize();
+	DrawDebugLine(GetWorld(), brush->GetComponentLocation(), brush->GetComponentLocation() + BrushNormal * 10.0f, FColor::Red, false, 0, 0, 0.5);
 
 
 	FVector v1 = FVector(MyLocation.X, MyLocation.Y, MyLocation.Z) + MyRotation.RotateVector(FVector(0.0f, 0.0f, 5.0f));
@@ -241,7 +248,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 	for (int i = 0; i < brush->GetProcMeshSection(0)->ProcVertexBuffer.Num(); i++)
 	{
-		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Normal = Direction;
+		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Normal = BrushNormal;
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Tangent = FProcMeshTangent(surfaceTangent, true);
 	}
 
@@ -259,7 +266,7 @@ void AHapticsHandler::ActivateVDP()
 		DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		FRotator Rr = RootComponent->GetComponentRotation();
 		FRotator r = FRotator(90.f, 0.f, 0.f);
-		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.05f));
+		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.5f));
 		DrawingPlane->SetWorldRotation(Rr);
 		DrawingPlane->AddLocalRotation(r);
 		bIsOnVDP = false;
@@ -460,7 +467,9 @@ FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 * broad casts the new haptic data as a multicast delegate
 */
 void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	OnHapticHandlerTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
+	OnHapticTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
+	UE_LOG(LogTemp, Warning, TEXT("its handler"));
+
 }
 void AHapticsHandler::button1Clicked()
 {
@@ -484,10 +493,11 @@ void AHapticsHandler::button2Clicked()
 		bIsOnVDP = true;
 		FRotator Rr = RootComponent->GetComponentRotation();
 		FRotator r = FRotator(90.f, 0.f, 0.f);
-		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.05f));
+		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.5f));
 		DrawingPlane->SetWorldRotation(Rr);
 		DrawingPlane->AddLocalRotation(r);
 		DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
+		VDPnormal = BrushNormal;
 	}
 }
 

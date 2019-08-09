@@ -67,7 +67,6 @@ void AMainController::BeginPlay()
 	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
 	//HHandler->DDirection = DefaultDirection;
 
-
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
 	FHandler->HapticForceUpdate.AddDynamic(this, &AMainController::SetHapticForce);

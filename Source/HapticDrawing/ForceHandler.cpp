@@ -64,9 +64,10 @@ void AForceHandler::Tick(float DeltaTime)
 		dPos.Normalize();
 		//FVector force = FVector(-dPos.X, dPos.Y, dPos.Z)* absDot * 0.15;
 
+		DrawDebugLine(GetWorld(), MeshPosition, MeshPosition + distance, FColor::Cyan, false, 0, 0, 0.5);
 		// Direction: Cursor to mesh
 		distance.Normalize();
-		FVector force = -FVector(-distance.X, distance.Y, distance.Z)* absDot * 0.15;
+		FVector force = -FVector(-distance.X, distance.Y, distance.Z) * 0.7;
 
 
 		UE_LOG(LogTemp, Warning, TEXT("normal %s"), *(MeshNormal.ToString()));
@@ -91,7 +92,6 @@ void AForceHandler::Tick(float DeltaTime)
 		HapticForceUpdate.Broadcast(force);
 
 		//DrawDebugLine(GetWorld(), MeshPosition, MeshPosition + (localProj*pf), FColor::Magenta, false, 0, 0, 0.5);
-		//DrawDebugLine(GetWorld(), MeshPosition, MeshPosition + (proj*pf), FColor::Cyan, false, 0, 0, 0.5);
 
 
 

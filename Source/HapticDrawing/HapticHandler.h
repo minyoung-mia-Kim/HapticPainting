@@ -39,6 +39,8 @@ public:
 		USphereComponent* cursor = nullptr;
 	UPROPERTY(VisibleAnywhere, Category = "Cursor")
 		UProceduralMeshComponent* brush = nullptr;
+
+	FVector BrushNormal;
 	UPROPERTY()
 		float brushSize;
 	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
@@ -70,6 +72,7 @@ public:
 	FHitResult OutHit;
 	bool bIsOnVDP = false;
 	FVector bforce = FVector::ZeroVector;
+	FVector VDPnormal;
 
 	/* Adjust Haptic Handler */
 	FRotator DDirection = FRotator::ZeroRotator;
@@ -106,7 +109,7 @@ public:
 	/**
 	* broad casts the new haptic data as a multicast delegate
 	*/
-	void broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity);
+	void broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) ;
 
 	/**
 	* set the force that should be applied to the haptic device in the next tick of the haptic thread
