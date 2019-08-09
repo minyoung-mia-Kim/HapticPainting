@@ -41,7 +41,7 @@ public:
 	/**
 	* broad casts the new haptic data as a multicast delegate
 	*/
-	void broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity);
+	virtual void broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity);
 
 	/**
 	* set the force that should be applied to the haptic device in the next tick of the haptic thread

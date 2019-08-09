@@ -15,7 +15,7 @@
 */
 AHapticsManager::AHapticsManager()
 {
-	PrimaryActorTick.bCanEverTick = true;
+	//PrimaryActorTick.bCanEverTick = true;
 }
 
 /**
@@ -23,9 +23,11 @@ AHapticsManager::AHapticsManager()
  */
 void AHapticsManager::BeginPlay()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Begin Manager"));
+
 	Super::BeginPlay();
-	UHapticThreadInput::getInst().setRunThread(true);
-	(new FAutoDeleteAsyncTask<FHapticThread>(IHaptico::Get(), this))->StartBackgroundTask();
+	//UHapticThreadInput::getInst().setRunThread(true);
+	//(new FAutoDeleteAsyncTask<FHapticThread>(IHaptico::Get(), this))->StartBackgroundTask();
 }
 
 /**
@@ -34,7 +36,7 @@ void AHapticsManager::BeginPlay()
 void  AHapticsManager::EndPlay(EEndPlayReason::Type type)
 {
 	Super::EndPlay(type);
-	UHapticThreadInput::getInst().setRunThread(false);
+	//UHapticThreadInput::getInst().setRunThread(false);
 }
 
 /**
@@ -109,6 +111,8 @@ FVector AHapticsManager::getHapticDevicePositionInUnrealCoordinates() {
 */
 void AHapticsManager::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
 	OnHapticTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
+	UE_LOG(LogTemp, Warning, TEXT("its Manager"));
+
 }
 void AHapticsManager::button1Clicked()
 {
