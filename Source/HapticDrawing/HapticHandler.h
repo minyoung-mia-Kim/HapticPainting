@@ -11,7 +11,6 @@
 #include "Components/StaticMeshComponent.h"
 #include "HapticHandler.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FNewHapticDeviceData, FVector, Position, FMatrix, Rotation, FVector, LinearVelocity, FVector, AngularVelocity);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FHapticCollisionDelegate, FVector, msPosition, FVector, msNormal, FVector, msTangent, FVector, cPosition);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSbuttonDelegate, FVector, Position, bool, hasClicked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FFbuttonDelegate, FVector, Position, bool, hasClicked);
@@ -53,8 +52,10 @@ public:
 	bool hasFBClicked;
 	bool hasSBClicked;
 	bool bIsSpringOn;
-
 	bool bIntersected;
+
+	UPROPERTY()
+		FVector FinalForce;
 
 
 	/* Button DeltaTime & status check*/
@@ -83,11 +84,7 @@ public:
 public:
 
 	AHapticsHandler();
-	/**
-	* The multicast delegate that is fired every tick and provides the up to date haptic data
-	*/
-	UPROPERTY(BlueprintAssignable)
-		FNewHapticDeviceData OnHapticHandlerTick;
+
 	UPROPERTY()
 		FHapticCollisionDelegate HapticCollisionData;
 	UPROPERTY()

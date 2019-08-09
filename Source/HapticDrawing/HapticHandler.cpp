@@ -467,8 +467,10 @@ FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 * broad casts the new haptic data as a multicast delegate
 */
 void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	OnHapticTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
-	UE_LOG(LogTemp, Warning, TEXT("its handler"));
+	OnHapticTick.Broadcast(DrawingPlane->GetComponentLocation(), FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
+	//UE_LOG(LogTemp, Warning, TEXT("its handler"));
+	//UE_LOG(LogTemp, Warning, TEXT("position : %s"), *(position.ToString()));
 
 }
 void AHapticsHandler::button1Clicked()

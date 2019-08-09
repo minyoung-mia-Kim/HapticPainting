@@ -18,6 +18,8 @@ void FHapticThread::DoWork()
 {
 	HapticDeviceButtonHandler buttonHandler(&haptico);
 	haptico.connect();
+	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::test);
+
 	while (UHapticThreadInput::getInst().shouldThreadRun()) {
 		FVector position = haptico.getPosition();
 		FMatrix rotation = haptico.getRotation();
@@ -31,6 +33,7 @@ void FHapticThread::DoWork()
 
 		AHapticsManager* hapticManagerPointer = hapticsManager;
 		hapticsManager->BHandler = &buttonHandler;
+
 		bool button1clicked = buttonHandler.button1Clicked();
 		bool button2clicked = buttonHandler.button2Clicked();
 		AsyncTask(ENamedThreads::GameThread, [hapticManagerPointer, button1clicked, button2clicked, position, rotation]() {
@@ -44,7 +47,6 @@ void FHapticThread::DoWork()
 		});
 
 		hapticsManager->broadCastNewHapticData(position, rotation, linearVelocity, angularVelocity);
-
 		FVector force = UHapticThreadInput::getInst().getForceToApply();
 		FVector torque = UHapticThreadInput::getInst().getTorqueToApply();
 		haptico.setForceAndTorque(force, torque);
@@ -52,4 +54,9 @@ void FHapticThread::DoWork()
 	}
 	haptico.disconnect();
 	
+}
+
+void FHapticThread::test(FVector v1, FMatrix v2, FVector v3, FVector v4)
+{
+		UE_LOG(LogTemp, Warning, TEXT("v1 : %s"), *(v1.ToString()));
 }

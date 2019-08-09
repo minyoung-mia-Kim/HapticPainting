@@ -18,6 +18,7 @@ public:
 		haptico(hapticoModule),
 		hapticsManager(hManager)
 	{}
+	void test(FVector v1, FMatrix v2, FVector v3, FVector v4);
 
 protected:
 	IHaptico& haptico;

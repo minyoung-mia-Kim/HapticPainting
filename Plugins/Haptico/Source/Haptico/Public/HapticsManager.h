@@ -10,7 +10,7 @@
 #include "HapticDeviceButtonHandler.h"
 #include "HapticsManager.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FNewHapticData, FVector, Position, FMatrix, Rotation, FVector, LinearVelocity, FVector, AngularVelocity);
+DECLARE_MULTICAST_DELEGATE_FourParams(FNewHapticData, FVector, FMatrix,  FVector,  FVector);
 
 UCLASS(BlueprintType)
 class HAPTICO_API AHapticsManager : public AActor
@@ -23,7 +23,7 @@ public:
 	/**
 	* the multicast delegate that is fired every tick and provides the up to date haptic data
 	*/
-	UPROPERTY(BlueprintAssignable)
+	//UPROPERTY(BlueprintAssignable)
 	FNewHapticData OnHapticTick;
 	HapticDeviceButtonHandler* BHandler;
 
