@@ -49,7 +49,7 @@ void FHapticThread::DoWork()
 		hapticsManager->broadCastNewHapticData(position, rotation, linearVelocity, angularVelocity);
 		FVector force = UHapticThreadInput::getInst().getForceToApply();
 		FVector torque = UHapticThreadInput::getInst().getTorqueToApply();
-		haptico.setForceAndTorque(force, torque);
+		haptico.setForceAndTorque(appliedForce, torque);
 
 	}
 	haptico.disconnect();
@@ -58,5 +58,6 @@ void FHapticThread::DoWork()
 
 void FHapticThread::test(FVector v1, FMatrix v2, FVector v3, FVector v4)
 {
-		UE_LOG(LogTemp, Warning, TEXT("v1 : %s"), *(v1.ToString()));
+	//UE_LOG(LogTemp, Warning, TEXT("v1 : %s"), *(v1.ToString()));
+	appliedForce = v1;
 }

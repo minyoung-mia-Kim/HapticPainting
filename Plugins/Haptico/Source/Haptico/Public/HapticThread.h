@@ -19,6 +19,7 @@ public:
 		hapticsManager(hManager)
 	{}
 	void test(FVector v1, FMatrix v2, FVector v3, FVector v4);
+	FVector appliedForce;
 
 protected:
 	IHaptico& haptico;

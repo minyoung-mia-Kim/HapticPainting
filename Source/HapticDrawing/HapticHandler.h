@@ -72,7 +72,7 @@ public:
 	/* VDP Functions & Variables */
 	FHitResult OutHit;
 	bool bIsOnVDP = false;
-	FVector bforce = FVector::ZeroVector;
+	FVector force = FVector::ZeroVector;
 	FVector VDPnormal;
 
 	/* Adjust Haptic Handler */

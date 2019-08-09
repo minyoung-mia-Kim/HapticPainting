@@ -149,7 +149,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("DotDist: %f"), distDotNorm);
 
 		TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
-		FVector force = FVector::ZeroVector;
+		//FVector force = FVector::ZeroVector;
 
 		TraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
 
@@ -172,7 +172,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 			//DrawDebugLine(GetWorld(), OutHit.Location, OutHit.Location + n*10.f, FColor::Magenta, true, 5.f, 0, 1);
 			//DrawDebugLine(GetWorld(), Start, Start + OutHit.Location, FColor::Red, true, 5.f, 0, 1);
-			UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
+			//UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
 			//UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
 
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
@@ -185,16 +185,17 @@ void AHapticsHandler::Tick(float DeltaTime)
 			float forceMag = FMath::LogX(0.5f, FMath::Abs(vdp)+0.5) + 3.f;
 			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
 			FVector damping = 1.5f * getHapticDeviceLinearVelocity();
-			UE_LOG(LogTemp, Warning, TEXT("damping : %s"), *(damping.ToString()));
+			//UE_LOG(LogTemp, Warning, TEXT("damping : %s"), *(damping.ToString()));
 			//UE_LOG(LogTemp, Warning, TEXT("add : %f"), add);
 
-			UE_LOG(LogTemp, Warning, TEXT("fsize : %f"), forceMag);
+			//UE_LOG(LogTemp, Warning, TEXT("fsize : %f"), forceMag);
 			if (forceMag > 0.0f)
 			{
 				force = FVector(n * forceMag) - damping;
-				UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+				force = FVector(FVector(-force.X, force.Y, force.Z));
+				//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
 			}
-			setForceToApply(FVector(-force.X, force.Y, force.Z));
+			//setForceToApply(force);
 
 
 			//f (vdp >= 0)
@@ -220,7 +221,6 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//setForceToApply(DDirection.RotateVector(FVector(1.0f, 0.0f, 0.0f)));
 
 
-			bforce = force;
 		}
 
 
@@ -467,7 +467,7 @@ FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 * broad casts the new haptic data as a multicast delegate
 */
 void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	OnHapticTick.Broadcast(DrawingPlane->GetComponentLocation(), FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+	OnHapticTick.Broadcast(force, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
 	//UE_LOG(LogTemp, Warning, TEXT("its handler"));
 	//UE_LOG(LogTemp, Warning, TEXT("position : %s"), *(position.ToString()));
