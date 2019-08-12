@@ -18,7 +18,7 @@ void FHapticThread::DoWork()
 {
 	HapticDeviceButtonHandler buttonHandler(&haptico);
 	haptico.connect();
-	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::test);
+	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::GetForce);
 
 	while (UHapticThreadInput::getInst().shouldThreadRun()) {
 		FVector position = haptico.getPosition();
@@ -51,7 +51,7 @@ void FHapticThread::DoWork()
 		//FVector force = UHapticThreadInput::getInst().getForceToApply();
 		FVector torque = UHapticThreadInput::getInst().getTorqueToApply();
 
-		UE_LOG(LogTemp, Warning, TEXT("appliedForce : %s"), *(appliedForce.ToString()));
+		//UE_LOG(LogTemp, Warning, TEXT("appliedForce : %s"), *(appliedForce.ToString()));
 		haptico.setForceAndTorque(appliedForce, torque);
 
 	}
@@ -59,10 +59,15 @@ void FHapticThread::DoWork()
 	
 }
 
-void FHapticThread::test(FVector BLocation, FVector HitLocation, FMatrix v2, FVector HitNormal, FVector RHitNormal)
+void FHapticThread::GetForce(FVector v1, FVector v2, FMatrix m1, FVector v3, FVector v4)
+{
+	appliedForce = v1;
+}
+
+void FHapticThread::GetCollision(FVector BLocation, FVector HitLocation, FMatrix v2, FVector HitNormal, FVector RHitNormal)
 {
 	// if VDP is off
-	if (BLocation == FVector::ZeroVector)
+	if (HitNormal == FVector::ZeroVector)
 	{
 		appliedForce = FVector::ZeroVector;
 		return; 
