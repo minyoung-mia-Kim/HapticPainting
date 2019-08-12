@@ -18,8 +18,8 @@ public:
 		haptico(hapticoModule),
 		hapticsManager(hManager)
 	{}
-	void test(FVector v1, FMatrix v2, FVector v3, FVector v4);
-	FVector appliedForce;
+	void test(FVector v1,FVector v2, FMatrix m1, FVector v3, FVector v4);
+	FVector appliedForce = FVector::ZeroVector;
 
 protected:
 	IHaptico& haptico;

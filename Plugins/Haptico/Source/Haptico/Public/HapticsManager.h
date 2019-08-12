@@ -10,7 +10,7 @@
 #include "HapticDeviceButtonHandler.h"
 #include "HapticsManager.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_FourParams(FNewHapticData, FVector, FMatrix,  FVector,  FVector);
+DECLARE_MULTICAST_DELEGATE_FiveParams(FNewHapticData, FVector, FVector, FMatrix, FVector, FVector);
 
 UCLASS(BlueprintType)
 class HAPTICO_API AHapticsManager : public AActor

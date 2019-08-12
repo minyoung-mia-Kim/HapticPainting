@@ -47,8 +47,11 @@ void FHapticThread::DoWork()
 		});
 
 		hapticsManager->broadCastNewHapticData(position, rotation, linearVelocity, angularVelocity);
-		FVector force = UHapticThreadInput::getInst().getForceToApply();
+		
+		//FVector force = UHapticThreadInput::getInst().getForceToApply();
 		FVector torque = UHapticThreadInput::getInst().getTorqueToApply();
+
+		UE_LOG(LogTemp, Warning, TEXT("appliedForce : %s"), *(appliedForce.ToString()));
 		haptico.setForceAndTorque(appliedForce, torque);
 
 	}
@@ -56,8 +59,30 @@ void FHapticThread::DoWork()
 	
 }
 
-void FHapticThread::test(FVector v1, FMatrix v2, FVector v3, FVector v4)
+void FHapticThread::test(FVector BLocation, FVector HitLocation, FMatrix v2, FVector HitNormal, FVector RHitNormal)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("v1 : %s"), *(v1.ToString()));
-	appliedForce = v1;
+	// if VDP is off
+	if (BLocation == FVector::ZeroVector)
+	{
+		appliedForce = FVector::ZeroVector;
+		return; 
+
+	}
+
+	//Force Calculation
+	float pDepth = FVector::DotProduct(HitNormal, (HitLocation - BLocation)); // brush to location
+	float forceMag = FMath::LogX(0.5f, FMath::Abs(pDepth) + 0.5) + 3.f;
+	FVector damping = 1.5f * haptico.getLinearVelocity();
+	if (forceMag > 0.0f)
+	{
+		appliedForce = FVector(RHitNormal * forceMag) - damping;
+		//force = FVector(n * forceMag);
+
+		appliedForce = FVector(FVector(-appliedForce.X, appliedForce.Y, appliedForce.Z));
+		//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+	}
+	else
+	{
+		appliedForce = FVector::ZeroVector;
+	}
 }

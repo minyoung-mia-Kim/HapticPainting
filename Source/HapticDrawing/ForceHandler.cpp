@@ -55,7 +55,7 @@ void AForceHandler::Tick(float DeltaTime)
 		// Calculate vector between b and a (giving the direction and magnitude of the vector they make up)
 		FVector distance = FVector(CursorPosition - MeshPosition); // MC = C-M
 		float distDotNorm = FVector::DotProduct(distance, MeshNormal); // |dist||Mn|cos(theta)
-		UE_LOG(LogTemp, Warning, TEXT("distDotNorm %f"), distDotNorm);
+		//UE_LOG(LogTemp, Warning, TEXT("distDotNorm %f"), distDotNorm);
 		FVector desirePos = CursorPosition - (distDotNorm / MeshNormal.Size()) * MeshNormal;
 		float absDot = FMath::Abs(distDotNorm);
 		// Have direction
@@ -70,11 +70,9 @@ void AForceHandler::Tick(float DeltaTime)
 		FVector force = -FVector(-distance.X, distance.Y, distance.Z) * 0.7;
 
 
-		UE_LOG(LogTemp, Warning, TEXT("normal %s"), *(MeshNormal.ToString()));
-		UE_LOG(LogTemp, Warning, TEXT("CursorPosition - Desire %s"), *(dPos.ToString()));
-
-
-		UE_LOG(LogTemp, Warning, TEXT("force %s"), *(force.ToString()));
+		//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *(MeshNormal.ToString()));
+		//UE_LOG(LogTemp, Warning, TEXT("CursorPosition - Desire %s"), *(dPos.ToString()));
+		//UE_LOG(LogTemp, Warning, TEXT("force %s"), *(force.ToString()));
 		//DrawDebugLine(GetWorld(), desirePos, desirePos + (dPos * -absDot), FColor::Green, false, 0, 0, 0.5);
 
 		if (force.Size() < SPRING_TOLERANCE)

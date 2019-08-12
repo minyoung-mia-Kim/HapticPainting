@@ -110,7 +110,7 @@ FVector AHapticsManager::getHapticDevicePositionInUnrealCoordinates() {
 * broad casts the new haptic data as a multicast delegate 
 */
 void AHapticsManager::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	OnHapticTick.Broadcast(position, rotation, linearVelocity, angularVelocity);
+	OnHapticTick.Broadcast(position, FVector::ZeroVector, rotation, linearVelocity, angularVelocity);
 	UE_LOG(LogTemp, Warning, TEXT("its Manager"));
 
 }

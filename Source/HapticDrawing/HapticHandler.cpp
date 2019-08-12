@@ -57,7 +57,7 @@ AHapticsHandler::AHapticsHandler()
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius()*2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	DrawingPlane->SetVisibility(true);
+	DrawingPlane->SetVisibility(false);
 
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
@@ -123,9 +123,11 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 	/* Texture haptic force*/
 	if (hasFBClicked)
-		setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
+		force = getHapticDeviceLinearVelocity() * -viscosity;
+	//setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
 	else
-		setForceToApply(FVector::ZeroVector);
+		force = FVector::ZeroVector;
+		//setForceToApply(FVector::ZeroVector);
 
 	if (hasSBClicked)
 	{
@@ -145,14 +147,11 @@ void AHapticsHandler::Tick(float DeltaTime)
 		float distDotNorm = FVector::DotProduct(distance, VDPnormal); // |dist||Mn|cos(theta)
 		FVector projEnd = (Start - (distDotNorm / VDPnormal.Size()) * VDPnormal);
 		DrawDebugLine(GetWorld(), Start, End, FColor::Cyan, false, 0, 0, 0.5);
-
-		UE_LOG(LogTemp, Warning, TEXT("DotDist: %f"), distDotNorm);
+		//UE_LOG(LogTemp, Warning, TEXT("DotDist: %f"), distDotNorm);
 
 		TArray<TEnumAsByte<EObjectTypeQuery>> TraceObjectTypes;
-		//FVector force = FVector::ZeroVector;
-
 		TraceObjectTypes.Add(UEngineTypes::ConvertToObjectType(ECollisionChannel::ECC_WorldStatic));
-
+		FHitResult OutHit;
 		if (GetWorld()->LineTraceSingleByObjectType(OutHit, Start, End, TraceObjectTypes))
 		{
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("You are hitting: %s"), *OutHit.GetComponent()->GetName()));
@@ -161,11 +160,12 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, FString::Printf(TEXT("D: %f"), OutHit.Distance));
 			//DrawDebugPoint(GetWorld(), brush->GetComponentLocation(), 5.5f, FColor::Magenta, true, 5.f);
 			float r = cursor->GetScaledSphereRadius();
-
-			FVector n = OutHit.ImpactNormal;
-			float vdp = FVector::DotProduct(n, (OutHit.Location - brush->GetComponentLocation())); // brush to location
-			float dmax = FVector::DotProduct(n, (OutHit.Location - cursor->GetComponentLocation()));
-			FVector point = brush->GetComponentLocation() + (vdp * n);
+			BLocation = brush->GetComponentLocation();
+			HitLocation = OutHit.Location;
+			HitNormal = OutHit.ImpactNormal;
+			//float vdp = FVector::DotProduct(n, (OutHit.Location - brush->GetComponentLocation())); // brush to location
+			//float dmax = FVector::DotProduct(n, (OutHit.Location - cursor->GetComponentLocation()));
+			//FVector point = brush->GetComponentLocation() + (vdp * n);
 
 			//standard distance = vdp
 
@@ -175,51 +175,35 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
 			//UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
 
+			//Normal vector before and after applying rotation
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(DDirection.RotateVector(n).ToString()));
-			n = DDirection.RotateVector(n);//only for applying force
+
+			RHitNormal = DDirection.RotateVector(HitNormal);//only for applying force
 
 			//UE_LOG(LogTemp, Warning, TEXT("plus : %f"), -(vdp + dmax));
 			//UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
-			float add = vdp + dmax;
-			float forceMag = FMath::LogX(0.5f, FMath::Abs(vdp)+0.5) + 3.f;
+			//float add = vdp + dmax;
+
+			//Force Calculation
+			///////////////////////////////////////////////
+			//float forceMag = FMath::LogX(0.5f, FMath::Abs(vdp)+0.5) + 3.f;
 			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
-			FVector damping = 1.5f * getHapticDeviceLinearVelocity();
+			//FVector damping = 1.5f * getHapticDeviceLinearVelocity();
+			//if (forceMag > 0.0f)
+			//{
+			//	force = FVector(n * forceMag) - damping;
+			//	//force = FVector(n * forceMag);
+
+			//	force = FVector(FVector(-force.X, force.Y, force.Z));
+			//	//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+			//}
+			///////////////////////////////////////////////
+
+
 			//UE_LOG(LogTemp, Warning, TEXT("damping : %s"), *(damping.ToString()));
 			//UE_LOG(LogTemp, Warning, TEXT("add : %f"), add);
-
 			//UE_LOG(LogTemp, Warning, TEXT("fsize : %f"), forceMag);
-			if (forceMag > 0.0f)
-			{
-				force = FVector(n * forceMag) - damping;
-				force = FVector(FVector(-force.X, force.Y, force.Z));
-				//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
-			}
-			//setForceToApply(force);
-
-
-			//f (vdp >= 0)
-			//{
-			//}
-			//if (vdp <= 0)
-			//{
-			//	force = FVector::ZeroVector;
-			//	OutHit.Reset();
-			//}
-			//else if (vdp > 0 && vdp <= dmax)
-			//{
-			//	force = FVector(n * (k1 / dmax) * vdp);
-			//}
-			//else if (vdp > 0 && vdp > dmax)
-			//{
-			//	force = FVector(n * (k1 + (k2 / dmax) * (vdp - dmax)));
-			//}
-			/*
-			 force = FMath::log(1/2, vdp);
-			 if(vdp
-			*/
-			//setForceToApply(DDirection.RotateVector(FVector(1.0f, 0.0f, 0.0f)));
-
 
 		}
 
@@ -271,6 +255,11 @@ void AHapticsHandler::ActivateVDP()
 		DrawingPlane->AddLocalRotation(r);
 		bIsOnVDP = false;
 		DrawingPlane->SetVisibility(false);
+
+		BLocation = FVector::ZeroVector;
+		HitLocation = FVector::ZeroVector; 
+		HitNormal = FVector::ZeroVector;
+		RHitNormal = FVector::ZeroVector;
 	}
 	else
 	{
@@ -467,7 +456,7 @@ FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 * broad casts the new haptic data as a multicast delegate
 */
 void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	OnHapticTick.Broadcast(force, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+	OnHapticTick.Broadcast(BLocation, HitLocation, FMatrix::Identity, HitNormal, RHitNormal);
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
 	//UE_LOG(LogTemp, Warning, TEXT("its handler"));
 	//UE_LOG(LogTemp, Warning, TEXT("position : %s"), *(position.ToString()));

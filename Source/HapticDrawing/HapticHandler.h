@@ -54,9 +54,6 @@ public:
 	bool bIsSpringOn;
 	bool bIntersected;
 
-	UPROPERTY()
-		FVector FinalForce;
-
 
 	/* Button DeltaTime & status check*/
 	bool prvFBstat = false;
@@ -70,10 +67,10 @@ public:
 		void setViscosity(float v);
 
 	/* VDP Functions & Variables */
-	FHitResult OutHit;
 	bool bIsOnVDP = false;
 	FVector force = FVector::ZeroVector;
-	FVector VDPnormal;
+	FVector VDPnormal, BLocation, HitLocation, HitNormal, RHitNormal;
+
 
 	/* Adjust Haptic Handler */
 	FRotator DDirection = FRotator::ZeroRotator;
