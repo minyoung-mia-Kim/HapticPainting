@@ -118,7 +118,7 @@ void AMainController::SetHapticTurn(FRotator rotator)
 
 void AMainController::SetHapticForce(FVector hForce)
 {
-	HHandler->setForceToApply(hForce);
+	HHandler->force = hForce;
 	HHandler->bIsSpringOn = false;
 }
 
