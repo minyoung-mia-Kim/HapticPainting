@@ -9,7 +9,7 @@
 AProceduralPlaneMesh::AProceduralPlaneMesh()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	//SetActorEnableCollision(true);
 	pm = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	pm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
