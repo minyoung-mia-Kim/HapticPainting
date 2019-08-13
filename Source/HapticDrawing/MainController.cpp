@@ -69,7 +69,7 @@ void AMainController::BeginPlay()
 
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
-	FHandler->HapticForceUpdate.AddDynamic(this, &AMainController::SetHapticForce);
+	FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
 	HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
 
 }
@@ -100,6 +100,7 @@ void AMainController::Tick(float DeltaTime)
 
 	/* Keep update cursorPosition in Forcehandler to compute the realtime distance */
 	FHandler->CursorPosition = HHandler->DDirection.RotateVector(HHandler->brush->GetComponentLocation());
+	FHandler->CursorVelocity = HHandler->getHapticDeviceLinearVelocity();
 	//FHandler->CursorPosition.X += HHandler->cursor->GetScaledSphereRadius();
 	FHandler->HHandlerRotator = HHandler->GetActorRotation();
 
@@ -116,9 +117,4 @@ void AMainController::SetHapticTurn(FRotator rotator)
 	//HHandler->SetCursorRotation(rotator);
 }
 
-void AMainController::SetHapticForce(FVector hForce)
-{
-	HHandler->force = hForce;
-	HHandler->bIsSpringOn = false;
-}
 

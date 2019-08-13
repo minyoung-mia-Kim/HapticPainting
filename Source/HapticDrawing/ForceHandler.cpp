@@ -55,7 +55,6 @@ void AForceHandler::Tick(float DeltaTime)
 		// Calculate vector between b and a (giving the direction and magnitude of the vector they make up)
 		FVector distance = FVector(CursorPosition - MeshPosition); // MC = C-M
 		float distDotNorm = FVector::DotProduct(distance, MeshNormal); // |dist||Mn|cos(theta)
-		//UE_LOG(LogTemp, Warning, TEXT("distDotNorm %f"), distDotNorm);
 		FVector desirePos = CursorPosition - (distDotNorm / MeshNormal.Size()) * MeshNormal;
 		float absDot = FMath::Abs(distDotNorm);
 		// Have direction
@@ -67,7 +66,9 @@ void AForceHandler::Tick(float DeltaTime)
 		DrawDebugLine(GetWorld(), MeshPosition, MeshPosition + distance, FColor::Cyan, false, 0, 0, 0.5);
 		// Direction: Cursor to mesh
 		distance.Normalize();
-		FVector force = -FVector(-distance.X, distance.Y, distance.Z) * 0.7;
+		FVector damping = 0.7f * CursorVelocity;
+		UE_LOG(LogTemp, Warning, TEXT("damping %s"), *(damping.ToString()));
+		FVector force = -FVector(-distance.X, distance.Y, distance.Z) * 0.7 - damping;
 
 
 		//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *(MeshNormal.ToString()));
@@ -155,6 +156,6 @@ void AForceHandler::cleanForceInfo()
 	CursorPosition = FVector::ZeroVector;
 	CurrentForce = FVector::ZeroVector;
 	HapticForceUpdate.Broadcast(CurrentForce);
-	Proxy->bVisible = false;
+	Proxy->SetVisibility(false);
 }
 

@@ -62,7 +62,6 @@ public:
 
 	/* Texture haptic force*/
 	float viscosity = 5.0f;
-
 	UFUNCTION()
 		void setViscosity(float v);
 
@@ -71,13 +70,16 @@ public:
 	FVector force = FVector::ZeroVector;
 	FVector VDPnormal, BLocation, HitLocation, HitNormal, RHitNormal;
 
-
 	/* Adjust Haptic Handler */
 	FRotator DDirection = FRotator::ZeroRotator;
 
 	/* Activate Virtual Drawing Plane */
 	UFUNCTION()
 		void ActivateVDP();
+
+	/* Anchor Force */
+	UFUNCTION()
+		void SetHapticForce(FVector aForce);
 public:
 
 	AHapticsHandler();

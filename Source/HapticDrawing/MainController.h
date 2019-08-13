@@ -61,9 +61,6 @@ public:
 	UFUNCTION()
 		void SetHapticTurn(FRotator rotator);
 
-	UFUNCTION()
-		void SetHapticForce(FVector hForce);
-
 
 };
 

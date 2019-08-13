@@ -29,6 +29,8 @@ public:
 
 	UPROPERTY()
 		FVector CursorPosition;
+	FVector CursorVelocity;
+
 	UPROPERTY()
 		FVector CurrentForce;
 	UPROPERTY()
@@ -36,7 +38,6 @@ public:
 
 	float SPRING_TOLERANCE = 0.000000005;
 	float springK = 1.2f;
-	float ForceClamp = 1.f;
 
 
 	UPROPERTY()

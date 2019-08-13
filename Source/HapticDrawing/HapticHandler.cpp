@@ -271,6 +271,12 @@ void AHapticsHandler::ActivateVDP()
 
 }
 
+void AHapticsHandler::SetHapticForce(FVector aForce)
+{
+	force += aForce;
+	bIsSpringOn = false;
+}
+
 /*
 * Collistion event
 */
@@ -305,9 +311,6 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 
 				if (refinedCPosition.Equals(detectStrokeActor->centerPos[i], brushSize / 3))
 				{
-					UE_LOG(LogTemp, Warning, TEXT("Ta-da"));
-
-
 					FVector centerPosition = detectStrokeActor->centerPos[i];
 					DrawDebugPoint(GetWorld(), centerPosition, 10.f, FColor::Green, true, 1, 0);
 					HapticCollisionData.Broadcast(DDirection.RotateVector(detectStrokeActor->centerPos[i]),
@@ -316,7 +319,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 						refinedCPosition);
 
 
-					UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
+					//UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
 					//UE_LOG(LogTemp, Warning, TEXT("tangent %s"), *centerTangent.ToString());
 					//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *detectStrokeActor->centerNormals[i].ToString());
 					////UE_LOG(LogTemp, Warning, TEXT("dist %f"), dist);
