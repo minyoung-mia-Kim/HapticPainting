@@ -17,12 +17,20 @@ APainterPawn::APainterPawn()
 	GetRootComponent()->SetWorldScale3D(FVector(0.5f, 0.5f, 0.5f));*/
 	RComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComponent"));
 	SetRootComponent(RComponent);
+	
+	SPArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+	SPArm->AttachToComponent(RComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
 	VRcamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PawnCamera"));
 
 	MC_Left = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Left"));
 	MC_Left->Hand = EControllerHand::Left;
-	MC_Left->SetupAttachment(RootComponent);
+	MC_Left->SetupAttachment(RComponent);
 
+
+	Center = CreateDefaultSubobject<USceneComponent>(TEXT("CenterPosition"));
+	Center->AttachToComponent(RComponent, FAttachmentTransformRules::KeepWorldTransform);
+	Center->SetWorldLocation(FVector(0.f, 0.f, 0.f));
 	//MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
 	//MC_Right->Hand = EControllerHand::Right;
 	//MC_Right->SetupAttachment(RootComponent);
@@ -165,6 +173,20 @@ void APainterPawn::MoveUp_World(float Val)
 		AddMovementInput(FVector::UpVector, Val*0.1);
 
 	}
+}
+
+void APainterPawn::GetHapticCursor(FVector Pos)
+{
+	if (Pos != PrevCursorPos)
+	{
+		RotationAngle = FMath::Acos(FVector::DotProduct(FVector(MC_Left->GetComponentLocation() - PrevCursorPos), FVector(MC_Left->GetComponentLocation() - Pos)));
+	}
+	else
+	{
+		RotationAngle = 0.0f;
+	}
+	PrevCursorPos = Pos;
+
 }
 
 //void APainterPawn::TurnAtRate(float Rate)

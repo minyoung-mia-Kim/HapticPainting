@@ -8,6 +8,7 @@
 #include "HeadMountedDisplay.h"
 #include "Camera/CameraComponent.h"
 #include "MotionControllerComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 #include "PainterPawn.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPawnInfoDelegate, FRotator, pawnRotator);
@@ -36,6 +37,10 @@ public:
 		UMotionControllerComponent* MC_Right;*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UCameraComponent* VRcamera;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
+		USpringArmComponent* SPArm;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MyPawn")
+		USceneComponent* Center;
 
 
 	/* VR Controller */
@@ -79,7 +84,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Pawn")
 		virtual void MoveUp_World(float Val);
 
+	UFUNCTION(BlueprintCallable, Category = "Pawn")
+		void GetHapticCursor(FVector Pos);
 
+	FVector PrevCursorPos;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Rotation")
+		float RotationAngle;
 	//UFUNCTION(BlueprintCallable, Category = "Pawn")
 	//	void TurnAtRate(float Rate);
 

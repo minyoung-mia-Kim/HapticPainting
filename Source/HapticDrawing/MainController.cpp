@@ -15,43 +15,11 @@ AMainController::AMainController()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void AMainController::BindToFbuttonInput(FVector posDevice, bool hasClicked)
-{
-	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked %d"), hasClicked);
-	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-
-	//Give the drawing brush position
-	DHandler->receivedFbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
-}
-
-void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
-{
-	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b2 clicked"));
-	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-
-	//Give the drawing brush position
-	DHandler->receivedSbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
-}
-
-void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor, float viscosity, FString tex)
-{
-	HHandler->RefreshBrushCursor(brushSize, brushColor, viscosity, tex);
-	//UE_LOG(LogTemp, Warning, TEXT("middle Color: %s"), *(brushColor.ToString()));
-
-}
-
-void AMainController::BindToBrushInput(FLinearColor selectedColor, float selectedSize)
-{
-	DHandler->SetBrushColor(selectedColor, selectedSize);
-	//UE_LOG(LogTemp, Warning, TEXT("selected Color: %s"), *(selectedColor.ToString()));
-
-}
-
 // Called when the game starts or when spawned
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
-	APainterPawn* PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
 	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
 	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
 	FHandler = GetWorld()->SpawnActor<AForceHandler>(AForceHandler::StaticClass());
@@ -73,6 +41,41 @@ void AMainController::BeginPlay()
 	HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
 
 }
+
+
+void AMainController::BindToFbuttonInput(FVector posDevice, bool hasClicked)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked %d"), hasClicked);
+	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+
+	//Give the drawing brush position
+	DHandler->receivedFbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
+}
+
+void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b2 clicked"));
+	//UE_LOG(LogTemp, Warning, TEXT("X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
+
+	//Give the drawing brush position
+	DHandler->receivedSbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
+	PainterInstance->GetHapticCursor(posDevice);
+}
+
+void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor, float viscosity, FString tex)
+{
+	HHandler->RefreshBrushCursor(brushSize, brushColor, viscosity, tex);
+	//UE_LOG(LogTemp, Warning, TEXT("middle Color: %s"), *(brushColor.ToString()));
+
+}
+
+void AMainController::BindToBrushInput(FLinearColor selectedColor, float selectedSize)
+{
+	DHandler->SetBrushColor(selectedColor, selectedSize);
+	//UE_LOG(LogTemp, Warning, TEXT("selected Color: %s"), *(selectedColor.ToString()));
+
+}
+
 
 // Called every frame
 void AMainController::Tick(float DeltaTime)
@@ -108,9 +111,9 @@ void AMainController::Tick(float DeltaTime)
 
 void AMainController::SetHapticTurn(FRotator rotator)
 {
-	DefaultPosition += rotator;
-	DefaultDirection += rotator;
-	HHandler->DDirection += rotator.GetInverse();
+	DefaultPosition = rotator + FRotator(0.0f, 180.f, 0.0f);
+	DefaultDirection = rotator + FRotator(0.0f, 180.f, 0.0f);
+	HHandler->DDirection = rotator.GetInverse();
 	UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
 	UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
 	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));

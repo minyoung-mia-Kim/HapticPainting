@@ -43,6 +43,8 @@ protected:
 		class ADrawingHandler* DHandler;
 	UPROPERTY()
 		class AForceHandler* FHandler;
+	UPROPERTY()
+		class APainterPawn* PainterInstance;
 
 	FVector CurrentLocation;
 	// Called when the game starts or when spawned

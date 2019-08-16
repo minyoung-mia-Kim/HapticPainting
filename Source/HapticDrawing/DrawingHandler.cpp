@@ -232,7 +232,7 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);*/
 
 	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke); 
-	InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
+	//InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
 
 	/*InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
 	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);*/
