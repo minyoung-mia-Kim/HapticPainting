@@ -9,6 +9,7 @@
 #include "FileHelper.h"
 #include "BufferArchive.h"
 #include "USaveableActorInterface.h"
+#include "TimerManager.h"
 #include "DrawingHandler.generated.h"
 
 UENUM()
@@ -45,16 +46,12 @@ struct FStroke
 {
 	GENERATED_BODY()
 		FStroke() {}
-	FStroke(FVector sPos, FVector ePos, AProceduralPlaneMesh* _mesh)
+	FStroke(AProceduralPlaneMesh* _mesh)
 	{
 		mesh = _mesh;
-		startPos = sPos;
-		endPos = ePos;
 	}
 
 	AProceduralPlaneMesh* mesh;
-	FVector startPos;
-	FVector endPos;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FBrushInfoDelegate, float, brushSize, FLinearColor, brushColor, float, viscosity, FString, brushTex);
@@ -85,6 +82,7 @@ class HAPTICDRAWING_API ADrawingHandler : public AActor
 
 	//Haptic Mode
 	bool isHapticMode;
+
 public:
 	// Sets default values for this actor's properties
 	ADrawingHandler();
@@ -95,7 +93,8 @@ public:
 
 
 	/* Deltatime for haptic button */
-	float dt = 0.0f;
+	UPROPERTY()
+		float dt = 0.0f;
 	float prvDt = 0.0f;
 	float FButtonDt = 0.0f;
 	float SButtonDt = 0.0f;
@@ -147,5 +146,19 @@ public:
 	TArray<FActorSaveData> SavedActors;
 	void ActorSaveDataLoaded();
 	void ActorSaveDataSaved();
+
+	UFUNCTION()
+		void Loaded(FSaveGameData SaveGameData);
+
+	//Replay
+	bool bReplay = false;
+	int index = 0;
+	float RprevDt = 0.0f;
+	UFUNCTION()
+		void ReplayPainting();
+	UFUNCTION()
+		void ShowPainting();
+	//FTimerDelegate  TimerDel;
+	FTimerHandle TimerHandle;
 
 };
