@@ -42,7 +42,7 @@ AHapticsHandler::AHapticsHandler()
 	brush->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 	CreateBrushCursor(10.0f, FLinearColor::White, "Material'/Game/HDAssets/M_grunge1.M_grunge1'");
 
-	/* Collision overlap check with storke*/
+	/* Collision overlap check with storke */
 	cursor->OnComponentBeginOverlap.AddDynamic(this, &AHapticsHandler::OnComponentBeginOverlap);
 	cursor->OnComponentEndOverlap.AddDynamic(this, &AHapticsHandler::OnComponentEndOverlap);
 	cursor->SetEnableGravity(false);
@@ -57,7 +57,7 @@ AHapticsHandler::AHapticsHandler()
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius()*2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	DrawingPlane->SetVisibility(false);
+	DrawingPlane->SetVisibility(true);
 
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
@@ -140,7 +140,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	if (bIsOnVDP && !bIsSpringOn)
 	{
 
-		FVector Start = cursor->GetComponentLocation() - cursor->GetForwardVector() * 30.f;
+		FVector Start = cursor->GetComponentLocation() - cursor->GetForwardVector() * 50.f;
 		FVector End = ((this->GetActorForwardVector() * 1000.f) + Start);
 
 		FVector distance = FVector(DrawingPlane->GetComponentLocation() - Start); // start to plane
@@ -167,7 +167,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//float dmax = FVector::DotProduct(n, (OutHit.Location - cursor->GetComponentLocation()));
 			//FVector point = brush->GetComponentLocation() + (vdp * n);
 
-			//standard distance = vdp
+			/*standard distance = vdp*/
 
 
 			//DrawDebugLine(GetWorld(), OutHit.Location, OutHit.Location + n*10.f, FColor::Magenta, true, 5.f, 0, 1);
@@ -187,7 +187,19 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 			//Force Calculation
 			///////////////////////////////////////////////
-			float forceMag = FMath::LogX(0.5f, FMath::Abs(vdp)+0.5) + 3.f;
+			float forceMag = 0.0f;
+
+			if (vdp > 0.0f)
+			{
+				forceMag = -(FMath::Pow(1.05f, vdp)) + 7.f;
+				//UE_LOG(LogTemp, Warning, TEXT("p fsize : %f"), forceMag);
+			}
+			else
+			{
+				forceMag = FMath::LogX(0.5f, FMath::Abs(vdp)+0.1) + 3.f;
+
+			}
+
 			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
 			FVector damping = 1.5f * getHapticDeviceLinearVelocity();
 			if (forceMag > 0.0f)
@@ -203,7 +215,6 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 			//UE_LOG(LogTemp, Warning, TEXT("damping : %s"), *(damping.ToString()));
 			//UE_LOG(LogTemp, Warning, TEXT("add : %f"), add);
-			//UE_LOG(LogTemp, Warning, TEXT("fsize : %f"), forceMag);
 
 		}
 
@@ -299,8 +310,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		AProceduralPlaneMesh* detectStrokeActor = Cast<AProceduralPlaneMesh>(OtherActor);
 		UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
 
-		FVector refinedCPosition = OverlappedComp->GetComponentLocation();
-		refinedCPosition.X += cursor->GetScaledSphereRadius();
+		FVector refinedCPosition = brush->GetComponentLocation();
 
 		if (detectStrokeActor != nullptr)
 		{
