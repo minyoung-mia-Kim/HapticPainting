@@ -89,7 +89,10 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 	uvs.Add(FVector2D(1, 0));
 	prvPos = position;
 
-	UE_LOG(LogTemp, Warning, TEXT("??????"));
+	//UE_LOG(LogTemp, Warning, TEXT("??????"));
+
+	/*Save mesh section data*/
+	TotalVertice.Append(vertices);
 
 	/*material saveeee*/
 	ArrMeshesections.color = color;
@@ -228,8 +231,8 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	//UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
-	//DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
-	//DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+	DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 
 	for (int32 y = 0; y < height; y++)
@@ -241,9 +244,32 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 			tangents.Add(FProcMeshTangent(surfaceTangent, true));
 		}
 	}
-	GenerateTriangles();
-	//	Two-sided front-faces
-	GenerateOppositeTriangles();
+	//GenerateTriangles();
+	////	Two-sided front-faces
+	//GenerateOppositeTriangles();
+
+	for (int32 y = 0; y < height - 1; y++)
+	{
+		for (int32 x = 0; x < width - 1; x++)
+		{
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right		: 1
+
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + 1);				//current vertex + one right		: 1
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+			triangles.Add(x + (y * width));					//current vertex					: 0
+			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
+		}
+	}
+
 
 	/* Add a mesh section */
 	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, true);
@@ -251,16 +277,18 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	pm->SetCollisionConvexMeshes({ vertices });
 
 
-	/*	Get the first material of the static mesh and turn it into a material instance */
-	UMaterialInstanceDynamic* DynamicMatInstance = pm->CreateAndSetMaterialInstanceDynamic(0);
+	///*	Get the first material of the static mesh and turn it into a material instance */
+	//UMaterialInstanceDynamic* DynamicMatInstance = pm->CreateAndSetMaterialInstanceDynamic(0);
 
-	//If we have a valid dynamic material instance, modify its parameters
-	if (DynamicMatInstance)
-	{
-		float ex;
-		DynamicMatInstance->GetScalarParameterValue(FName("UTiling"), ex);
-		DynamicMatInstance->SetScalarParameterValue(FName("UTiling"), ex - 0.001);
-	}
+	////If we have a valid dynamic material instance, modify its parameters
+	//if (DynamicMatInstance)
+	//{
+	//	float ex;
+	//	DynamicMatInstance->GetScalarParameterValue(FName("UTiling"), ex);
+	//	DynamicMatInstance->SetScalarParameterValue(FName("UTiling"), ex - 0.001);
+	//}
+
+
 	pm->SetMaterial(nGeneratedSection, Material);
 
 
@@ -269,8 +297,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	centerNormals.Add(Normal);
 	prvPos = position;
 
-	/*Save mesh section data*/
-	TotalVertice.Append(vertices);
+
 
 	/* increase section idx */
 	nGeneratedSection++;
@@ -286,6 +313,9 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
 	//vertexColors.Add(color); //white
 	//vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
+
+	/*Save mesh section data*/
+	TotalVertice.Append(vertices);
 
 	/* Debug */
 	//UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
@@ -325,6 +355,8 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, FMath::Sin(0));
 		}
 	}
+	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
+
 }
 
 void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
@@ -362,68 +394,134 @@ FMeshSectionData AProceduralPlaneMesh::getAllMeshsections()
 
 void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 {
-	int nGeneratedSection = 0;
+	/*Several mesh sections*/
+	/////////////////////////////////////////////
+	//int nGeneratedSection = 0;
+	//for (int i = 0; i < msData.vertices.Num(); i += 2)
+	//{
+	//	if (i + 2 < msData.vertices.Num())
+	//	{
+	//		vertices.Add(msData.vertices[i]);
+	//		vertices.Add(msData.vertices[i + 1]);
+	//		vertices.Add(msData.vertices[i + 2]);
+	//		vertices.Add(msData.vertices[i + 3]);
+
+	//		FVector Normal = FVector::CrossProduct(FVector(vertices[1] - vertices[3]), FVector(vertices[2] - vertices[3])); //31, 32
+	//		Normal.Normalize();
+	//		FVector surfaceTangent = vertices[2] - vertices[3]; //p1 to p3 being FVectors
+	//		surfaceTangent = surfaceTangent.GetSafeNormal();
+	//		for (int32 y = 0; y < height; y++)
+	//		{
+	//			for (int32 x = 0; x < width; x++)
+	//			{
+	//				normals.Add(Normal);
+	//				vertexColors.Add(msData.color);
+	//				tangents.Add(FProcMeshTangent(surfaceTangent, true));
+	//			}
+	//		}
+	//	}
+
+	//	GenerateTriangles();
+	//	GenerateOppositeTriangles();
+
+	//	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, false);
+	//	FString m = msData.Material;
+	//	//UE_LOG(LogTemp, Warning, TEXT("%s"), *m);
+
+	//	Material = LoadObject<UMaterialInterface>(nullptr, *m);
+	//	pm->SetMaterial(nGeneratedSection, Material);
+
+	//	nGeneratedSection++;
+	//	pm->SetCollisionConvexMeshes({ vertices });
+
+	//	ClearMeshData();
+	//}
+
+
+
+
+	/* One mesh section */
+	vertices = msData.vertices;
+	int sectionNum = 0;
+
 	for (int i = 0; i < msData.vertices.Num(); i += 2)
 	{
 		if (i + 2 < msData.vertices.Num())
 		{
-			vertices.Add(msData.vertices[i]);
-			vertices.Add(msData.vertices[i + 1]);
-			vertices.Add(msData.vertices[i + 2]);
-			vertices.Add(msData.vertices[i + 3]);
-
-			FVector Normal = FVector::CrossProduct(FVector(vertices[1] - vertices[3]), FVector(vertices[2] - vertices[3])); //31, 32
+			sectionNum++;
+			FVector Normal = FVector::CrossProduct(FVector(vertices[i + 1] - vertices[i + 3]), FVector(vertices[i + 2] - vertices[i + 3])); //31, 32
 			Normal.Normalize();
-			FVector surfaceTangent = vertices[2] - vertices[3]; //p1 to p3 being FVectors
+			FVector surfaceTangent = vertices[i + 2] - vertices[i + 3]; //p1 to p3 being FVectors
 			surfaceTangent = surfaceTangent.GetSafeNormal();
+			DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+			DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 			for (int32 y = 0; y < height; y++)
 			{
 				for (int32 x = 0; x < width; x++)
 				{
-					normals.Add(Normal);
 					vertexColors.Add(msData.color);
+					normals.Add(Normal);
 					tangents.Add(FProcMeshTangent(surfaceTangent, true));
 				}
 			}
+			for (int32 y = 0; y < height - 1; y++)
+			{
+				for (int32 x = 0; x < width - 1; x++)
+				{
+					//Frontface
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + width);			//current vertex + row				: 2
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+					triangles.Add(i + x + (y * width) + 1);				//current vertex + one right		: 1
+
+					//Backface
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + 1);				//current vertex + one right		: 1
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+					triangles.Add(i + x + (y * width) + width);			//current vertex + row				: 2
+				}
+			}
 		}
-
-		GenerateTriangles();
-		GenerateOppositeTriangles();
-
-		pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, true);
-		FString m = msData.Material;
-		//UE_LOG(LogTemp, Warning, TEXT("%s"), *m);
-
-		Material = LoadObject<UMaterialInterface>(nullptr, *m);
-		pm->SetMaterial(nGeneratedSection, Material);
-
-		nGeneratedSection++;
-		pm->SetCollisionConvexMeshes({ vertices });
-
-		ClearMeshData();
 	}
+	UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
 
 	//UVS
-	float NSection = float(pm->GetNumSections());
-	float newV;
+	float NSection = float(sectionNum);
+	//	float newV;
 	float newV1;
 
-	for (int i = pm->GetNumSections() - 2; i > 0; i--)
+	//for (int i = sectionNum - 2; i > 0; i--)
+	for (int i = 0; i < msData.vertices.Num() / 2; i++)
 	{
 		//UE_LOG(LogTemp, Warning, TEXT("%d"), i);
 
-		if (i != 0)
+		//if (i != 0)
 		{
 			//UE_LOG(LogTemp, Warning, TEXT("i = %d, N= %f"), i, NSection);
 			/* Multiple 100 to preserve? float point */
-			float n = float(i + 1);
-			newV1 = (n - 1) * 100 / NSection;
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, newV1 / 100);
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, newV1 / 100);
+			//float n = float(i + 1);
+			//newV1 = (n - 1) * 100 / NSection;
+			//pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, newV1 / 100);
+			//pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, newV1 / 100);
 
-			newV = n * 100 / NSection;
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, newV / 100);
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, newV / 100);
+			//newV = n * 100 / NSection;
+			//pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, newV / 100);
+			//pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, newV / 100);
+
+			float n = float(i);
+			newV1 = n * 100 / NSection;
+			uvs.Add(FVector2D(0, newV1 / 100));
+			uvs.Add(FVector2D(1, newV1 / 100));
+
+			//newV = (n + 1) * 100 / NSection;
+			//uvs.Add(FVector2D(0, newV / 100));
+			//uvs.Add(FVector2D(1, newV / 100));
 
 			/* Debug */
 			//UE_LOG(LogTemp, Warning, TEXT("0000 %f : %f"), n, newV/100);
@@ -432,22 +530,27 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 			//UE_LOG(LogTemp, Warning, TEXT("uv3 U:%f, V:%f"), pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.X, pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.Y);
 
 		}
-		else
-		{
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, FMath::Sin(0));
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, FMath::Sin(0));
-		}
+		//else
+		//{
+		//	uvs.Add(FVector2D(0, FMath::Sin(0)));
+		//	uvs.Add(FVector2D(1, FMath::Sin(0)));
+		//}
 	}
 
-
+	pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, true);
+	FString m = msData.Material;
+	Material = LoadObject<UMaterialInterface>(nullptr, *m);
+	pm->SetMaterial(0, Material);
+	pm->SetCollisionConvexMeshes({ vertices });
 
 	//Center Position and Normal for Haptic 
 	centerPos = msData.centerPosition;
 	centerNormals = msData.centerNormal;
 
-	for (int i=0;i<centerPos.Num(); i++)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
+	//for (int i=0;i<centerPos.Num(); i++)
+	//{
+	//	UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
 
-	}
+	//}
+
 }
