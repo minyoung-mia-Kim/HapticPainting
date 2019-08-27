@@ -6,6 +6,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "MemoryReader.h"
 #include "Engine/World.h"
+#include "Engine/Engine.h"
+
 
 
 // Sets default values
@@ -77,6 +79,10 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 
 void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVector direction)
 {
+	if (StrokeArray.Num() > 0)
+	{
+		StrokeArray.Last().mesh->MergeSections();
+	}
 	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(position, position, mesh));
@@ -333,11 +339,11 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	//}
 
 
-
+	int TotalVerticeNum = 0;
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("fin_starrynight_fin.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.08.27-17.39.01.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;
@@ -373,7 +379,15 @@ void ADrawingHandler::ActorSaveDataLoaded()
 			NewActor->Serialize(Ar);
 			NewActor->SetActorTransform(ActorRecord.ActorTransform);
 			Cast<AProceduralPlaneMesh>(NewActor)->LoadMeshsections(ActorRecord.ProcMeshSections);
+			TotalVerticeNum += ActorRecord.ProcMeshSections.vertices.Num();
 			ISaveableActorInterface::Execute_ActorSaveDataLoaded(NewActor);
 		}
 	}
+	UE_LOG(LogTemp, Warning, TEXT("# Actors: %d "), SaveGameData.SavedActors.Num());
+	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVerticeNum);
+
+
+	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, FString::Printf(TEXT("# Actors: %f "), SaveGameData.SavedActors.Num()));
+	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, FString::Printf(TEXT("# Vertice"), ArrMeshesections.vertices.Num()));
+
 }

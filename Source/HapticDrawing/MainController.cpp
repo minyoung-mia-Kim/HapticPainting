@@ -111,9 +111,9 @@ void AMainController::SetHapticTurn(FRotator rotator)
 	DefaultPosition += rotator;
 	DefaultDirection += rotator;
 	HHandler->DDirection += rotator.GetInverse();
-	UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
-	UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
+	//UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
+	//UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
 	//HHandler->SetCursorRotation(rotator);
 }
 

@@ -244,31 +244,10 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 			tangents.Add(FProcMeshTangent(surfaceTangent, true));
 		}
 	}
-	//GenerateTriangles();
-	////	Two-sided front-faces
-	//GenerateOppositeTriangles();
+	//	Two-sided front-faces
+	GenerateOppositeTriangles();
+	GenerateTriangles();
 
-	for (int32 y = 0; y < height - 1; y++)
-	{
-		for (int32 x = 0; x < width - 1; x++)
-		{
-			triangles.Add(x + (y * width));					//current vertex					: 0
-			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
-
-			triangles.Add(x + (y * width));					//current vertex					: 0
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
-			triangles.Add(x + (y * width) + 1);				//current vertex + one right		: 1
-
-			triangles.Add(x + (y * width));					//current vertex					: 0
-			triangles.Add(x + (y * width) + 1);				//current vertex + one right		: 1
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
-
-			triangles.Add(x + (y * width));					//current vertex					: 0
-			triangles.Add(x + (y * width) + width + 1);		//current vertex + row + one right	: 3
-			triangles.Add(x + (y * width) + width);			//current vertex + row				: 2
-		}
-	}
 
 
 	/* Add a mesh section */
@@ -356,6 +335,89 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 		}
 	}
 	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
+
+}
+
+void AProceduralPlaneMesh::MergeSections()
+{
+	int sectionNum = 0;
+	ClearMeshData();
+	pm->ClearAllMeshSections();
+
+	for (int i = 0; i < TotalVertice.Num(); i += 2)
+	{
+		if (i + 2 < TotalVertice.Num())
+		{
+			sectionNum++;
+			FVector Normal = FVector::CrossProduct(FVector(TotalVertice[i + 1] - TotalVertice[i + 3]), FVector(TotalVertice[i + 2] - TotalVertice[i + 3])); //31, 32
+			Normal.Normalize();
+			FVector surfaceTangent = TotalVertice[i + 2] - TotalVertice[i + 3]; //p1 to p3 being FVectors
+			surfaceTangent = surfaceTangent.GetSafeNormal();
+			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+			for (int32 y = 0; y < height; y++)
+			{
+				for (int32 x = 0; x < width; x++)
+				{
+					vertexColors.Add(ArrMeshesections.color);
+					normals.Add(Normal);
+					tangents.Add(FProcMeshTangent(surfaceTangent, true));
+				}
+			}
+			for (int32 y = 0; y < height - 1; y++)
+			{
+				for (int32 x = 0; x < width - 1; x++)
+				{
+					//Frontface
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + width);			//current vertex + row				: 2
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+					triangles.Add(i + x + (y * width) + 1);				//current vertex + one right		: 1
+
+					//Backface
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + 1);				//current vertex + one right		: 1
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+
+					triangles.Add(i + x + (y * width));					//current vertex					: 0
+					triangles.Add(i + x + (y * width) + width + 1);		//current vertex + row + one right	: 3
+					triangles.Add(i + x + (y * width) + width);			//current vertex + row				: 2
+				}
+			}
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
+
+	//UVS
+	float NSection = float(sectionNum);
+	float newV1;
+
+	//for (int i = sectionNum - 2; i > 0; i--)
+	for (int i = 0; i < TotalVertice.Num() / 2; i++)
+	{
+
+		float n = float(i);
+		newV1 = n * 100 / NSection;
+		uvs.Add(FVector2D(0, newV1 / 100));
+		uvs.Add(FVector2D(1, newV1 / 100));
+
+	}
+	pm->CreateMeshSection_LinearColor(0, TotalVertice, triangles, normals, uvs, vertexColors, tangents, true);
+	FString m = ArrMeshesections.Material;
+	Material = LoadObject<UMaterialInterface>(nullptr, *m);
+	pm->SetMaterial(0, Material);
+	pm->SetCollisionConvexMeshes({ vertices });
+
+	/*
+		for (int i=0;i<centerPos.Num(); i++)
+		{
+			DrawDebugPoint(GetWorld(), centerPos[i], 5.5f, FColor::Black, true, 0, 0);
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
+
+		}*/
 
 }
 
@@ -546,11 +608,12 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 	//Center Position and Normal for Haptic 
 	centerPos = msData.centerPosition;
 	centerNormals = msData.centerNormal;
+	/*
+		for (int i=0;i<centerPos.Num(); i++)
+		{
+			DrawDebugPoint(GetWorld(), centerPos[i], 5.5f, FColor::Black, true, 0, 0);
+			UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
 
-	//for (int i=0;i<centerPos.Num(); i++)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
-
-	//}
+		}*/
 
 }
