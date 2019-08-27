@@ -57,7 +57,7 @@ AHapticsHandler::AHapticsHandler()
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius()*2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	DrawingPlane->SetVisibility(true);
+	DrawingPlane->SetVisibility(false);
 
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
@@ -295,7 +295,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 {
 	/* Check overlappedComp */
 	FString overComp = OtherComp->GetName();
-	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
+	UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
 
 	/* Spring-mass Force */
 	if (hasSBClicked && SButtonDt > 0.5f && overComp == "ProceduralMesh")

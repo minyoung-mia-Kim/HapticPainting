@@ -102,6 +102,8 @@ public:
 	//Drawing Data
 	FBrushInfo* brushinfo;
 	bool isResizing;
+
+
 	//Drawing function
 	FVector prvPositon;
 	FVector DrawingDirection;
