@@ -4,7 +4,7 @@
 #include "DrawDebugHelpers.h"
 #include "Runtime/CoreUObject/Public/UObject/ConstructorHelpers.h"
 
-
+//////////////////////////////////////////////////////////////* obsolete *////////////////////////////////////////////////////////////////
 
 // Sets default values
 AForceHandler::AForceHandler()
@@ -67,7 +67,7 @@ void AForceHandler::Tick(float DeltaTime)
 		// Direction: Cursor to mesh
 		distance.Normalize();
 		FVector damping = 0.7f * CursorVelocity;
-		UE_LOG(LogTemp, Warning, TEXT("damping %s"), *(damping.ToString()));
+		//UE_LOG(LogTemp, Warning, TEXT("damping %s"), *(damping.ToString()));
 		FVector force = -FVector(-distance.X, distance.Y, distance.Z) * 0.7 - damping;
 
 

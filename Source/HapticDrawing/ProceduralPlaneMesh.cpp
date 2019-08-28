@@ -194,7 +194,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	// The distance between this mesh component and the haptic position
 	// Actually, it's the same with the haptic position itself since the mesh component coordination is (0,0,0).
-	FVector dis = GetTransform().TransformVector(position);
+	//FVector dis = GetTransform().TransformVector(position);
 
 
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
@@ -230,7 +230,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	//UE_LOG(LogTemp, Warning, TEXT("Distance X:%f, Y:%f, Z:%f"), dis.X, dis.Y, dis.Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
-	//UE_LOG(LogTemp, Warning, TEXT("Normal X:%f, Y:%f, Z:%f"), Normal.X, Normal.Y, Normal.Z);
+	//UE_LOG(LogTemp, Warning, TEXT("Normal %s"), *(Normal.ToString()));
 	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
 	DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
@@ -245,15 +245,50 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 		}
 	}
 	//	Two-sided front-faces
-	GenerateOppositeTriangles();
 	GenerateTriangles();
-
-
+	GenerateOppositeTriangles();
 
 	/* Add a mesh section */
 	pm->CreateMeshSection_LinearColor(nGeneratedSection, vertices, triangles, normals, uvs, vertexColors, tangents, true);
 	//pm->bUseComplexAsSimpleCollision = false;
 	pm->SetCollisionConvexMeshes({ vertices });
+
+	/* UVs */
+	//UE_LOG(LogTemp, Warning, TEXT("###: %d"), pm->GetNumSections());
+	float NSection = float(pm->GetNumSections());
+	float newV;
+	float newV1;
+
+	for (int i = pm->GetNumSections() - 1; i > 0; i--)
+	{
+		if (i != 0)
+		{
+			//UE_LOG(LogTemp, Warning, TEXT("i = %d, N= %f"), i, NSection);
+			/* Multiple 100 to preserve? float point */
+			float n = float(i + 1);
+			newV1 = (n - 1) * 100 / NSection;
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, newV1 / 100);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, newV1 / 100);
+
+			newV = n * 100 / NSection;
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, newV / 100);
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, newV / 100);
+
+			/* Debug */
+			//UE_LOG(LogTemp, Warning, TEXT("0000 %f : %f"), n, newV/100);
+			//UE_LOG(LogTemp, Warning, TEXT("2222 %f : %f"), n-1, newV1/100);
+			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("v: %f"), FMath::Sin(90 / i + 1)));
+			//UE_LOG(LogTemp, Warning, TEXT("uv3 U:%f, V:%f"), pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.X, pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.Y);
+
+		}
+		else
+		{
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, FMath::Sin(0));
+			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, FMath::Sin(0));
+		}
+	}
+
+
 
 
 	///*	Get the first material of the static mesh and turn it into a material instance */
@@ -299,42 +334,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	/* Debug */
 	//UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
-
-	/* UVs */
-	UE_LOG(LogTemp, Warning, TEXT("###: %d"), pm->GetNumSections());
-	float NSection = float(pm->GetNumSections());
-	float newV;
-	float newV1;
-
-	for (int i = pm->GetNumSections() - 1; i > 0; i--)
-	{
-		if (i != 0)
-		{
-			//UE_LOG(LogTemp, Warning, TEXT("i = %d, N= %f"), i, NSection);
-			/* Multiple 100 to preserve? float point */
-			float n = float(i + 1);
-			newV1 = (n - 1) * 100 / NSection;
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, newV1 / 100);
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, newV1 / 100);
-
-			newV = n * 100 / NSection;
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[2].UV0 = FVector2D(0, newV / 100);
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0 = FVector2D(1, newV / 100);
-
-			/* Debug */
-			//UE_LOG(LogTemp, Warning, TEXT("0000 %f : %f"), n, newV/100);
-			//UE_LOG(LogTemp, Warning, TEXT("2222 %f : %f"), n-1, newV1/100);
-			//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("v: %f"), FMath::Sin(90 / i + 1)));
-			//UE_LOG(LogTemp, Warning, TEXT("uv3 U:%f, V:%f"), pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.X, pm->GetProcMeshSection(i)->ProcVertexBuffer[3].UV0.Y);
-
-		}
-		else
-		{
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[0].UV0 = FVector2D(0, FMath::Sin(0));
-			pm->GetProcMeshSection(i)->ProcVertexBuffer[1].UV0 = FVector2D(1, FMath::Sin(0));
-		}
-	}
-	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
 
 }
 
@@ -350,11 +350,15 @@ void AProceduralPlaneMesh::MergeSections()
 		{
 			sectionNum++;
 			FVector Normal = FVector::CrossProduct(FVector(TotalVertice[i + 1] - TotalVertice[i + 3]), FVector(TotalVertice[i + 2] - TotalVertice[i + 3])); //31, 32
+
 			Normal.Normalize();
 			FVector surfaceTangent = TotalVertice[i + 2] - TotalVertice[i + 3]; //p1 to p3 being FVectors
 			surfaceTangent = surfaceTangent.GetSafeNormal();
-			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+
 			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+			//UE_LOG(LogTemp, Warning, TEXT("Normal %s"), *(Normal.ToString()));
+
 			for (int32 y = 0; y < height; y++)
 			{
 				for (int32 x = 0; x < width; x++)
@@ -389,7 +393,7 @@ void AProceduralPlaneMesh::MergeSections()
 			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
+	//UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
 
 	//UVS
 	float NSection = float(sectionNum);
@@ -559,7 +563,7 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
+	//UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
 
 	//UVS
 	float NSection = float(sectionNum);

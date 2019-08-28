@@ -31,14 +31,14 @@ void AMainController::BeginPlay()
 
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
-	HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
 	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
 	//HHandler->DDirection = DefaultDirection;
 
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
-	FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
-	HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
+	//HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
+	//FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
+	//HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
 
 }
 

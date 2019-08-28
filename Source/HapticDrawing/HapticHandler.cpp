@@ -55,7 +55,7 @@ AHapticsHandler::AHapticsHandler()
 	DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	DrawingPlane->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
-	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius()*2, 0.0f, 0.0f));
+	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius() * 2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
 	DrawingPlane->SetVisibility(false);
 
@@ -123,11 +123,16 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 	/* Texture haptic force*/
 	if (hasFBClicked)
+	{
 		force = getHapticDeviceLinearVelocity() * -viscosity;
+		bIsSpringOn = false;
+	}
 	//setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
 	else
+	{
 		force = FVector::ZeroVector;
-		//setForceToApply(FVector::ZeroVector);
+	}
+	//setForceToApply(FVector::ZeroVector);
 
 	if (hasSBClicked)
 	{
@@ -136,6 +141,28 @@ void AHapticsHandler::Tick(float DeltaTime)
 	else
 		SButtonDt = 0.0f;
 
+	/* Anchor */
+	if (bIsSpringOn && !bIsOnVDP)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Anchor On"));
+
+		// Calculate vector between b and a (giving the direction and magnitude of the vector they make up)
+		FVector distance = DDirection.RotateVector(FVector(brush->GetComponentLocation() - AnchoredPosition)); // MC = C-M
+		distance.Normalize();
+		FVector damping = 0.7f * getHapticDeviceLinearVelocity();
+
+		force = -FVector(-distance.X, distance.Y, distance.Z) * 0.7 - damping;
+		if (force.Size() < 0.0000002)
+		{
+			force = FVector::ZeroVector;
+			return;
+		}
+		DrawDebugLine(GetWorld(), AnchoredPosition, brush->GetComponentLocation(), FColor::Cyan, false, 0, 0, 0.5);
+
+		//UE_LOG(LogTemp, Warning, TEXT("Anchor Force %s"), *(force.ToString()));
+	}
+
+	//}
 	/* VDP */
 	if (bIsOnVDP && !bIsSpringOn)
 	{
@@ -196,7 +223,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 			}
 			else
 			{
-				forceMag = FMath::LogX(0.5f, FMath::Abs(vdp)+0.1) + 3.f;
+				forceMag = FMath::LogX(0.5f, FMath::Abs(vdp) + 0.1) + 3.f;
 
 			}
 
@@ -268,7 +295,7 @@ void AHapticsHandler::ActivateVDP()
 		DrawingPlane->SetVisibility(false);
 
 		BLocation = FVector::ZeroVector;
-		HitLocation = FVector::ZeroVector; 
+		HitLocation = FVector::ZeroVector;
 		HitNormal = FVector::ZeroVector;
 		RHitNormal = FVector::ZeroVector;
 	}
@@ -295,7 +322,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 {
 	/* Check overlappedComp */
 	FString overComp = OtherComp->GetName();
-	UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
+	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
 
 	/* Spring-mass Force */
 	if (hasSBClicked && SButtonDt > 0.5f && overComp == "ProceduralMesh")
@@ -303,64 +330,45 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		bIsOnVDP = false;
 		UE_LOG(LogTemp, Warning, TEXT("gotit time %f Clicked %s"), SButtonDt, hasSBClicked ? TEXT("True") : TEXT("False"));
 		bIsSpringOn = true;
-		FVector brushNormal = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal;
-		FVector brushTangent = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Tangent.TangentX;
+		//FVector brushNormal = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Normal;
+		//FVector brushTangent = brush->GetProcMeshSection(0)->ProcVertexBuffer[0].Tangent.TangentX;
 
 		/* Second force rendering */
-		AProceduralPlaneMesh* detectStrokeActor = Cast<AProceduralPlaneMesh>(OtherActor);
-		UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
-
-		FVector refinedCPosition = brush->GetComponentLocation();
-
-		if (detectStrokeActor != nullptr)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("mesh sec # %d"), detectMesh->GetNumSections());
-
-			for (int i = 0; i < detectStrokeActor->centerPos.Num(); i++)
-			{
-
-				if (refinedCPosition.Equals(detectStrokeActor->centerPos[i], brushSize / 3))
-				{
-					FVector centerPosition = detectStrokeActor->centerPos[i];
-					DrawDebugPoint(GetWorld(), centerPosition, 10.f, FColor::Green, true, 1, 0);
-					HapticCollisionData.Broadcast(DDirection.RotateVector(detectStrokeActor->centerPos[i]),
-						DDirection.RotateVector(detectStrokeActor->centerNormals[i]),
-						detectMesh->GetProcMeshSection(i)->ProcVertexBuffer[0].Tangent.TangentX,
-						refinedCPosition);
+		//AProceduralPlaneMesh* detectStrokeActor = Cast<AProceduralPlaneMesh>(OtherActor);
+		//UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
+		AnchoredPosition = brush->GetComponentLocation();
+		//DrawDebugPoint(GetWorld(), AnchoredPosition, 10.f, FColor::Green, true, 0, 0);
 
 
-					//UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
-					//UE_LOG(LogTemp, Warning, TEXT("tangent %s"), *centerTangent.ToString());
-					//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *detectStrokeActor->centerNormals[i].ToString());
-					////UE_LOG(LogTemp, Warning, TEXT("dist %f"), dist);
-					////UE_LOG(LogTemp, Warning, TEXT("intensity %f"), intensity * dot);
-				}
+		//FVector refinedCPosition = brush->GetComponentLocation();
 
-			}
-		}
-
-	}
-	///* Intersection Force */
-	//if (hasFBClicked)
-	//{
-	//	UE_LOG(LogTemp, Warning, TEXT("intersect with stroke %s"), *(getHapticDeviceLinearVelocity().ToString()));
-	//	bIntersected = true;
-	//	setForceToApply(getHapticDeviceLinearVelocity() * -5.f);
-	//}
-
-	/* Haptic Force : Virtual drawing plane */
-	if (overComp == "DrawingPlane")
-	{
-		//UStaticMeshComponent* DPlane = Cast<UStaticMeshComponent>(OtherComp);
-		//if (hasSBClicked)
+		//if (detectStrokeActor != nullptr)
 		//{
-		//	bIsOnVDP = false;
-		//	DrawingPlane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
-		//	DrawingPlane->SetRelativeRotation(FRotator(90.f, 0.f, 0.f));
-		//	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
+		//	for (int i = 0; i < detectStrokeActor->centerPos.Num(); i++)
+		//	{
+
+		//		if (refinedCPosition.Equals(detectStrokeActor->centerPos[i], brushSize / 3))
+		//		{
+		//			FVector centerPosition = detectStrokeActor->centerPos[i];
+		//			DrawDebugPoint(GetWorld(), centerPosition, 10.f, FColor::Green, true, 1, 0);
+		//			HapticCollisionData.Broadcast(DDirection.RotateVector(detectStrokeActor->centerPos[i]),
+		//				DDirection.RotateVector(detectStrokeActor->centerNormals[i]),
+		//				detectMesh->GetProcMeshSection(i)->ProcVertexBuffer[0].Tangent.TangentX,
+		//				refinedCPosition);
+
+
+		//			//UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
+		//			//UE_LOG(LogTemp, Warning, TEXT("tangent %s"), *centerTangent.ToString());
+		//			//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *detectStrokeActor->centerNormals[i].ToString());
+		//			////UE_LOG(LogTemp, Warning, TEXT("dist %f"), dist);
+		//			////UE_LOG(LogTemp, Warning, TEXT("intensity %f"), intensity * dot);
+		//		}
+
+		//	}
 		//}
 
 	}
+
 }
 void AHapticsHandler::OnComponentEndOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
