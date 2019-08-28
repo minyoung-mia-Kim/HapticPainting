@@ -78,6 +78,7 @@ public:
 		void ActivateVDP();
 
 	/* Anchor Force */
+	FVector AnchoredPosition = FVector::ZeroVector;
 	UFUNCTION()
 		void SetHapticForce(FVector aForce);
 public:

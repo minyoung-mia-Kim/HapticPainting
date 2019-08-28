@@ -7,6 +7,8 @@
 #include "Components/StaticMeshComponent.h"
 #include "ForceHandler.generated.h"
 
+
+//////////////////////////////////////////////////////////////* obsolete *////////////////////////////////////////////////////////////////
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHapticForceDelegate, FVector, hForce);
 
 
