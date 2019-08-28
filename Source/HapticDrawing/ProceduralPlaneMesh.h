@@ -77,7 +77,7 @@ public:
 	void GenerateTriangles();
 	void GenerateOppositeTriangles();
 	void ClearMeshData();
-
+	void SetHidden(bool bHidden);
 public:
 	//Save and Load
 	virtual void ActorSaveDataLoaded_Implementation() override;

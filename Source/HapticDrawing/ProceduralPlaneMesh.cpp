@@ -440,6 +440,14 @@ void AProceduralPlaneMesh::ClearMeshData()
 	tangents.Empty();
 }
 
+void AProceduralPlaneMesh::SetHidden(bool bHidden)
+{
+	/*pm->SetVisibility(bVisible);*/
+	this->SetActorHiddenInGame(bHidden);
+}
+
+
+
 void AProceduralPlaneMesh::ActorSaveDataLoaded_Implementation()
 {
 }

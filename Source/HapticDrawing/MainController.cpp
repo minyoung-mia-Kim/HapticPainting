@@ -15,6 +15,34 @@ AMainController::AMainController()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
+// Called when the game starts or when spawned
+void AMainController::BeginPlay()
+{
+	Super::BeginPlay();
+	PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
+	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
+	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
+	FHandler = GetWorld()->SpawnActor<AForceHandler>(AForceHandler::StaticClass());
+
+
+	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
+	PainterInstance->FSelectedBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
+	PainterInstance->FActivateVDPDelegate.AddDynamic(HHandler, &AHapticsHandler::ActivateVDP);
+
+	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
+	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
+	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
+	//HHandler->DDirection = DefaultDirection;
+
+	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
+
+	//HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
+	//FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
+	//HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
+
+}
+
+
 void AMainController::BindToFbuttonInput(FVector posDevice, bool hasClicked)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("I'm Controller b1 clicked %d"), hasClicked);
@@ -31,6 +59,7 @@ void AMainController::BindToSbuttonInput(FVector posDevice, bool hasClicked)
 
 	//Give the drawing brush position
 	DHandler->receivedSbutton(HHandler->brush->GetComponentLocation(), HHandler->brush->GetComponentRotation(), hasClicked);
+	PainterInstance->GetHapticCursor(posDevice);
 }
 
 void AMainController::BindToBrushUpdate(float brushSize, FLinearColor brushColor, float viscosity, FString tex)
@@ -47,26 +76,6 @@ void AMainController::BindToBrushInput(FLinearColor selectedColor, float selecte
 
 }
 
-// Called when the game starts or when spawned
-void AMainController::BeginPlay()
-{
-	Super::BeginPlay();
-	APainterPawn* PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
-	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
-	FHandler = GetWorld()->SpawnActor<AForceHandler>(AForceHandler::StaticClass());
-
-
-	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
-	PainterInstance->FSelectedBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
-	PainterInstance->FActivateVDPDelegate.AddDynamic(HHandler, &AHapticsHandler::ActivateVDP);
-
-	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
-	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
-	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
-	//HHandler->DDirection = DefaultDirection;
-
-	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
 	//HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
 	//FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
@@ -108,12 +117,12 @@ void AMainController::Tick(float DeltaTime)
 
 void AMainController::SetHapticTurn(FRotator rotator)
 {
-	DefaultPosition += rotator;
-	DefaultDirection += rotator;
-	HHandler->DDirection += rotator.GetInverse();
-	//UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
-	//UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
-	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
+	DefaultPosition = rotator + FRotator(0.0f, 180.f, 0.0f);
+	DefaultDirection = rotator + FRotator(0.0f, 180.f, 0.0f);
+	HHandler->DDirection = rotator.GetInverse();
+	UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
+	UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
+	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
 	//HHandler->SetCursorRotation(rotator);
 }
 

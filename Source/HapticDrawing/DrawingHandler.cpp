@@ -16,6 +16,7 @@ ADrawingHandler::ADrawingHandler()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	prvPositon = FVector(0, 0, 0);
+	
 
 	// Add the brush list (Materials)
 	BrushArray.Add("Material'/Game/HDAssets/M_grunge1.M_grunge1'");
@@ -29,6 +30,17 @@ ADrawingHandler::ADrawingHandler()
 
 	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, 0, ViscosityArray[0], 10.f, FLinearColor::White);
 	isHapticMode = false;
+
+	////Sequencer initialize
+	//if (SequenceAsset && SequencePlayer == nullptr)
+	//	SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), SequenceAsset, FMovieSceneSequencePlaybackSettings());
+
+	////Sequence Play
+	//if (SequencePlayer)
+	//{
+	//	SequencePlayer->Play();
+	//}
+
 }
 
 void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool hasClicked)
@@ -85,7 +97,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
-	StrokeArray.Add(FStroke(position, position, mesh));
+	StrokeArray.Add(FStroke(mesh));
 	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
 	//UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
@@ -238,7 +250,7 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);*/
 
 	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke); 
-	InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
+	//InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
 
 	/*InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
 	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);*/
@@ -246,6 +258,8 @@ void ADrawingHandler::BeginPlay()
 	//Save and load
 	InputComponent->BindKey(EKeys::S, IE_Pressed, this, &ADrawingHandler::ActorSaveDataSaved);
 	InputComponent->BindKey(EKeys::L, IE_Pressed, this, &ADrawingHandler::ActorSaveDataLoaded);
+	//Replay
+	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ReplayPainting);
 
 
 
@@ -257,6 +271,24 @@ void ADrawingHandler::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 	dt += DeltaTime;
 	//UE_LOG(LogTemp, Warning, TEXT("%f"), dt);
+
+	if (bReplay)
+	{
+		if (dt - RprevDt > 0.05)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("RR"));
+
+			StrokeArray[index].mesh->SetHidden(false);
+			index++;
+			RprevDt = dt;
+		}
+		if (index >= StrokeArray.Num() - 1)
+		{
+			bReplay = false;
+			index = 0;
+		}
+
+	}
 }
 
 /*void AMyPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -314,6 +346,7 @@ void ADrawingHandler::ActorSaveDataSaved()
 	FileName.Append(SaveGameData.Timestamp.ToString());
 	FileName.AppendChars(TEXT(".sav"), 4);
 
+	//FString AbsoluteFilePath = "C:\Users\glab\Documents\00Project\HapticDrawing";
 	if (FFileHelper::SaveArrayToFile(BinaryData, *FileName))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Save Success! %s"), FPlatformProcess::BaseDir());
@@ -326,6 +359,8 @@ void ADrawingHandler::ActorSaveDataSaved()
 	BinaryData.FlushCache();
 	BinaryData.Empty();
 }
+
+
 
 void ADrawingHandler::ActorSaveDataLoaded()
 {
@@ -343,7 +378,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.08.27-17.39.01.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("fin_starry_night_haptiv.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;
@@ -364,10 +399,22 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	BinaryData.Empty();
 	FromBinary.Close();
 
+	Loaded(SaveGameData);
+
+
+}
+
+void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
+{
 	for (FActorSaveData ActorRecord : SaveGameData.SavedActors)
 	{
 		FVector SpawnPos = ActorRecord.ActorTransform.GetLocation();
 		FRotator SpawnRot = ActorRecord.ActorTransform.Rotator();
+		
+		/* array */
+		PositionArray.Add(SpawnPos);
+		RotationArray.Add(SpawnRot);
+		
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Name = ActorRecord.ActorName;
 		UClass* SpawnClass = FindObject<UClass>(ANY_PACKAGE, *ActorRecord.ActorClass);
@@ -381,7 +428,34 @@ void ADrawingHandler::ActorSaveDataLoaded()
 			Cast<AProceduralPlaneMesh>(NewActor)->LoadMeshsections(ActorRecord.ProcMeshSections);
 			TotalVerticeNum += ActorRecord.ProcMeshSections.vertices.Num();
 			ISaveableActorInterface::Execute_ActorSaveDataLoaded(NewActor);
+			StrokeArray.Add(FStroke(Cast<AProceduralPlaneMesh>(NewActor)));
 		}
+
+	}
+}
+
+void ADrawingHandler::ReplayPainting()
+{
+	//UE_LOG(LogTemp, Warning, TEXT("ReplayPainting"));
+
+	for (FStroke& Stroke : StrokeArray)
+	{
+		Stroke.mesh->SetHidden(true);
+	}
+	//TimerDel.BindUFunction(this, FName("Loaded"));
+	//GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ADrawingHandler::ShowPainting , 0.05f, true);
+	bReplay = true;
+}
+
+void ADrawingHandler::ShowPainting()
+{
+	int i = 0;
+	float prevDt = 0.0f;
+	while (i < StrokeArray.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("dt %f"), dt);
+		
+
 	}
 	UE_LOG(LogTemp, Warning, TEXT("# Actors: %d "), SaveGameData.SavedActors.Num());
 	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVerticeNum);
