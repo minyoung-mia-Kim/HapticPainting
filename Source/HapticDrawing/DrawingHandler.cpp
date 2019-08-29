@@ -406,6 +406,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 
 void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
 {
+		int TotalVerticeNum = 0;
 	for (FActorSaveData ActorRecord : SaveGameData.SavedActors)
 	{
 		FVector SpawnPos = ActorRecord.ActorTransform.GetLocation();
@@ -431,7 +432,10 @@ void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
 			StrokeArray.Add(FStroke(Cast<AProceduralPlaneMesh>(NewActor)));
 		}
 
+
 	}
+		UE_LOG(LogTemp, Warning, TEXT("# Actors: %d "), SaveGameData.SavedActors.Num());
+		UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVerticeNum);
 }
 
 void ADrawingHandler::ReplayPainting()
@@ -457,8 +461,7 @@ void ADrawingHandler::ShowPainting()
 		
 
 	}
-	UE_LOG(LogTemp, Warning, TEXT("# Actors: %d "), SaveGameData.SavedActors.Num());
-	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVerticeNum);
+
 
 
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, FString::Printf(TEXT("# Actors: %f "), SaveGameData.SavedActors.Num()));

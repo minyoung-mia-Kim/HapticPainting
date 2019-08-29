@@ -513,7 +513,7 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 
 
 
-
+	//////////////////////////////////////////////////////////////////////////////////
 	/* One mesh section */
 	vertices = msData.vertices;
 	int sectionNum = 0;
@@ -617,6 +617,7 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 	pm->SetMaterial(0, Material);
 	pm->SetCollisionConvexMeshes({ vertices });
 
+///////////////////////////////////////////////////////////////////////////////////////////
 	//Center Position and Normal for Haptic 
 	centerPos = msData.centerPosition;
 	centerNormals = msData.centerNormal;

@@ -77,12 +77,6 @@ void AMainController::BindToBrushInput(FLinearColor selectedColor, float selecte
 }
 
 
-	//HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
-	//FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
-	//HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
-
-}
-
 // Called every frame
 void AMainController::Tick(float DeltaTime)
 {

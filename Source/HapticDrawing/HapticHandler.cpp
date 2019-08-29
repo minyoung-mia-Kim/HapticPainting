@@ -57,7 +57,7 @@ AHapticsHandler::AHapticsHandler()
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius() * 2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	DrawingPlane->SetVisibility(false);
+	DrawingPlane->SetVisibility(true);
 
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
@@ -223,8 +223,8 @@ void AHapticsHandler::Tick(float DeltaTime)
 			}
 			else
 			{
-				forceMag = FMath::LogX(0.5f, FMath::Abs(vdp) + 0.1) + 3.f;
-
+				//forceMag = FMath::LogX(0.5f, FMath::Abs(vdp) + 0.1) + 3.f;
+				forceMag = FMath::Pow(2.05f, (vdp + 2.5));
 			}
 
 			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
