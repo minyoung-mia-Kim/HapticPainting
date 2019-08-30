@@ -27,10 +27,10 @@ APainterPawn::APainterPawn()
 	MC_Left->Hand = EControllerHand::Left;
 	MC_Left->SetupAttachment(RComponent);
 
+	RMComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RMComponent"));
+	RMComponent->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 
-	Center = CreateDefaultSubobject<USceneComponent>(TEXT("CenterPosition"));
-	Center->AttachToComponent(RComponent, FAttachmentTransformRules::KeepWorldTransform);
-	Center->SetWorldLocation(FVector(0.f, 0.f, 0.f));
+
 	//MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
 	//MC_Right->Hand = EControllerHand::Right;
 	//MC_Right->SetupAttachment(RootComponent);

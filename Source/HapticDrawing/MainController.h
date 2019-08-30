@@ -58,7 +58,7 @@ public:
 	/* Adjust Haptic Handler position */
 	FRotator DefaultPosition = FRotator(0.0f, 180.f, 0.0f);
 	FRotator DefaultDirection = FRotator(0.0f, 180.0f, 0.0f);
-
+	FRotator TotalAngle = FRotator::ZeroRotator;
 
 	UFUNCTION()
 		void SetHapticTurn(FRotator rotator);

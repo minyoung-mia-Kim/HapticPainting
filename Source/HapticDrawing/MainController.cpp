@@ -6,13 +6,12 @@
 
 
 
-
-
 // Sets default values
 AMainController::AMainController()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
 }
 
 // Called when the game starts or when spawned
@@ -32,6 +31,7 @@ void AMainController::BeginPlay()
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
 	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
+	
 	//HHandler->DDirection = DefaultDirection;
 
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
@@ -82,22 +82,13 @@ void AMainController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	FVector location;
-	FRotator rotation;
 
 	//Bilboard with cam
 	auto aa = GetWorld()->GetFirstPlayerController();
 	location = aa->GetPawn()->GetActorLocation();
-	rotation = aa->GetPawn()->GetActorRotation();
 
-	//aa->GetPlayerViewPoint(location, rotation);
-	////rotation.Pitch = -rotation.Pitch; //updown
-	////rotation.Yaw += 180.f;			  //RL
-
-	//Follow the pawn's camera view
-	//HHandler->SetActorLocation(rotation.RotateVector(HHandler->getHapticDevicePositionInUnrealCoordinates()));
 
 	/* Follow the pawn's location*/
-	//DefaultPosition = DefaultPosition + rotation;
 	HHandler->SetActorLocation(DefaultPosition.RotateVector((HHandler->getHapticDevicePositionInUnrealCoordinates()) - FVector(0.0f, 0.0f, 50.f)) + location);
 	HHandler->SetActorRotation(DefaultDirection + HHandler->getHapticDeviceRotationAsUnrealRotator());
 
@@ -111,12 +102,14 @@ void AMainController::Tick(float DeltaTime)
 
 void AMainController::SetHapticTurn(FRotator rotator)
 {
-	DefaultPosition = rotator + FRotator(0.0f, 180.f, 0.0f);
-	DefaultDirection = rotator + FRotator(0.0f, 180.f, 0.0f);
-	HHandler->DDirection = rotator.GetInverse();
-	UE_LOG(LogTemp, Warning, TEXT("DP Yaw :%f"), DefaultPosition.Yaw);
-	UE_LOG(LogTemp, Warning, TEXT("DD Yaw :%f"), DefaultDirection.Yaw);
-	GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
+	DefaultPosition = PainterInstance->GetActorRotation() + FRotator(0.0f, 180.f, 0.0f);
+	DefaultDirection = PainterInstance->GetActorRotation() + FRotator(0.0f, 180.f, 0.0f);
+	HHandler->DDirection = PainterInstance->GetActorRotation().GetInverse();
+
+	//UE_LOG(LogTemp, Warning, TEXT("DP: %s"), *(DefaultPosition.ToString()));
+	//UE_LOG(LogTemp, Warning, TEXT("DD: %s"), *(DefaultDirection.ToString()));
+
+	//GEngine->AddOnScreenDebugMessage(-1, 5, FColor::Cyan, FString::Printf(TEXT("Yaw :%f"), DefaultPosition.Yaw));
 	//HHandler->SetCursorRotation(rotator);
 }
 
