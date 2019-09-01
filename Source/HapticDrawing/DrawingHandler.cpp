@@ -93,7 +93,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 {
 	if (StrokeArray.Num() > 0)
 	{
-		StrokeArray.Last().mesh->MergeSections();
+		StrokeArray.Last().mesh->MergeSections(brushinfo->color);
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());

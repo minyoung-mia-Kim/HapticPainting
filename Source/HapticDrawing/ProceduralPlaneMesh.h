@@ -68,7 +68,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color, FString mode);
 	void Update(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color);
-	void MergeSections();
+	void MergeSections(FLinearColor color);
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	//void GenerateVertices();
@@ -83,7 +83,10 @@ public:
 	virtual void ActorSaveDataLoaded_Implementation() override;
 	virtual void ActorSaveDataSaved_Implementation() override;
 	FMeshSectionData ArrMeshesections;
+
 	TArray<FVector> TotalVertice;
+	TArray<FVector> TotalNormal;
+
 	FVector MeshColor;
 	FMeshSectionData getAllMeshsections();
 
