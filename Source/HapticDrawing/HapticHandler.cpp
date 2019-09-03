@@ -216,16 +216,19 @@ void AHapticsHandler::Tick(float DeltaTime)
 			///////////////////////////////////////////////
 			float forceMag = 0.0f;
 
-			if (vdp > 0.0f)
-			{
-				forceMag = -(FMath::Pow(1.05f, vdp)) + 7.f;
-				//UE_LOG(LogTemp, Warning, TEXT("p fsize : %f"), forceMag);
-			}
-			else
-			{
-				//forceMag = FMath::LogX(0.5f, FMath::Abs(vdp) + 0.1) + 3.f;
-				forceMag = FMath::Pow(2.05f, (vdp + 2.5));
-			}
+			//if (vdp > 0.0f)
+			//{
+			//	forceMag = -(FMath::Pow(1.05f, vdp)) + 7.f;
+			//	//UE_LOG(LogTemp, Warning, TEXT("p fsize : %f"), forceMag);
+			//}
+			//else
+			//{
+			//	//forceMag = FMath::LogX(0.5f, FMath::Abs(vdp) + 0.1) + 3.f;
+			//	forceMag = FMath::Pow(2.05f, (vdp + 2.5));
+			//}
+
+			forceMag = FMath::Pow(2.05f, (vdp + 4.5f));
+
 
 			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
 			FVector damping = 1.5f * getHapticDeviceLinearVelocity();
@@ -507,7 +510,7 @@ void AHapticsHandler::button2Clicked()
 		bIsOnVDP = true;
 		FRotator Rr = RootComponent->GetComponentRotation();
 		FRotator r = FRotator(90.f, 0.f, 0.f);
-		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.5f));
+		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() * 5.5f));
 		DrawingPlane->SetWorldRotation(Rr);
 		DrawingPlane->AddLocalRotation(r);
 		DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
