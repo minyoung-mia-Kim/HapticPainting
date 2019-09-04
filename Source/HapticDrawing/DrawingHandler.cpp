@@ -93,7 +93,12 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 {
 	if (StrokeArray.Num() > 0)
 	{
-		StrokeArray.Last().mesh->MergeSections(brushinfo->color);
+		if(!StrokeArray.Last().bMerged)
+		{
+			StrokeArray.Last().mesh->MergeSections(brushinfo->color);
+			StrokeArray.Last().bMerged = true;
+		}
+		
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
@@ -378,7 +383,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.09.04-13.15.01.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.09.04-22.32.12.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;
@@ -430,8 +435,8 @@ void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
 			TotalVerticeNum += ActorRecord.ProcMeshSections.vertices.Num();
 			ISaveableActorInterface::Execute_ActorSaveDataLoaded(NewActor);
 			StrokeArray.Add(FStroke(Cast<AProceduralPlaneMesh>(NewActor)));
+			StrokeArray.Last().bMerged = true;
 		}
-
 
 	}
 		UE_LOG(LogTemp, Warning, TEXT("# Actors: %d "), SaveGameData.SavedActors.Num());

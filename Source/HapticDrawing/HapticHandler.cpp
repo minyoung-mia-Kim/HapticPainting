@@ -36,7 +36,7 @@ AHapticsHandler::AHapticsHandler()
 	cursor->bHiddenInGame = false;
 	//SetRootComponent(cursor);
 
-	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
+	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Brush"));
 	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	brush->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
 	brush->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
@@ -57,7 +57,7 @@ AHapticsHandler::AHapticsHandler()
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius() * 2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	DrawingPlane->SetVisibility(true);
+	DrawingPlane->SetVisibility(false);
 
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
