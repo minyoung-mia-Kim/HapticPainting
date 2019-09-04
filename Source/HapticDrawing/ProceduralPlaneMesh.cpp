@@ -360,8 +360,8 @@ void AProceduralPlaneMesh::MergeSections(FLinearColor color)
 			surfaceTangent = TotalVertice[i + 2] - TotalVertice[i + 3]; //p1 to p3 being FVectors
 			surfaceTangent = surfaceTangent.GetSafeNormal();
 
-			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + TotalNormal[i] * 5.0f, FColor::Red, true, 0, 0, 0.2);
-			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+			//DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + TotalNormal[i] * 5.0f, FColor::Red, true, 0, 0, 0.2);
+			//DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 			for (int32 y = 0; y < height; y++)
 			{
@@ -396,8 +396,8 @@ void AProceduralPlaneMesh::MergeSections(FLinearColor color)
 		}
 		else
 		{
-			vertexColors.Add(color);
-			vertexColors.Add(color);
+			vertexColors.Add(ArrMeshesections.color);
+			vertexColors.Add(ArrMeshesections.color);
 			//normals.Add(Normal);
 			//normals.Add(Normal);
 			tangents.Add(FProcMeshTangent(surfaceTangent, true));
@@ -546,6 +546,8 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 	//////////////////////////////////////////////////////////////////////////////////
 	/* One mesh section */
 	vertices = msData.vertices;
+	normals = msData.normals;
+
 	int sectionNum = 0;
 
 	for (int i = 0; i < msData.vertices.Num(); i += 2)
@@ -553,18 +555,20 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 		if (i + 2 < msData.vertices.Num())
 		{
 			sectionNum++;
-			FVector Normal = FVector::CrossProduct(FVector(vertices[i + 1] - vertices[i + 3]), FVector(vertices[i + 2] - vertices[i + 3])); //31, 32
-			Normal.Normalize();
+			//FVector Normal = FVector::CrossProduct(FVector(vertices[i + 1] - vertices[i + 3]), FVector(vertices[i + 2] - vertices[i + 3])); //31, 32
+			//Normal.Normalize();
+			
 			FVector surfaceTangent = vertices[i + 2] - vertices[i + 3]; //p1 to p3 being FVectors
 			surfaceTangent = surfaceTangent.GetSafeNormal();
-			DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
-			DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+			//DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+			//DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+			
 			for (int32 y = 0; y < height; y++)
 			{
 				for (int32 x = 0; x < width; x++)
 				{
 					vertexColors.Add(msData.color);
-					normals.Add(Normal);
+					//normals.Add(Normal);
 					tangents.Add(FProcMeshTangent(surfaceTangent, true));
 				}
 			}

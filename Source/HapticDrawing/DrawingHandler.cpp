@@ -378,7 +378,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("fin_starry_night_haptiv.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.09.04-13.15.01.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;
