@@ -13,6 +13,7 @@
 #include "PainterPawn.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPawnInfoDelegate, FRotator, pawnRotator);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSBrushTextureDelegate, int, nTex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSBrushUpdateDelegate, FLinearColor, sColor, float, sSize);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FVRInputDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FActivateHapticDelegate);
@@ -54,7 +55,10 @@ public:
 		FPawnInfoDelegate FPawnUpdateDelegate;
 
 	UPROPERTY(BlueprintCallable)
-		FVRInputDelegate FVRInputTriggerDelegate;
+		FSBrushTextureDelegate FTexDelegate;
+
+	UPROPERTY(BlueprintCallable)
+	FVRInputDelegate FVRInputTriggerDelegate;
 
 	UPROPERTY(BlueprintCallable)
 		FSBrushUpdateDelegate FSelectedBrushUpdateDelegate;
@@ -67,7 +71,8 @@ public:
 		AColorPicker* Cpicker;
 	UFUNCTION()
 		void Color(FLinearColor sColor, float sSize);
-
+	UFUNCTION()
+		void Texture(int tex);
 	UFUNCTION()
 		void ActivateVDP();
 

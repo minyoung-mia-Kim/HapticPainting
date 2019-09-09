@@ -116,9 +116,10 @@ public:
 		void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
 		void extendStroke(FVector position, FRotator rotation, FVector direction);
-	//template<char key>
-	void ChangeBrushMode();
-	//void ChangeBrushMode(char key);
+
+	UFUNCTION()
+	void ChangeBrushMode(int tex);
+
 	UFUNCTION()
 		void BrushsizeUp(float val);
 	UFUNCTION()

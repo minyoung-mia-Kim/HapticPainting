@@ -45,6 +45,7 @@ void APainterPawn::BeginPlay()
 	//EnableInput(GetWorld()->GetFirstPlayerController());
 	//Cpicker = Cast<AColorPicker>(MC_Left->GetChildComponent(0));
 	Cpicker->FSelelctedBrushUpdateDelegate.AddDynamic(this, &APainterPawn::Color);
+	Cpicker->FTextureDelegate.AddDynamic(this, &APainterPawn::Texture);
 }
 
 // Called every frame
@@ -142,6 +143,11 @@ void APainterPawn::MoveRight(float Val)
 void APainterPawn::Color(FLinearColor sColor, float sSize)
 {
 	FSelectedBrushUpdateDelegate.Broadcast(sColor, sSize);
+}
+
+void APainterPawn::Texture(int tex)
+{
+	FTexDelegate.Broadcast(tex);
 }
 
 void APainterPawn::ActivateVDP()

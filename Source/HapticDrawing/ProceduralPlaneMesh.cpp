@@ -426,12 +426,12 @@ void AProceduralPlaneMesh::MergeSections(FLinearColor color)
 	TotalNormal.Add(FVector(TotalNormal.Last()));
 
 
-	/*Check whether each feature has the same number of data with its vertices */
-	UE_LOG(LogTemp, Warning, TEXT("TotalVertice %d"), TotalVertice.Num());
-	UE_LOG(LogTemp, Warning, TEXT("TotalNormal %d"), TotalNormal.Num());
-	UE_LOG(LogTemp, Warning, TEXT("uvs %d"), uvs.Num());
-	UE_LOG(LogTemp, Warning, TEXT("vertexColors %d"), vertexColors.Num());
-	UE_LOG(LogTemp, Warning, TEXT("tangents %d"), tangents.Num());
+	///*Check whether each feature has the same number of data with its vertices */
+	//UE_LOG(LogTemp, Warning, TEXT("TotalVertice %d"), TotalVertice.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("TotalNormal %d"), TotalNormal.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("uvs %d"), uvs.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("vertexColors %d"), vertexColors.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("tangents %d"), tangents.Num());
 
 
 
