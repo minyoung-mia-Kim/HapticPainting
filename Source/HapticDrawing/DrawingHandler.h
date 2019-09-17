@@ -52,7 +52,6 @@ struct FStroke
 	}
 
 	AProceduralPlaneMesh* mesh;
-	bool bMerged;
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FBrushInfoDelegate, float, brushSize, FLinearColor, brushColor, float, viscosity, FString, brushTex);

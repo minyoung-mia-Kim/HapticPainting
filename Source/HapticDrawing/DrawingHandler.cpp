@@ -92,10 +92,9 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 {
 	if (StrokeArray.Num() > 0)
 	{
-		if (!StrokeArray.Last().bMerged)
+		if (!StrokeArray.Last().mesh->bMerged)
 		{
-			StrokeArray.Last().mesh->MergeSections(brushinfo->color);
-			StrokeArray.Last().bMerged = true;
+			StrokeArray.Last().mesh->MergeSections();
 		}
 
 	}
@@ -103,14 +102,14 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(mesh));
 	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
-	//UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
+	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
 
 void ADrawingHandler::extendStroke(FVector position, FRotator rotation, FVector direction)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
-	if(!StrokeArray.Last().bMerged)
+	//if(!StrokeArray.Last().bMerged)
 		StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
 
 }
@@ -407,7 +406,6 @@ void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
 			TotalVerticeNum += ActorRecord.ProcMeshSections.vertices.Num();
 			ISaveableActorInterface::Execute_ActorSaveDataLoaded(NewActor);
 			StrokeArray.Add(FStroke(Cast<AProceduralPlaneMesh>(NewActor)));
-			StrokeArray.Last().bMerged = true;
 		}
 
 	}

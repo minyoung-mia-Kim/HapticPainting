@@ -338,12 +338,15 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	/* Debug */
 	//UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
-	//UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
+	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
 
 }
 
-void AProceduralPlaneMesh::MergeSections(FLinearColor color)
+void AProceduralPlaneMesh::MergeSections()
 {
+	if (bMerged)
+		return;
+
 	int sectionNum = 0;
 	ClearMeshData();
 	pm->ClearAllMeshSections();
@@ -440,6 +443,7 @@ void AProceduralPlaneMesh::MergeSections(FLinearColor color)
 	Material = LoadObject<UMaterialInterface>(nullptr, *m);
 	pm->SetMaterial(0, Material);
 	pm->SetCollisionConvexMeshes({ vertices });
+	bMerged = true;
 	//UE_LOG(LogTemp, Warning, TEXT("color %s"), *(pm->GetProcMeshSection(0)->ProcVertexBuffer[2].Color.ToString()));
 	//UE_LOG(LogTemp, Warning, TEXT("normals %s"), *(pm->GetProcMeshSection(0)->ProcVertexBuffer[2].Normal.ToString()));
 
@@ -654,7 +658,7 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 	Material = LoadObject<UMaterialInterface>(nullptr, *m);
 	pm->SetMaterial(0, Material);
 	pm->SetCollisionConvexMeshes({ vertices });
-
+	bMerged = true;
 	///////////////////////////////////////////////////////////////////////////////////////////
 		//Center Position and Normal for Haptic 
 	TotalVertice = msData.vertices;

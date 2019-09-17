@@ -473,7 +473,7 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
 	//Re-adjusted the position
-	return FVector((position.X * 1000) - 80.f, -position.Y * 1000, (position.Z * 1000));
+	return FVector((position.X * 1000) - 0.f, -position.Y * 1000, (position.Z * 1000) + 100.f);
 }
 
 /**

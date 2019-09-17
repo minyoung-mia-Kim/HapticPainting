@@ -68,7 +68,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void Initialize(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color, FString mode);
 	void Update(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color);
-	void MergeSections(FLinearColor color);
+	void MergeSections();
+
+	UPROPERTY()
+	bool bMerged;
 
 	virtual void OnConstruction(const FTransform& Transform) override;
 	//void GenerateVertices();
