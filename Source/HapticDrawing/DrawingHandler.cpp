@@ -102,7 +102,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(mesh));
 	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
-	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
 

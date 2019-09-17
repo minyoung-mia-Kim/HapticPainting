@@ -338,7 +338,7 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	/* Debug */
 	//UE_LOG(LogTemp, Warning, TEXT("vertex1 X:%f, Y:%f, Z:%f"), vertices[0].X, vertices[0].Y, vertices[0].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex2 X:%f, Y:%f, Z:%f"), vertices[1].X, vertices[1].Y, vertices[1].Z);
-	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVertice.Num());
 
 }
 
