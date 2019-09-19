@@ -32,7 +32,8 @@ AHapticsHandler::AHapticsHandler()
 	cursor = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
 	cursor->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	cursor->SetNotifyRigidBodyCollision(true);
-	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	cursor->SetWorldScale3D(FVector(0.05f, 0.1f, 0.1f));
+	//cursor->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 	cursor->bHiddenInGame = false;
 	//SetRootComponent(cursor);
 
