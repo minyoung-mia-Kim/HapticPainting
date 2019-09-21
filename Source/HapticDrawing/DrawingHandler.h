@@ -107,8 +107,11 @@ public:
 	//Drawing function
 	FVector prvPositon;
 	FVector DrawingDirection;
+	bool bFbuttonOff = true;
 	UFUNCTION()
 		void receivedFbutton(FVector position, FRotator rotation, bool hasClicked);
+	UFUNCTION()
+		void FbuttonOff();
 	UFUNCTION()
 		void receivedSbutton(FVector position, FRotator rotation, bool hasClicked);
 	UFUNCTION()

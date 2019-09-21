@@ -31,49 +31,48 @@ ADrawingHandler::ADrawingHandler()
 	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, 0, ViscosityArray[0], 10.f, FLinearColor::White);
 	isHapticMode = false;
 
-	////Sequencer initialize
-	//if (SequenceAsset && SequencePlayer == nullptr)
-	//	SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), SequenceAsset, FMovieSceneSequencePlaybackSettings());
-
-	////Sequence Play
-	//if (SequencePlayer)
-	//{
-	//	SequencePlayer->Play();
-	//}
 
 }
 
 void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool hasClicked)
 {
-	//FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
 	DrawingDirection = FVector(position - prvPositon);
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), bFbuttonOff ? TEXT("Off") : TEXT("On"));
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), hasClicked ? TEXT("T") : TEXT("F"));
 
-	if (!hasClicked)
-	{
-		if (!(DrawingDirection.Size() < 1.0))
+
+	//if (!(DrawingDirection.Size() < 0.5))
+	//{
+		if (!hasClicked && bFbuttonOff)
 		{
 			generateStroke(position, rotation, DrawingDirection);
+			bFbuttonOff = false;
 		}
-	}
-	else
-	{
-		if (dt - prvDt > 0.03 && StrokeArray.Num() > 0)
+		else
 		{
-			PositionArray.Add(position);
-			RotationArray.Add(rotation);
-			//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
+			if (dt - prvDt > 0.01 && StrokeArray.Num() > 0)
+			{
+				PositionArray.Add(position);
+				RotationArray.Add(rotation);
+				//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
-			if (FMath::Abs(FVector::Dist(position, prvPositon)))
-				extendStroke(position, rotation, DrawingDirection);
+				if (FVector::Dist(position, prvPositon)> 0.1)
+					extendStroke(position, rotation, DrawingDirection);
 
-			prvDt = dt;
-			//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
+				prvDt = dt;
+				//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
+			}
+
 		}
-
-	}
-
+//	}
 	prvPositon = position;
 
+}
+
+void ADrawingHandler::FbuttonOff()
+{
+	bFbuttonOff = true;
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), bFbuttonOff ? TEXT("Off") : TEXT("On"));
 }
 
 void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool hasClicked)
@@ -102,14 +101,14 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(mesh));
 	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
-	//UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
+	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
 
 void ADrawingHandler::extendStroke(FVector position, FRotator rotation, FVector direction)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
-	//if(!StrokeArray.Last().bMerged)
+	if(!StrokeArray.Last().mesh->bMerged)
 		StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
 
 }
@@ -228,8 +227,8 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke);
 	//InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
 
-	/*InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
-	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);*/
+	InputComponent->BindAxis("BrushSizeUp", this, &ADrawingHandler::BrushsizeUp);
+	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);
 
 	//Save and load
 	InputComponent->BindKey(EKeys::S, IE_Pressed, this, &ADrawingHandler::ActorSaveDataSaved);

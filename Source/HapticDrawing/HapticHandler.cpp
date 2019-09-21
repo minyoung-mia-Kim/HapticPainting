@@ -116,7 +116,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 	//setTorqueToApply(FVector(0.f, 0.f, 12.f));
 
 	/* Button Up = Finish Drawing */
-	if (prvFBstat == true && hasFBClicked == false && !bIsOnVDP)
+	if (prvFBstat == true && hasFBClicked == false)
 	{
 		FHapticModeUpdateDelegate.Broadcast();
 		//bIsOnVDP = false;
