@@ -18,7 +18,9 @@ void FHapticThread::DoWork()
 {
 	HapticDeviceButtonHandler buttonHandler(&haptico);
 	haptico.connect();
-	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::GetForce);
+	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::GetCollision);
+	hapticsManager->OneSecHapticTick.AddRaw(this, &FHapticThread::GetAnchor);
+
 
 	while (UHapticThreadInput::getInst().shouldThreadRun()) {
 		FVector position = haptico.getPosition();
@@ -76,18 +78,33 @@ void FHapticThread::GetCollision(FVector BLocation, FVector HitLocation, FMatrix
 
 	//Force Calculation
 	float pDepth = FVector::DotProduct(HitNormal, (HitLocation - BLocation)); // brush to location
-	float forceMag = FMath::LogX(0.5f, FMath::Abs(pDepth) + 0.5) + 3.f;
-	FVector damping = 1.5f * haptico.getLinearVelocity();
+	float forceMag = FMath::Pow(2.0f, (pDepth + 2.5f));
+	FVector damping = 0.6f * haptico.getLinearVelocity();
 	if (forceMag > 0.0f)
 	{
 		appliedForce = FVector(RHitNormal * forceMag) - damping;
 		//force = FVector(n * forceMag);
 
 		appliedForce = FVector(FVector(-appliedForce.X, appliedForce.Y, appliedForce.Z));
-		//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+		//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(appliedForce.ToString()));
 	}
 	else
 	{
 		appliedForce = FVector::ZeroVector;
 	}
+}
+
+void FHapticThread::GetAnchor(FVector Blocation, FVector Anchor, FMatrix m1, FRotator direction, FVector v4)
+{
+	if (Anchor == FVector::ZeroVector)
+	{
+		appliedForce = FVector::ZeroVector;
+		return;
+	}
+
+	FVector distance = direction.RotateVector(FVector(Blocation - Anchor)); // MC = C-M
+	direction.Normalize();
+	FVector damping = 0.5f * haptico.getLinearVelocity();
+	appliedForce = -FVector(-distance.X, distance.Y, distance.Z) * 0.6f - damping;
+
 }

@@ -145,7 +145,7 @@ void ADrawingHandler::BrushsizeUp(float val)
 
 void ADrawingHandler::BrushsizeDown(float val)
 {
-	if (val == 1 && brushinfo->size > 1.0f)
+	if (val == 1 && brushinfo->size > 0.5f)
 	{
 		brushinfo->size -= 0.1f;
 		//UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
@@ -353,7 +353,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("TestSave2019.09.09-20.57.06.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_burano_water_road_left_right_boat_details_ocean_boat2_pabil_light.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;

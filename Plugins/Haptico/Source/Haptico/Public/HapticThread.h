@@ -20,6 +20,8 @@ public:
 	{}
 	void GetForce(FVector v1,FVector v2, FMatrix m1, FVector v3, FVector v4);
 	void GetCollision(FVector v1, FVector v2, FMatrix m1, FVector v3, FVector v4);
+	void GetAnchor(FVector v1, FVector v2, FMatrix m1, FRotator v3, FVector v4);
+
 	FVector appliedForce = FVector::ZeroVector;
 
 protected:

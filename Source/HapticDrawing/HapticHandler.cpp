@@ -127,6 +127,11 @@ void AHapticsHandler::Tick(float DeltaTime)
 	{
 		force = getHapticDeviceLinearVelocity() * -viscosity;
 		bIsSpringOn = false;
+
+
+		BLocation = FVector::ZeroVector;
+		AnchoredPosition = FVector::ZeroVector;
+
 	}
 	//setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
 	else
@@ -149,6 +154,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 		// Calculate vector between b and a (giving the direction and magnitude of the vector they make up)
 		FVector distance = DDirection.RotateVector(FVector(brush->GetComponentLocation() - AnchoredPosition)); // MC = C-M
+		BLocation = brush->GetComponentLocation();
 		distance.Normalize();
 		FVector damping = 0.7f * getHapticDeviceLinearVelocity();
 
@@ -197,12 +203,6 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 			/*standard distance = vdp*/
 
-
-			//DrawDebugLine(GetWorld(), OutHit.Location, OutHit.Location + n*10.f, FColor::Magenta, true, 5.f, 0, 1);
-			//DrawDebugLine(GetWorld(), Start, Start + OutHit.Location, FColor::Red, true, 5.f, 0, 1);
-			//UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
-			//UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
-
 			//Normal vector before and after applying rotation
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(DDirection.RotateVector(n).ToString()));
@@ -217,18 +217,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 			///////////////////////////////////////////////
 			float forceMag = 0.0f;
 
-			//if (vdp > 0.0f)
-			//{
-			//	forceMag = -(FMath::Pow(1.05f, vdp)) + 7.f;
-			//	//UE_LOG(LogTemp, Warning, TEXT("p fsize : %f"), forceMag);
-			//}
-			//else
-			//{
-			//	//forceMag = FMath::LogX(0.5f, FMath::Abs(vdp) + 0.1) + 3.f;
-			//	forceMag = FMath::Pow(2.05f, (vdp + 2.5));
-			//}
-
-			forceMag = FMath::Pow(2.05f, (vdp + 4.5f));
+			forceMag = FMath::Pow(5.0f, (vdp + 2.5f));
 
 
 			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
@@ -278,6 +267,29 @@ void AHapticsHandler::Tick(float DeltaTime)
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Tangent = FProcMeshTangent(surfaceTangent, true);
 	}
 
+
+}
+/**
+* broad casts the new haptic data as a multicast delegate
+*/
+void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
+	if(bIsOnVDP)
+	{
+		OnHapticTick.Broadcast(BLocation, HitLocation, FMatrix::Identity, HitNormal, RHitNormal);
+	}
+	else if(bIsSpringOn)
+	{
+		OneSecHapticTick.Broadcast(BLocation, AnchoredPosition, FMatrix::Identity, DDirection, FVector::ZeroVector);
+	}
+	else
+	{
+		OnHapticTick.Broadcast(FVector::ZeroVector, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+	}
+		//OnHapticTick.Broadcast(force, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
+	//UE_LOG(LogTemp, Warning, TEXT("its handler"));
+	//UE_LOG(LogTemp, Warning, TEXT("position : %s"), *(position.ToString()));
 
 }
 void AHapticsHandler::setViscosity(float v)
@@ -341,35 +353,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		//AProceduralPlaneMesh* detectStrokeActor = Cast<AProceduralPlaneMesh>(OtherActor);
 		//UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
 		AnchoredPosition = brush->GetComponentLocation();
-		//DrawDebugPoint(GetWorld(), AnchoredPosition, 10.f, FColor::Green, true, 0, 0);
 
-
-		//FVector refinedCPosition = brush->GetComponentLocation();
-
-		//if (detectStrokeActor != nullptr)
-		//{
-		//	for (int i = 0; i < detectStrokeActor->centerPos.Num(); i++)
-		//	{
-
-		//		if (refinedCPosition.Equals(detectStrokeActor->centerPos[i], brushSize / 3))
-		//		{
-		//			FVector centerPosition = detectStrokeActor->centerPos[i];
-		//			DrawDebugPoint(GetWorld(), centerPosition, 10.f, FColor::Green, true, 1, 0);
-		//			HapticCollisionData.Broadcast(DDirection.RotateVector(detectStrokeActor->centerPos[i]),
-		//				DDirection.RotateVector(detectStrokeActor->centerNormals[i]),
-		//				detectMesh->GetProcMeshSection(i)->ProcVertexBuffer[0].Tangent.TangentX,
-		//				refinedCPosition);
-
-
-		//			//UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
-		//			//UE_LOG(LogTemp, Warning, TEXT("tangent %s"), *centerTangent.ToString());
-		//			//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *detectStrokeActor->centerNormals[i].ToString());
-		//			////UE_LOG(LogTemp, Warning, TEXT("dist %f"), dist);
-		//			////UE_LOG(LogTemp, Warning, TEXT("intensity %f"), intensity * dot);
-		//		}
-
-		//	}
-		//}
 
 	}
 
@@ -474,21 +458,9 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
 	//Re-adjusted the position
-	return FVector((position.X * 1000) - 0.f, -position.Y * 1000, (position.Z * 1000) + 100.f);
+	return FVector((position.X * 1000) - 100.f, -position.Y * 1000, (position.Z * 1000) + 100.f);
 }
 
-/**
-* broad casts the new haptic data as a multicast delegate
-*/
-void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	//OnHapticTick.Broadcast(BLocation, HitLocation, FMatrix::Identity, HitNormal, RHitNormal);
-	OnHapticTick.Broadcast(force, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
-
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
-	//UE_LOG(LogTemp, Warning, TEXT("its handler"));
-	//UE_LOG(LogTemp, Warning, TEXT("position : %s"), *(position.ToString()));
-
-}
 void AHapticsHandler::button1Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
