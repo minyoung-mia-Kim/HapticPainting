@@ -103,8 +103,20 @@ void FHapticThread::GetAnchor(FVector Blocation, FVector Anchor, FMatrix m1, FRo
 	}
 
 	FVector distance = direction.RotateVector(FVector(Blocation - Anchor)); // MC = C-M
+	float distSize = distance.Size();
+
+
+	float forceMag = 1.0 / distSize;
 	direction.Normalize();
-	FVector damping = 0.5f * haptico.getLinearVelocity();
-	appliedForce = -FVector(-distance.X, distance.Y, distance.Z) * 0.6f - damping;
+	FVector vel = haptico.getLinearVelocity();
+	FVector damping = 0.5f * vel;
+	//UE_LOG(LogTemp, Warning, TEXT("vel : %f"), vel.Size());
+	if (distSize < 1.0 && vel.Size() < 0.1)
+	{
+		forceMag = 0.0f;
+	}
+
+
+	appliedForce = -FVector(-distance.X, distance.Y, distance.Z) * forceMag - damping;
 
 }

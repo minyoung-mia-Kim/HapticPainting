@@ -120,17 +120,17 @@ void AHapticsHandler::Tick(float DeltaTime)
 	{
 		FHapticModeUpdateDelegate.Broadcast();
 		//bIsOnVDP = false;
+		bIsSpringOn = false;
+		AnchoredPosition = FVector::ZeroVector;
+		BLocation = FVector::ZeroVector;
+
 	}
 
 	/* Texture haptic force*/
 	if (hasFBClicked)
 	{
 		force = getHapticDeviceLinearVelocity() * -viscosity;
-		bIsSpringOn = false;
 
-
-		BLocation = FVector::ZeroVector;
-		AnchoredPosition = FVector::ZeroVector;
 
 	}
 	//setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
@@ -458,7 +458,7 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
 	//Re-adjusted the position
-	return FVector((position.X * 1000) - 100.f, -position.Y * 1000, (position.Z * 1000) + 100.f);
+	return FVector((position.X * 1000) - 50.f, -position.Y * 1000, (position.Z * 1000) + 100.f);
 }
 
 void AHapticsHandler::button1Clicked()
