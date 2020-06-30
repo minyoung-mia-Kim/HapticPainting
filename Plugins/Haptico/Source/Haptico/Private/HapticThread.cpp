@@ -20,6 +20,8 @@ void FHapticThread::DoWork()
 	haptico.connect();
 	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::GetCollision);
 	hapticsManager->OneSecHapticTick.AddRaw(this, &FHapticThread::GetAnchor);
+	hapticsManager->OnTexHapticTick.AddRaw(this, &FHapticThread::GetViscosity);
+
 
 
 	while (UHapticThreadInput::getInst().shouldThreadRun()) {
@@ -61,9 +63,14 @@ void FHapticThread::DoWork()
 	
 }
 
-void FHapticThread::GetForce(FVector v1, FVector v2, FMatrix m1, FVector v3, FVector v4)
+void FHapticThread::GetViscosity(float v1)
 {
-	appliedForce = v1;
+	appliedForce = haptico.getLinearVelocity() * -v1;
+	//printf("%f", -v1);
+	//UE_LOG(LogTemp, Warning, TEXT("viscosity: %f"), -v1);
+	//UE_LOG(LogTemp, Warning, TEXT("appliedForce : %s"), *(appliedForce.ToString()));
+
+
 }
 
 void FHapticThread::GetCollision(FVector BLocation, FVector HitLocation, FMatrix v2, FVector HitNormal, FVector RHitNormal)
@@ -106,8 +113,8 @@ void FHapticThread::GetAnchor(FVector Blocation, FVector Anchor, FMatrix m1, FRo
 	float distSize = distance.Size();
 
 
-	float forceMag = 1.0 / distSize;
-	direction.Normalize();
+	float forceMag = 0.05 * distSize;
+	distance.Normalize();
 	FVector vel = haptico.getLinearVelocity();
 	FVector damping = 0.5f * vel;
 	//UE_LOG(LogTemp, Warning, TEXT("vel : %f"), vel.Size());

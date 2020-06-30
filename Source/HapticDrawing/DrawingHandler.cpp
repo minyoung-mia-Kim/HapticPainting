@@ -30,6 +30,7 @@ ADrawingHandler::ADrawingHandler()
 
 	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, 0, ViscosityArray[0], 10.f, FLinearColor::White);
 	isHapticMode = false;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 
 
 }
@@ -207,9 +208,9 @@ void ADrawingHandler::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm Drawing handler"));
 
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
-	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
-	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
+	//InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
+	//InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
+	//InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
 
 	//InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
 	//InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
@@ -353,7 +354,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_room_floor_walls.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_burano_water_road_left_right_boat_details_ocean_boat2_pabil_light.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;

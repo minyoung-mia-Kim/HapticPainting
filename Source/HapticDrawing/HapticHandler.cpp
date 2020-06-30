@@ -130,8 +130,6 @@ void AHapticsHandler::Tick(float DeltaTime)
 	if (hasFBClicked)
 	{
 		force = getHapticDeviceLinearVelocity() * -viscosity;
-
-
 	}
 	//setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
 	else
@@ -213,24 +211,24 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
 			//float add = vdp + dmax;
 
-			//Force Calculation
-			///////////////////////////////////////////////
-			float forceMag = 0.0f;
+			////Force Calculation
+			/////////////////////////////////////////////////
+			//float forceMag = 0.0f;
 
-			forceMag = FMath::Pow(5.0f, (vdp + 2.5f));
+			//forceMag = FMath::Pow(5.0f, (vdp + 2.5f));
 
 
-			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
-			FVector damping = 1.5f * getHapticDeviceLinearVelocity();
-			if (forceMag > 0.0f)
-			{
-				force = FVector(RHitNormal * forceMag) - damping;
-				//force = FVector(n * forceMag);
+			////float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
+			//FVector damping = 1.5f * getHapticDeviceLinearVelocity();
+			//if (forceMag > 0.0f)
+			//{
+			//	force = FVector(RHitNormal * forceMag) - damping;
+			//	//force = FVector(n * forceMag);
 
-				force = FVector(-force.X, force.Y, force.Z);
-				//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
-			}
-			///////////////////////////////////////////////
+			//	force = FVector(-force.X, force.Y, force.Z);
+			//	//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+			//}
+			/////////////////////////////////////////////////
 
 
 			//UE_LOG(LogTemp, Warning, TEXT("damping : %s"), *(damping.ToString()));
@@ -273,18 +271,28 @@ void AHapticsHandler::Tick(float DeltaTime)
 * broad casts the new haptic data as a multicast delegate
 */
 void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	if(bIsOnVDP)
+
+	if (hasFBClicked && !bIsOnVDP)
 	{
-		OnHapticTick.Broadcast(BLocation, HitLocation, FMatrix::Identity, HitNormal, RHitNormal);
+		OnTexHapticTick.Broadcast(this->viscosity);
+
 	}
-	else if(bIsSpringOn)
+	else 
 	{
-		OneSecHapticTick.Broadcast(BLocation, AnchoredPosition, FMatrix::Identity, DDirection, FVector::ZeroVector);
+		if (bIsOnVDP)
+		{
+			OnHapticTick.Broadcast(BLocation, HitLocation, FMatrix::Identity, HitNormal, RHitNormal);
+		}
+		else if (bIsSpringOn)
+		{
+			OneSecHapticTick.Broadcast(BLocation, AnchoredPosition, FMatrix::Identity, DDirection, FVector::ZeroVector);
+		}
+		else
+		{
+			OnHapticTick.Broadcast(FVector::ZeroVector, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+		}
 	}
-	else
-	{
-		OnHapticTick.Broadcast(FVector::ZeroVector, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
-	}
+	
 		//OnHapticTick.Broadcast(force, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
 
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
@@ -341,7 +349,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
 
 	/* Spring-mass Force */
-	if (hasSBClicked && SButtonDt > 0.5f && overComp == "ProceduralMesh")
+	if (!bIsOnVDP && hasSBClicked && SButtonDt > 0.5f && overComp == "ProceduralMesh")
 	{
 		bIsOnVDP = false;
 		UE_LOG(LogTemp, Warning, TEXT("gotit time %f Clicked %s"), SButtonDt, hasSBClicked ? TEXT("True") : TEXT("False"));
@@ -501,7 +509,6 @@ void AHapticsHandler::RefreshBrushCursor(float bSize, FLinearColor brushColor, f
 	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushColor.ToString()));
 	this->viscosity = viscosity;
 	CreateBrushCursor(bSize, brushColor, tex);
-	//UE_LOG(LogTemp, Warning, TEXT("viscosity: %f"), viscosity);
 
 }
 

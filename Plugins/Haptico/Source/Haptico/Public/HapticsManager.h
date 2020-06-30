@@ -12,6 +12,8 @@
 
 DECLARE_MULTICAST_DELEGATE_FiveParams(FNewHapticData, FVector, FVector, FMatrix, FVector, FVector);
 DECLARE_MULTICAST_DELEGATE_FiveParams(FNewSecHapticData, FVector, FVector, FMatrix, FRotator, FVector);
+DECLARE_MULTICAST_DELEGATE_OneParam(FTextureHapticData, float);
+
 
 
 UCLASS(BlueprintType)
@@ -28,6 +30,8 @@ public:
 	//UPROPERTY(BlueprintAssignable)
 	FNewHapticData OnHapticTick;
 	FNewSecHapticData OneSecHapticTick;
+	FTextureHapticData OnTexHapticTick;
+
 
 	HapticDeviceButtonHandler* BHandler;
 
