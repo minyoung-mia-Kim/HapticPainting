@@ -11,6 +11,10 @@
 #include "HapticsManager.generated.h"
 
 DECLARE_MULTICAST_DELEGATE_FiveParams(FNewHapticData, FVector, FVector, FMatrix, FVector, FVector);
+DECLARE_MULTICAST_DELEGATE_FiveParams(FNewSecHapticData, FVector, FVector, FMatrix, FRotator, FVector);
+DECLARE_MULTICAST_DELEGATE_OneParam(FTextureHapticData, float);
+
+
 
 UCLASS(BlueprintType)
 class HAPTICO_API AHapticsManager : public AActor
@@ -25,6 +29,10 @@ public:
 	*/
 	//UPROPERTY(BlueprintAssignable)
 	FNewHapticData OnHapticTick;
+	FNewSecHapticData OneSecHapticTick;
+	FTextureHapticData OnTexHapticTick;
+
+
 	HapticDeviceButtonHandler* BHandler;
 
 private:

@@ -26,6 +26,7 @@ void AMainController::BeginPlay()
 
 	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
 	PainterInstance->FSelectedBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
+	PainterInstance->FTexDelegate.AddDynamic(DHandler, &ADrawingHandler::ChangeBrushMode);
 	PainterInstance->FActivateVDPDelegate.AddDynamic(HHandler, &AHapticsHandler::ActivateVDP);
 
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
@@ -36,7 +37,7 @@ void AMainController::BeginPlay()
 
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
-	//HHandler->FHapticModeUpdateDelegate.AddDynamic(FHandler, &AForceHandler::cleanForceInfo);
+	HHandler->FHapticModeUpdateDelegate.AddDynamic(DHandler, &ADrawingHandler::FbuttonOff);
 	//FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
 	//HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
 

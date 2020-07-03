@@ -107,17 +107,21 @@ public:
 	//Drawing function
 	FVector prvPositon;
 	FVector DrawingDirection;
+	bool bFbuttonOff = true;
 	UFUNCTION()
 		void receivedFbutton(FVector position, FRotator rotation, bool hasClicked);
+	UFUNCTION()
+		void FbuttonOff();
 	UFUNCTION()
 		void receivedSbutton(FVector position, FRotator rotation, bool hasClicked);
 	UFUNCTION()
 		void generateStroke(FVector position, FRotator rotation, FVector direction);
 	UFUNCTION()
 		void extendStroke(FVector position, FRotator rotation, FVector direction);
-	//template<char key>
-	void ChangeBrushMode();
-	//void ChangeBrushMode(char key);
+
+	UFUNCTION()
+	void ChangeBrushMode(int tex);
+
 	UFUNCTION()
 		void BrushsizeUp(float val);
 	UFUNCTION()

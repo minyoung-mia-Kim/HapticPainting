@@ -32,11 +32,12 @@ AHapticsHandler::AHapticsHandler()
 	cursor = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
 	cursor->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	cursor->SetNotifyRigidBodyCollision(true);
-	cursor->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	cursor->SetWorldScale3D(FVector(0.05f, 0.1f, 0.1f));
+	//cursor->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
 	cursor->bHiddenInGame = false;
 	//SetRootComponent(cursor);
 
-	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
+	brush = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Brush"));
 	brush->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	brush->SetWorldLocation(FVector(cursor->GetScaledSphereRadius(), 0.0f, 0.0f));
 	brush->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
@@ -57,7 +58,7 @@ AHapticsHandler::AHapticsHandler()
 	//DrawingPlane->SetWorldRotation(FRotator(90.f, 0.f, 0.f));
 	DrawingPlane->SetWorldLocation(FVector(cursor->GetScaledSphereRadius() * 2, 0.0f, 0.0f));
 	DrawingPlane->SetWorldScale3D(FVector(1.0f, 1.0f, 1.0f));
-	DrawingPlane->SetVisibility(true);
+	DrawingPlane->SetVisibility(false);
 
 	UMaterialInterface* PlaneMaterial = LoadObject<UMaterialInterface>(nullptr, TEXT("Material'/Game/M_Test.M_Test'"));
 	DrawingPlane->SetMaterial(0, PlaneMaterial);
@@ -115,17 +116,20 @@ void AHapticsHandler::Tick(float DeltaTime)
 	//setTorqueToApply(FVector(0.f, 0.f, 12.f));
 
 	/* Button Up = Finish Drawing */
-	if (prvFBstat == true && hasFBClicked == false && !bIsOnVDP)
+	if (prvFBstat == true && hasFBClicked == false)
 	{
 		FHapticModeUpdateDelegate.Broadcast();
 		//bIsOnVDP = false;
+		bIsSpringOn = false;
+		AnchoredPosition = FVector::ZeroVector;
+		BLocation = FVector::ZeroVector;
+
 	}
 
 	/* Texture haptic force*/
 	if (hasFBClicked)
 	{
 		force = getHapticDeviceLinearVelocity() * -viscosity;
-		bIsSpringOn = false;
 	}
 	//setForceToApply(getHapticDeviceLinearVelocity() * -viscosity);
 	else
@@ -148,6 +152,7 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 		// Calculate vector between b and a (giving the direction and magnitude of the vector they make up)
 		FVector distance = DDirection.RotateVector(FVector(brush->GetComponentLocation() - AnchoredPosition)); // MC = C-M
+		BLocation = brush->GetComponentLocation();
 		distance.Normalize();
 		FVector damping = 0.7f * getHapticDeviceLinearVelocity();
 
@@ -196,12 +201,6 @@ void AHapticsHandler::Tick(float DeltaTime)
 
 			/*standard distance = vdp*/
 
-
-			//DrawDebugLine(GetWorld(), OutHit.Location, OutHit.Location + n*10.f, FColor::Magenta, true, 5.f, 0, 1);
-			//DrawDebugLine(GetWorld(), Start, Start + OutHit.Location, FColor::Red, true, 5.f, 0, 1);
-			//UE_LOG(LogTemp, Warning, TEXT("vdp: %f"), vdp);
-			//UE_LOG(LogTemp, Warning, TEXT("dmax: %f"), dmax);
-
 			//Normal vector before and after applying rotation
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(n.ToString()));
 			//UE_LOG(LogTemp, Warning, TEXT("n : %s"), *(DDirection.RotateVector(n).ToString()));
@@ -212,32 +211,24 @@ void AHapticsHandler::Tick(float DeltaTime)
 			//UE_LOG(LogTemp, Warning, TEXT("D : %s"), *(DDirection.ToString()));
 			//float add = vdp + dmax;
 
-			//Force Calculation
-			///////////////////////////////////////////////
-			float forceMag = 0.0f;
+			////Force Calculation
+			/////////////////////////////////////////////////
+			//float forceMag = 0.0f;
 
-			if (vdp > 0.0f)
-			{
-				forceMag = -(FMath::Pow(1.05f, vdp)) + 7.f;
-				//UE_LOG(LogTemp, Warning, TEXT("p fsize : %f"), forceMag);
-			}
-			else
-			{
-				//forceMag = FMath::LogX(0.5f, FMath::Abs(vdp) + 0.1) + 3.f;
-				forceMag = FMath::Pow(2.05f, (vdp + 2.5));
-			}
+			//forceMag = FMath::Pow(5.0f, (vdp + 2.5f));
 
-			//float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
-			FVector damping = 1.5f * getHapticDeviceLinearVelocity();
-			if (forceMag > 0.0f)
-			{
-				force = FVector(RHitNormal * forceMag) - damping;
-				//force = FVector(n * forceMag);
 
-				force = FVector(-force.X, force.Y, force.Z);
-				//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
-			}
-			///////////////////////////////////////////////
+			////float forceMag = FMath::Pow(0.5f, FMath::Abs(add) - 5.f);
+			//FVector damping = 1.5f * getHapticDeviceLinearVelocity();
+			//if (forceMag > 0.0f)
+			//{
+			//	force = FVector(RHitNormal * forceMag) - damping;
+			//	//force = FVector(n * forceMag);
+
+			//	force = FVector(-force.X, force.Y, force.Z);
+			//	//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+			//}
+			/////////////////////////////////////////////////
 
 
 			//UE_LOG(LogTemp, Warning, TEXT("damping : %s"), *(damping.ToString()));
@@ -274,6 +265,39 @@ void AHapticsHandler::Tick(float DeltaTime)
 		brush->GetProcMeshSection(0)->ProcVertexBuffer[i].Tangent = FProcMeshTangent(surfaceTangent, true);
 	}
 
+
+}
+/**
+* broad casts the new haptic data as a multicast delegate
+*/
+void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
+
+	if (hasFBClicked && !bIsOnVDP)
+	{
+		OnTexHapticTick.Broadcast(this->viscosity);
+
+	}
+	else 
+	{
+		if (bIsOnVDP)
+		{
+			OnHapticTick.Broadcast(BLocation, HitLocation, FMatrix::Identity, HitNormal, RHitNormal);
+		}
+		else if (bIsSpringOn)
+		{
+			OneSecHapticTick.Broadcast(BLocation, AnchoredPosition, FMatrix::Identity, DDirection, FVector::ZeroVector);
+		}
+		else
+		{
+			OnHapticTick.Broadcast(FVector::ZeroVector, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+		}
+	}
+	
+		//OnHapticTick.Broadcast(force, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
+
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
+	//UE_LOG(LogTemp, Warning, TEXT("its handler"));
+	//UE_LOG(LogTemp, Warning, TEXT("position : %s"), *(position.ToString()));
 
 }
 void AHapticsHandler::setViscosity(float v)
@@ -325,7 +349,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 	//UE_LOG(LogTemp, Warning, TEXT("OverlappedComp : %s"), *(OtherComp->GetName()));
 
 	/* Spring-mass Force */
-	if (hasSBClicked && SButtonDt > 0.5f && overComp == "ProceduralMesh")
+	if (!bIsOnVDP && hasSBClicked && SButtonDt > 0.5f && overComp == "ProceduralMesh")
 	{
 		bIsOnVDP = false;
 		UE_LOG(LogTemp, Warning, TEXT("gotit time %f Clicked %s"), SButtonDt, hasSBClicked ? TEXT("True") : TEXT("False"));
@@ -337,35 +361,7 @@ void AHapticsHandler::OnComponentBeginOverlap(UPrimitiveComponent * OverlappedCo
 		//AProceduralPlaneMesh* detectStrokeActor = Cast<AProceduralPlaneMesh>(OtherActor);
 		//UProceduralMeshComponent* detectMesh = Cast<UProceduralMeshComponent>(OtherComp);
 		AnchoredPosition = brush->GetComponentLocation();
-		//DrawDebugPoint(GetWorld(), AnchoredPosition, 10.f, FColor::Green, true, 0, 0);
 
-
-		//FVector refinedCPosition = brush->GetComponentLocation();
-
-		//if (detectStrokeActor != nullptr)
-		//{
-		//	for (int i = 0; i < detectStrokeActor->centerPos.Num(); i++)
-		//	{
-
-		//		if (refinedCPosition.Equals(detectStrokeActor->centerPos[i], brushSize / 3))
-		//		{
-		//			FVector centerPosition = detectStrokeActor->centerPos[i];
-		//			DrawDebugPoint(GetWorld(), centerPosition, 10.f, FColor::Green, true, 1, 0);
-		//			HapticCollisionData.Broadcast(DDirection.RotateVector(detectStrokeActor->centerPos[i]),
-		//				DDirection.RotateVector(detectStrokeActor->centerNormals[i]),
-		//				detectMesh->GetProcMeshSection(i)->ProcVertexBuffer[0].Tangent.TangentX,
-		//				refinedCPosition);
-
-
-		//			//UE_LOG(LogTemp, Warning, TEXT("centorPos %s"), *centerPosition.ToString());
-		//			//UE_LOG(LogTemp, Warning, TEXT("tangent %s"), *centerTangent.ToString());
-		//			//UE_LOG(LogTemp, Warning, TEXT("normal %s"), *detectStrokeActor->centerNormals[i].ToString());
-		//			////UE_LOG(LogTemp, Warning, TEXT("dist %f"), dist);
-		//			////UE_LOG(LogTemp, Warning, TEXT("intensity %f"), intensity * dot);
-		//		}
-
-		//	}
-		//}
 
 	}
 
@@ -470,21 +466,9 @@ FRotator AHapticsHandler::getHapticDeviceRotationAsUnrealRotator() {
 FVector AHapticsHandler::getHapticDevicePositionInUnrealCoordinates() {
 	FVector position = UHapticThreadOutput::getInst().getHapticCursorPosition();
 	//Re-adjusted the position
-	return FVector((position.X * 1000) - 80.f, -position.Y * 1000, (position.Z * 1000));
+	return FVector((position.X * 1000) - 50.f, -position.Y * 1000, (position.Z * 1000) + 100.f);
 }
 
-/**
-* broad casts the new haptic data as a multicast delegate
-*/
-void AHapticsHandler::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
-	//OnHapticTick.Broadcast(BLocation, HitLocation, FMatrix::Identity, HitNormal, RHitNormal);
-	OnHapticTick.Broadcast(force, FVector::ZeroVector, FMatrix::Identity, FVector::ZeroVector, FVector::ZeroVector);
-
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), OnHapticTick.IsBound() ? TEXT("True") : TEXT("False"));
-	//UE_LOG(LogTemp, Warning, TEXT("its handler"));
-	//UE_LOG(LogTemp, Warning, TEXT("position : %s"), *(position.ToString()));
-
-}
 void AHapticsHandler::button1Clicked()
 {
 	FVector position = this->getHapticDevicePositionInUnrealCoordinates();
@@ -507,7 +491,7 @@ void AHapticsHandler::button2Clicked()
 		bIsOnVDP = true;
 		FRotator Rr = RootComponent->GetComponentRotation();
 		FRotator r = FRotator(90.f, 0.f, 0.f);
-		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() + 0.5f));
+		DrawingPlane->SetWorldLocation(brush->GetComponentLocation() + (this->GetActorForwardVector() * 5.5f));
 		DrawingPlane->SetWorldRotation(Rr);
 		DrawingPlane->AddLocalRotation(r);
 		DrawingPlane->DetachFromComponent(FDetachmentTransformRules::KeepRelativeTransform);
@@ -525,7 +509,6 @@ void AHapticsHandler::RefreshBrushCursor(float bSize, FLinearColor brushColor, f
 	//UE_LOG(LogTemp, Warning, TEXT("Color: %s"), *(brushColor.ToString()));
 	this->viscosity = viscosity;
 	CreateBrushCursor(bSize, brushColor, tex);
-	//UE_LOG(LogTemp, Warning, TEXT("viscosity: %f"), viscosity);
 
 }
 

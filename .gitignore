@@ -1,4 +1,4 @@
-
+﻿
 # Created by https://www.gitignore.io/api/unrealengine,visualstudio
 # Edit at https://www.gitignore.io/?templates=unrealengine,visualstudio
 
@@ -19,7 +19,6 @@
 # Compiled Dynamic libraries
 *.so
 *.dylib
-*.dll
 
 # Fortran module files
 *.mod

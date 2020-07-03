@@ -98,53 +98,7 @@ void AProceduralPlaneMesh::Initialize(FVector position, FRotator rotation, FVect
 	ArrMeshesections.color = color;
 	ArrMeshesections.Material = mode;
 }
-/* // Old function
-void AProceduralPlaneMesh::GenerateVertices()
-{
-	float uvSpacing = 1.0f / FMath::Max(height, width);
 
-	for (int32 y = 0; y < height; y++)
-	{
-		for (int32 x = 0; x < width; x++)
-		{
-			vertices.Add(FVector(0.0f, y * spacing, x * spacing));
-			normals.Add(FVector(1.0f, 0.0f, 0.0f));
-			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
-			vertexColors.Add(FLinearColor(0.0f, 0.0f, 0.0f, 1.0f));
-			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
-		}
-	}
-}
-void AProceduralPlaneMesh::GenerateVertices(FVector position, FRotator rotation)
-{
-	//width = FVector::Dist(posArray[0], posArray[posArray.Num()-1]);
-	UE_LOG(LogTemp, Warning, TEXT("haptic position X:%f, Y:%f, Z:%f"), position.X, position.Y, position.Z);
-
-	float uvSpacing = 1.0f / FMath::Max(height, width);
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 5.0f, 5.0f)))));
-	vertexColors.Add(FLinearColor(1.0f, 0.0f, 0.0f, 1.0f)); //red
-
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, -5.0f, 5.0f)))));
-	vertexColors.Add(FLinearColor(0.0f, 1.0f, 0.0f, 1.0f)); //green
-
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, 5.0f, -5.0f)))));
-	vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //blue
-
-	vertices.Add(FVector(position + GetTransform().TransformVector(rotation.RotateVector(FVector(0.0f, -5.0f, -5.0f)))));
-	vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
-
-
-	for (int32 y = 0; y < height; y++)
-	{
-		for (int32 x = 0; x < width; x++)
-		{
-			normals.Add(FVector(-1.0f, 0.0f, 0.0f));
-			uvs.Add(FVector2D(x * uvSpacing, y * uvSpacing));
-			tangents.Add(FProcMeshTangent(1.0f, 0.0f, 0.0f));
-		}
-	}
-}
-*/
 // Assemble the individual triangles
 void AProceduralPlaneMesh::GenerateTriangles()
 {
@@ -207,12 +161,14 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	/* Normal and Tangent */
 	//Normal 1 : Mesh front - Forward
 	FVector Normal = FVector::CrossProduct(FVector(vertices[1] - vertices[3]), FVector(vertices[2] - vertices[3])); //31, 32
-
-	//Normal 2 : Hapatic - Forward
-	//FVector Normal = rotation.Vector();
-	//Normal = -Normal;
 	Normal.Normalize();
 
+	//Normal 2 : Hapatic - Forward
+	FVector HapticOrientation = -rotation.Vector();
+	//Normal = -Normal;
+
+	if (FVector::DotProduct(Normal, HapticOrientation) < 0.0)
+		Normal = -Normal;
 
 
 	FVector surfaceTangent = vertices[2] - vertices[3]; //p1 to p3 being FVectors
@@ -231,15 +187,15 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	//UE_LOG(LogTemp, Warning, TEXT("vertex3 X:%f, Y:%f, Z:%f"), vertices[2].X, vertices[2].Y, vertices[2].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("vertex4 X:%f, Y:%f, Z:%f"), vertices[3].X, vertices[3].Y, vertices[3].Z);
 	//UE_LOG(LogTemp, Warning, TEXT("Normal %s"), *(Normal.ToString()));
-	DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
-	DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+	//DrawDebugLine(GetWorld(), position, position + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+	//DrawDebugLine(GetWorld(), position, position + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
-			normals.Add(Normal);
+			normals.Add(Normal); // 4
 			vertexColors.Add(color);
 			tangents.Add(FProcMeshTangent(surfaceTangent, true));
 		}
@@ -311,6 +267,8 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	centerNormals.Add(Normal);
 	prvPos = position;
 
+	TotalNormal.Add(normals[0]);
+	TotalNormal.Add(normals[1]);
 
 
 	/* increase section idx */
@@ -340,33 +298,34 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 void AProceduralPlaneMesh::MergeSections()
 {
+	if (bMerged || TotalNormal.Num() == 0)
+		return;
+
 	int sectionNum = 0;
 	ClearMeshData();
 	pm->ClearAllMeshSections();
-
+	FVector Normal;
+	FVector surfaceTangent;
 	for (int i = 0; i < TotalVertice.Num(); i += 2)
 	{
 		if (i + 2 < TotalVertice.Num())
 		{
 			sectionNum++;
-			FVector Normal = FVector::CrossProduct(FVector(TotalVertice[i + 1] - TotalVertice[i + 3]), FVector(TotalVertice[i + 2] - TotalVertice[i + 3])); //31, 32
+			//Normal = FVector::CrossProduct(FVector(TotalVertice[i + 1] - TotalVertice[i + 3]), FVector(TotalVertice[i + 2] - TotalVertice[i + 3])); //31, 32
+			//Normal.Normalize();
 
-			Normal.Normalize();
-			FVector surfaceTangent = TotalVertice[i + 2] - TotalVertice[i + 3]; //p1 to p3 being FVectors
+			surfaceTangent = TotalVertice[i + 2] - TotalVertice[i + 3]; //p1 to p3 being FVectors
 			surfaceTangent = surfaceTangent.GetSafeNormal();
 
-			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
-			DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
-			//UE_LOG(LogTemp, Warning, TEXT("Normal %s"), *(Normal.ToString()));
+			//DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + TotalNormal[i] * 5.0f, FColor::Red, true, 0, 0, 0.2);
+			//DrawDebugLine(GetWorld(), TotalVertice[i + 2], TotalVertice[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
 
 			for (int32 y = 0; y < height; y++)
 			{
-				for (int32 x = 0; x < width; x++)
-				{
-					vertexColors.Add(ArrMeshesections.color);
-					normals.Add(Normal);
-					tangents.Add(FProcMeshTangent(surfaceTangent, true));
-				}
+				vertexColors.Add(ArrMeshesections.color);
+				//normals.Add(Normal);
+				tangents.Add(FProcMeshTangent(surfaceTangent, true));
+
 			}
 			for (int32 y = 0; y < height - 1; y++)
 			{
@@ -392,6 +351,16 @@ void AProceduralPlaneMesh::MergeSections()
 				}
 			}
 		}
+		else
+		{
+			vertexColors.Add(ArrMeshesections.color);
+			vertexColors.Add(ArrMeshesections.color);
+			//normals.Add(Normal);
+			//normals.Add(Normal);
+			tangents.Add(FProcMeshTangent(surfaceTangent, true));
+			tangents.Add(FProcMeshTangent(surfaceTangent, true));
+
+		}
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
 
@@ -409,11 +378,29 @@ void AProceduralPlaneMesh::MergeSections()
 		uvs.Add(FVector2D(1, newV1 / 100));
 
 	}
-	pm->CreateMeshSection_LinearColor(0, TotalVertice, triangles, normals, uvs, vertexColors, tangents, true);
+
+	TotalNormal.Add(FVector(TotalNormal.Last()));
+	TotalNormal.Add(FVector(TotalNormal.Last()));
+
+
+	///*Check whether each feature has the same number of data with its vertices */
+	//UE_LOG(LogTemp, Warning, TEXT("TotalVertice %d"), TotalVertice.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("TotalNormal %d"), TotalNormal.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("uvs %d"), uvs.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("vertexColors %d"), vertexColors.Num());
+	//UE_LOG(LogTemp, Warning, TEXT("tangents %d"), tangents.Num());
+
+
+
+	pm->CreateMeshSection_LinearColor(0, TotalVertice, triangles, TotalNormal, uvs, vertexColors, tangents, true);
 	FString m = ArrMeshesections.Material;
 	Material = LoadObject<UMaterialInterface>(nullptr, *m);
 	pm->SetMaterial(0, Material);
 	pm->SetCollisionConvexMeshes({ vertices });
+	bMerged = true;
+	//UE_LOG(LogTemp, Warning, TEXT("color %s"), *(pm->GetProcMeshSection(0)->ProcVertexBuffer[2].Color.ToString()));
+	//UE_LOG(LogTemp, Warning, TEXT("normals %s"), *(pm->GetProcMeshSection(0)->ProcVertexBuffer[2].Normal.ToString()));
+
 
 	/*
 		for (int i=0;i<centerPos.Num(); i++)
@@ -422,7 +409,6 @@ void AProceduralPlaneMesh::MergeSections()
 			UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
 
 		}*/
-
 }
 
 void AProceduralPlaneMesh::OnConstruction(const FTransform & Transform)
@@ -459,6 +445,7 @@ void AProceduralPlaneMesh::ActorSaveDataSaved_Implementation()
 FMeshSectionData AProceduralPlaneMesh::getAllMeshsections()
 {
 	ArrMeshesections.vertices = TotalVertice;
+	ArrMeshesections.normals = TotalNormal;
 	ArrMeshesections.centerPosition = centerPos;
 	ArrMeshesections.centerNormal = centerNormals;
 
@@ -516,28 +503,32 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 	//////////////////////////////////////////////////////////////////////////////////
 	/* One mesh section */
 	vertices = msData.vertices;
-	int sectionNum = 0;
+	normals = msData.normals;
 
+	int sectionNum = 0;
+	FVector surfaceTangent;
 	for (int i = 0; i < msData.vertices.Num(); i += 2)
 	{
 		if (i + 2 < msData.vertices.Num())
 		{
 			sectionNum++;
-			FVector Normal = FVector::CrossProduct(FVector(vertices[i + 1] - vertices[i + 3]), FVector(vertices[i + 2] - vertices[i + 3])); //31, 32
-			Normal.Normalize();
-			FVector surfaceTangent = vertices[i + 2] - vertices[i + 3]; //p1 to p3 being FVectors
+			//FVector Normal = FVector::CrossProduct(FVector(vertices[i + 1] - vertices[i + 3]), FVector(vertices[i + 2] - vertices[i + 3])); //31, 32
+			//Normal.Normalize();
+
+			surfaceTangent = vertices[i + 2] - vertices[i + 3]; //p1 to p3 being FVectors
 			surfaceTangent = surfaceTangent.GetSafeNormal();
-			DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
-			DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
-			for (int32 y = 0; y < height; y++)
+			//DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + surfaceTangent * 5.0f, FColor::Blue, true, 0, 0, 0.2);
+			//DrawDebugLine(GetWorld(), vertices[i + 2], vertices[i + 2] + Normal * 5.0f, FColor::Red, true, 0, 0, 0.2);
+
+
+			for (int32 x = 0; x < width; x++)
 			{
-				for (int32 x = 0; x < width; x++)
-				{
-					vertexColors.Add(msData.color);
-					normals.Add(Normal);
-					tangents.Add(FProcMeshTangent(surfaceTangent, true));
-				}
+				vertexColors.Add(msData.color);
+				//normals.Add(Normal);
+				tangents.Add(FProcMeshTangent(surfaceTangent, true));
 			}
+
+
 			for (int32 y = 0; y < height - 1; y++)
 			{
 				for (int32 x = 0; x < width - 1; x++)
@@ -563,7 +554,10 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 			}
 		}
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("%d"), sectionNum);
+	vertexColors.Add(msData.color);
+	vertexColors.Add(msData.color);
+	tangents.Add(FProcMeshTangent(surfaceTangent, true));
+	tangents.Add(FProcMeshTangent(surfaceTangent, true));
 
 	//UVS
 	float NSection = float(sectionNum);
@@ -610,17 +604,23 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 		//	uvs.Add(FVector2D(1, FMath::Sin(0)));
 		//}
 	}
+	UE_LOG(LogTemp, Warning, TEXT("load ver %d"), vertices.Num());
+	UE_LOG(LogTemp, Warning, TEXT("load color %d"), vertexColors.Num());
 
 	pm->CreateMeshSection_LinearColor(0, vertices, triangles, normals, uvs, vertexColors, tangents, true);
 	FString m = msData.Material;
 	Material = LoadObject<UMaterialInterface>(nullptr, *m);
 	pm->SetMaterial(0, Material);
 	pm->SetCollisionConvexMeshes({ vertices });
-
-///////////////////////////////////////////////////////////////////////////////////////////
-	//Center Position and Normal for Haptic 
+	bMerged = true;
+	///////////////////////////////////////////////////////////////////////////////////////////
+		//Center Position and Normal for Haptic 
+	TotalVertice = msData.vertices;
+	TotalNormal = msData.normals;
 	centerPos = msData.centerPosition;
 	centerNormals = msData.centerNormal;
+	ArrMeshesections.color = msData.color;
+	ArrMeshesections.Material = msData.Material;
 	/*
 		for (int i=0;i<centerPos.Num(); i++)
 		{

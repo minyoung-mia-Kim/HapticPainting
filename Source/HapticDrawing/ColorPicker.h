@@ -11,6 +11,8 @@
 
 /* Update brush color from picked color*/
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FBrushDelegate, FLinearColor, selectedColor, float, selectedSize);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FBrushTexUpdateDelegate, int, Tex);
+
 
 UCLASS()
 class HAPTICDRAWING_API AColorPicker : public AActor
@@ -43,6 +45,9 @@ public:
 	/* Function Picker */
 	UPROPERTY(BlueprintCallable)
 		FBrushDelegate FSelelctedBrushUpdateDelegate;
+
+	UPROPERTY(BlueprintCallable)
+		FBrushTexUpdateDelegate FTextureDelegate;
 
 protected:
 	// Called when the game starts or when spawned

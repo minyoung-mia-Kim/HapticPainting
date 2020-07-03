@@ -18,7 +18,11 @@ void FHapticThread::DoWork()
 {
 	HapticDeviceButtonHandler buttonHandler(&haptico);
 	haptico.connect();
-	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::GetForce);
+	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::GetCollision);
+	hapticsManager->OneSecHapticTick.AddRaw(this, &FHapticThread::GetAnchor);
+	hapticsManager->OnTexHapticTick.AddRaw(this, &FHapticThread::GetViscosity);
+
+
 
 	while (UHapticThreadInput::getInst().shouldThreadRun()) {
 		FVector position = haptico.getPosition();
@@ -59,9 +63,14 @@ void FHapticThread::DoWork()
 	
 }
 
-void FHapticThread::GetForce(FVector v1, FVector v2, FMatrix m1, FVector v3, FVector v4)
+void FHapticThread::GetViscosity(float v1)
 {
-	appliedForce = v1;
+	appliedForce = haptico.getLinearVelocity() * -v1;
+	//printf("%f", -v1);
+	//UE_LOG(LogTemp, Warning, TEXT("viscosity: %f"), -v1);
+	//UE_LOG(LogTemp, Warning, TEXT("appliedForce : %s"), *(appliedForce.ToString()));
+
+
 }
 
 void FHapticThread::GetCollision(FVector BLocation, FVector HitLocation, FMatrix v2, FVector HitNormal, FVector RHitNormal)
@@ -76,18 +85,45 @@ void FHapticThread::GetCollision(FVector BLocation, FVector HitLocation, FMatrix
 
 	//Force Calculation
 	float pDepth = FVector::DotProduct(HitNormal, (HitLocation - BLocation)); // brush to location
-	float forceMag = FMath::LogX(0.5f, FMath::Abs(pDepth) + 0.5) + 3.f;
-	FVector damping = 1.5f * haptico.getLinearVelocity();
+	float forceMag = FMath::Pow(2.0f, (pDepth + 2.5f));
+	FVector damping = 0.6f * haptico.getLinearVelocity();
 	if (forceMag > 0.0f)
 	{
 		appliedForce = FVector(RHitNormal * forceMag) - damping;
 		//force = FVector(n * forceMag);
 
 		appliedForce = FVector(FVector(-appliedForce.X, appliedForce.Y, appliedForce.Z));
-		//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(force.ToString()));
+		//UE_LOG(LogTemp, Warning, TEXT("f : %s"), *(appliedForce.ToString()));
 	}
 	else
 	{
 		appliedForce = FVector::ZeroVector;
 	}
+}
+
+void FHapticThread::GetAnchor(FVector Blocation, FVector Anchor, FMatrix m1, FRotator direction, FVector v4)
+{
+	if (Anchor == FVector::ZeroVector)
+	{
+		appliedForce = FVector::ZeroVector;
+		return;
+	}
+
+	FVector distance = direction.RotateVector(FVector(Blocation - Anchor)); // MC = C-M
+	float distSize = distance.Size();
+
+
+	float forceMag = 0.05 * distSize;
+	distance.Normalize();
+	FVector vel = haptico.getLinearVelocity();
+	FVector damping = 0.5f * vel;
+	//UE_LOG(LogTemp, Warning, TEXT("vel : %f"), vel.Size());
+	if (distSize < 1.0 && vel.Size() < 0.1)
+	{
+		forceMag = 0.0f;
+	}
+
+
+	appliedForce = -FVector(-distance.X, distance.Y, distance.Z) * forceMag - damping;
+
 }

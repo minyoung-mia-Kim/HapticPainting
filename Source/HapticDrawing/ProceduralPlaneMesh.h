@@ -70,6 +70,9 @@ public:
 	void Update(FVector position, FRotator rotation, FVector direction, float spacing, FLinearColor color);
 	void MergeSections();
 
+	UPROPERTY()
+	bool bMerged;
+
 	virtual void OnConstruction(const FTransform& Transform) override;
 	//void GenerateVertices();
 	//void GenerateVertices(FVector position, FRotator rotation);
@@ -83,7 +86,10 @@ public:
 	virtual void ActorSaveDataLoaded_Implementation() override;
 	virtual void ActorSaveDataSaved_Implementation() override;
 	FMeshSectionData ArrMeshesections;
+
 	TArray<FVector> TotalVertice;
+	TArray<FVector> TotalNormal;
+
 	FVector MeshColor;
 	FMeshSectionData getAllMeshsections();
 

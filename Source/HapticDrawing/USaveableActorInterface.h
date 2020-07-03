@@ -34,6 +34,7 @@ struct FMeshSectionData
 {
 	GENERATED_BODY()
 	TArray<FVector> vertices;
+	TArray<FVector> normals;
 	FLinearColor color;
 	TArray<FVector> centerPosition;
 	TArray<FVector> centerNormal;
@@ -42,6 +43,7 @@ struct FMeshSectionData
 	friend FArchive& operator<<(FArchive& Ar, FMeshSectionData& Data)
 	{
 		Ar << Data.vertices;
+		Ar << Data.normals;
 		Data.color.Serialize(Ar);
 		Ar << Data.centerPosition;
 		Ar << Data.centerNormal;

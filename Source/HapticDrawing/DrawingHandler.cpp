@@ -16,7 +16,7 @@ ADrawingHandler::ADrawingHandler()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	prvPositon = FVector(0, 0, 0);
-	
+
 
 	// Add the brush list (Materials)
 	BrushArray.Add("Material'/Game/HDAssets/M_grunge1.M_grunge1'");
@@ -30,41 +30,34 @@ ADrawingHandler::ADrawingHandler()
 
 	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, 0, ViscosityArray[0], 10.f, FLinearColor::White);
 	isHapticMode = false;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 
-	////Sequencer initialize
-	//if (SequenceAsset && SequencePlayer == nullptr)
-	//	SequencePlayer = ULevelSequencePlayer::CreateLevelSequencePlayer(GetWorld(), SequenceAsset, FMovieSceneSequencePlaybackSettings());
-
-	////Sequence Play
-	//if (SequencePlayer)
-	//{
-	//	SequencePlayer->Play();
-	//}
 
 }
 
 void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool hasClicked)
 {
-	//FVector Normal = -(position - FVector(40.f, 0.f, 0.f));
 	DrawingDirection = FVector(position - prvPositon);
-	if (brushinfo->state == BRUSHSTATE::Draw)
-	{
-		if (!hasClicked)
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), bFbuttonOff ? TEXT("Off") : TEXT("On"));
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), hasClicked ? TEXT("T") : TEXT("F"));
+
+
+	//if (!(DrawingDirection.Size() < 0.5))
+	//{
+		if (!hasClicked && bFbuttonOff)
 		{
-			if (!(DrawingDirection.Size() < 1.0))
-			{
-				generateStroke(position, rotation, DrawingDirection);
-			}
+			generateStroke(position, rotation, DrawingDirection);
+			bFbuttonOff = false;
 		}
 		else
 		{
-			if (dt - prvDt > 0.03 && StrokeArray.Num() > 0)
+			if (dt - prvDt > 0.01 && StrokeArray.Num() > 0)
 			{
 				PositionArray.Add(position);
 				RotationArray.Add(rotation);
 				//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
-				if (FMath::Abs(FVector::Dist(position, prvPositon)))
+				if (FVector::Dist(position, prvPositon)> 0.1)
 					extendStroke(position, rotation, DrawingDirection);
 
 				prvDt = dt;
@@ -72,9 +65,15 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 			}
 
 		}
-	}
+//	}
 	prvPositon = position;
 
+}
+
+void ADrawingHandler::FbuttonOff()
+{
+	bFbuttonOff = true;
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), bFbuttonOff ? TEXT("Off") : TEXT("On"));
 }
 
 void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool hasClicked)
@@ -93,68 +92,45 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 {
 	if (StrokeArray.Num() > 0)
 	{
-		StrokeArray.Last().mesh->MergeSections();
+		if (!StrokeArray.Last().mesh->bMerged)
+		{
+			StrokeArray.Last().mesh->MergeSections();
+		}
+
 	}
 	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
 	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 	StrokeArray.Add(FStroke(mesh));
 	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
-	//UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
+	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
 }
 
 void ADrawingHandler::extendStroke(FVector position, FRotator rotation, FVector direction)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
-	StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
+	if(!StrokeArray.Last().mesh->bMerged)
+		StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
 
 }
 //template<char key>
-void ADrawingHandler::ChangeBrushMode()
+void ADrawingHandler::ChangeBrushMode(int tex)
 {
-	UE_LOG(LogTemp, Warning, TEXT("grip"));
-
-	if (brushinfo->type == BrushArray.Num() - 1)
-	{
-		brushinfo->type = 0;
-	}
-	else
-	{
-		brushinfo->type += 1;
-	}
+	//UE_LOG(LogTemp, Warning, TEXT("grip"));
+	brushinfo->type = tex;
+	//if (brushinfo->type == BrushArray.Num() - 1)
+	//{
+	//	brushinfo->type = 0;
+	//}
+	//else
+	//{
+	//	brushinfo->type += 1;
+	//}
 	brushinfo->viscosity = ViscosityArray[brushinfo->type];
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 
 }
-//void ADrawingHandler::ChangeBrushMode(char key)
-//{
-//	if (key == 'D')
-//	{
-//		UE_LOG(LogTemp, Warning, TEXT("Draw Mode"));
-//		brushinfo->state = BRUSHSTATE::Draw;
-//
-//	}
-//	else if (key == '1')
-//	{
-//		brushinfo->mode = BrushArray[0];
-//	}
-//	else if (key == '2')
-//	{
-//		brushinfo->mode = BrushArray[1];
-//	}
-//	else if (key == '3')
-//	{
-//		brushinfo->mode = BrushArray[2];
-//	}
-//	else if (key == '4')
-//	{
-//		brushinfo->mode = BrushArray[3];
-//	}
-//	else if (key == '5')
-//	{
-//		brushinfo->mode = BrushArray[4];
-//	}
-//}
+
 
 void ADrawingHandler::BrushsizeUp(float val)
 {
@@ -170,7 +146,7 @@ void ADrawingHandler::BrushsizeUp(float val)
 
 void ADrawingHandler::BrushsizeDown(float val)
 {
-	if (val == 1 && brushinfo->size > 1.0f)
+	if (val == 1 && brushinfo->size > 0.5f)
 	{
 		brushinfo->size -= 0.1f;
 		//UE_LOG(LogTemp, Warning, TEXT("size: %f"), brushinfo->size);
@@ -232,9 +208,9 @@ void ADrawingHandler::BeginPlay()
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm Drawing handler"));
 
 	EnableInput(GetWorld()->GetFirstPlayerController());
-	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
-	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
-	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
+	//InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::ChangeColorR);
+	//InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::ChangeColorG);
+	//InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::ChangeColorB);
 
 	//InputComponent->BindKey(EKeys::Equals, IE_Pressed, this, &ADrawingHandler::BrushsizeUp);
 	//InputComponent->BindKey(EKeys::Hyphen, IE_Pressed, this, &ADrawingHandler::BrushsizeDown);
@@ -249,11 +225,11 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'4'>);
 	InputComponent->BindKey(EKeys::Five, IE_Pressed, this, &ADrawingHandler::ChangeBrushMode<'5'>);*/
 
-	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke); 
+	InputComponent->BindAction("Undo", IE_Pressed, this, &ADrawingHandler::UndoStroke);
 	//InputComponent->BindAction("ChangeBrush", IE_Pressed, this, &ADrawingHandler::ChangeBrushMode);
 
-	/*InputComponent->BindAxis("BrushSizeUP", this, &ADrawingHandler::BrushsizeUp);
-	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);*/
+	InputComponent->BindAxis("BrushSizeUp", this, &ADrawingHandler::BrushsizeUp);
+	InputComponent->BindAxis("BrushSizeDown", this, &ADrawingHandler::BrushsizeDown);
 
 	//Save and load
 	InputComponent->BindKey(EKeys::S, IE_Pressed, this, &ADrawingHandler::ActorSaveDataSaved);
@@ -312,7 +288,7 @@ void ADrawingHandler::ActorSaveDataSaved()
 	SaveGameInstance->PlayerName = MyPlayerName;
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
 */
-	///////////////*INTERFACE*////////////////////
+///////////////*INTERFACE*////////////////////
 	TArray<AActor*> Actors;
 	UGameplayStatics::GetAllActorsWithInterface(GetWorld(), USaveableActorInterface::StaticClass(), Actors);
 
@@ -378,7 +354,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("fin_starry_night_haptiv.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_burano_water_road_left_right_boat_details_ocean_boat2_pabil_light.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;
@@ -406,16 +382,16 @@ void ADrawingHandler::ActorSaveDataLoaded()
 
 void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
 {
-		int TotalVerticeNum = 0;
+	int TotalVerticeNum = 0;
 	for (FActorSaveData ActorRecord : SaveGameData.SavedActors)
 	{
 		FVector SpawnPos = ActorRecord.ActorTransform.GetLocation();
 		FRotator SpawnRot = ActorRecord.ActorTransform.Rotator();
-		
+
 		/* array */
 		PositionArray.Add(SpawnPos);
 		RotationArray.Add(SpawnRot);
-		
+
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.Name = ActorRecord.ActorName;
 		UClass* SpawnClass = FindObject<UClass>(ANY_PACKAGE, *ActorRecord.ActorClass);
@@ -432,10 +408,9 @@ void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
 			StrokeArray.Add(FStroke(Cast<AProceduralPlaneMesh>(NewActor)));
 		}
 
-
 	}
-		UE_LOG(LogTemp, Warning, TEXT("# Actors: %d "), SaveGameData.SavedActors.Num());
-		UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVerticeNum);
+	UE_LOG(LogTemp, Warning, TEXT("# Actors: %d "), SaveGameData.SavedActors.Num());
+	UE_LOG(LogTemp, Warning, TEXT("# Vertices: %d "), TotalVerticeNum);
 }
 
 void ADrawingHandler::ReplayPainting()
@@ -458,7 +433,7 @@ void ADrawingHandler::ShowPainting()
 	while (i < StrokeArray.Num())
 	{
 		UE_LOG(LogTemp, Warning, TEXT("dt %f"), dt);
-		
+
 
 	}
 
