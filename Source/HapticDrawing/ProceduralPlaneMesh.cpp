@@ -402,6 +402,31 @@ void AProceduralPlaneMesh::MergeSections()
 		expandNumArr.Add(0);
 	}
 
+	// when expand section num is not stored
+	if (degenSectionNum.Num() != 0 && degenSectionNum.Num() != expandNumArr.Num())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("not stored"));
+		int curTotalNum = TotalVertice.Num();
+		
+		for (int i = curTotalNum; i > prevTotalNum; i--)
+		{
+			TotalVertice.RemoveAt(TotalVertice.Num() - 1);
+			TotalNormal.RemoveAt(TotalNormal.Num() - 1);
+			TotalColors.RemoveAt(TotalColors.Num() - 1);
+		}
+
+		degenSectionIndex.RemoveAt(degenSectionIndex.Num() - 1);
+		degenSectionNum.RemoveAt(degenSectionNum.Num() - 1);
+		TotalNormal.RemoveAt(TotalNormal.Num() - 1);
+		TotalNormal.RemoveAt(TotalNormal.Num() - 1);
+
+		vertices.Add(TotalVertice[TotalVertice.Num() - 2]);
+		vertices.Add(TotalVertice.Last());
+
+		MergeSections();
+		return;
+	}
+
 	FVector Normal;
 	FVector surfaceTangent;
 	for (int i = 0; i < TotalVertice.Num(); i += 2)
@@ -509,17 +534,7 @@ void AProceduralPlaneMesh::MergeSections()
 
 		uvs.Add(FVector2D(0, 0));
 		uvs.Add(FVector2D(1, 0));
-		
-		if (degenSectionNum.Num() != expandNumArr.Num())
-		{
-			UE_LOG(LogTemp, Warning, TEXT("degen: %d"), degenSectionNum.Num());
-			UE_LOG(LogTemp, Warning, TEXT("degen last: %d"), degenSectionNum.Last());
-			UE_LOG(LogTemp, Warning, TEXT("degen index last: %d"), degenSectionIndex.Last());
-
-			UE_LOG(LogTemp, Warning, TEXT("expand: %d"), expandNumArr.Num());
-			expandNumArr.Add(0);
-		}
-		
+				
 		for (int i = 0; i < degenSectionNum.Num(); i++)
 		{
 			for (int k = 1; k <= degenSectionNum[i]; k++)
@@ -570,6 +585,8 @@ void AProceduralPlaneMesh::MergeSections()
 	//UE_LOG(LogTemp, Warning, TEXT("vertexColors %d"), vertexColors.Num());
 	//UE_LOG(LogTemp, Warning, TEXT("tangents %d"), tangents.Num());
 
+	//TotalNormal.RemoveAt(TotalNormal.Num() - 1);
+	//TotalNormal.RemoveAt(TotalNormal.Num() - 1);
 
 	pm->CreateMeshSection_LinearColor(0, TotalVertice, triangles, TotalNormal, uvs, TotalColors, tangents, true);
 
@@ -582,6 +599,7 @@ void AProceduralPlaneMesh::MergeSections()
 	vertices.Add(TotalVertice[TotalVertice.Num() - 2]);
 	vertices.Add(TotalVertice.Last());
 
+	prevTotalNum = TotalVertice.Num();
 	bMerged = true;
 }
 
@@ -909,6 +927,7 @@ void AProceduralPlaneMesh::StoreLoadDataDegenSection()
 	UE_LOG(LogTemp, Warning, TEXT("degenSectionNum[%d]: %d"), degenSectionNum.Num() - 1, degenSectionNum.Last());
 }
 
+// to merge loaded data sections
 void AProceduralPlaneMesh::MergeLoadSections()
 {
 	int sectionNum = 0;

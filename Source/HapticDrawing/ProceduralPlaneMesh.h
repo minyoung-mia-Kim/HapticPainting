@@ -134,4 +134,6 @@ public:
 	FVector startPos;
 	TArray<FLinearColor> TotalColors;
 	TArray<FVector2D> FirstUVs;	
+
+	int prevTotalNum = 0;
 };
