@@ -8,6 +8,8 @@
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 
+////
+#include "ConvertedStaticActor.h"
 
 
 // Sets default values
@@ -23,16 +25,31 @@ ADrawingHandler::ADrawingHandler()
 	BrushArray.Add("Material'/Game/HDAssets/M_BasicBrush.M_BasicBrush'");
 	BrushArray.Add("Material'/Game/HDAssets/M_silky1.M_silky1'");
 	BrushArray.Add("Material'/Game/HDAssets/M_silky2.M_silky2'");
+	
+	// add additional effects
+	BrushArray.Add("Material'/Game/Test/M_Glow.M_Glow'");
+	BrushArray.Add("Material'/Game/Test/M_Flow.M_Flow'");
+
 	ViscosityArray.Add(5.0f);
 	ViscosityArray.Add(4.0f);
 	ViscosityArray.Add(3.0f);
 	ViscosityArray.Add(3.5f);
+	ViscosityArray.Add(2.5f);
+	ViscosityArray.Add(2.5f);
+
 
 	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, 0, ViscosityArray[0], 10.f, FLinearColor::White);
 	isHapticMode = false;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 
-
+	currentBrushType = brushinfo->type;
+	// mesh component for each material
+	meshes.Add(nullptr);
+	meshes.Add(nullptr);
+	meshes.Add(nullptr);
+	meshes.Add(nullptr);
+	meshes.Add(nullptr);
+	meshes.Add(nullptr);
 }
 
 void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool hasClicked)
@@ -46,8 +63,10 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 	//{
 		if (!hasClicked && bFbuttonOff)
 		{
-			generateStroke(position, rotation, DrawingDirection);
+			generateStroke(position, rotation, DrawingDirection, position);
 			bFbuttonOff = false;
+			// store start position to get distance
+			startPosition = position;
 		}
 		else
 		{
@@ -57,11 +76,13 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 				RotationArray.Add(rotation);
 				//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
-				if (FVector::Dist(position, prvPositon)> 0.1)
-					extendStroke(position, rotation, DrawingDirection);
+
+				if (FVector::Dist(position, prvPositon) > 0.1)
+					extendStroke(position, rotation, DrawingDirection, startPosition);
 
 				prvDt = dt;
 				//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
+				//endPosition = position;
 			}
 
 		}
@@ -73,7 +94,14 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 void ADrawingHandler::FbuttonOff()
 {
 	bFbuttonOff = true;
-	//UE_LOG(LogTemp, Warning, TEXT("%s"), bFbuttonOff ? TEXT("Off") : TEXT("On"));
+	
+	// when F button is off merge section into one mesh component
+	if (!meshes[currentBrushType]->bMerged)
+	{
+		meshes[currentBrushType]->StoreDegeneratedSection();
+		meshes[currentBrushType]->MergeSections();
+		meshes[currentBrushType]->bMerged = false;
+	}
 }
 
 void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool hasClicked)
@@ -88,31 +116,41 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 	}
 }
 
-void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVector direction)
+void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition)
 {
-	if (StrokeArray.Num() > 0)
+	previousBrushType.Add(currentBrushType);
+	currentBrushType = brushinfo->type;
+
+	UE_LOG(LogTemp, Warning, TEXT("previousBrushType[%d] : %d"), previousBrushType.Num() - 1, previousBrushType.Last());
+
+	if(meshes[currentBrushType])
 	{
-		if (!StrokeArray.Last().mesh->bMerged)
+		if(!meshes[currentBrushType]->bMerged)
 		{
-			StrokeArray.Last().mesh->MergeSections();
+			meshes[currentBrushType]->DegenerateSection(position, rotation, direction, brushinfo->size, brushinfo->color, startPosition);
 		}
-
 	}
-	//UE_LOG(LogTemp, Warning, TEXT("generate Stroke"));
-	AProceduralPlaneMesh* mesh = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
-	StrokeArray.Add(FStroke(mesh));
-	mesh->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
-	UE_LOG(LogTemp, Warning, TEXT("In array: %d"), StrokeArray.Num());
 
+	if(!meshes[currentBrushType])
+	{
+		meshes[currentBrushType] = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
+		meshes[currentBrushType]->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
+		StrokeArray.Add(FStroke(meshes[currentBrushType]));
+	}
+	else
+	{
+		meshes[currentBrushType]->Update(position, rotation, direction, brushinfo->size, brushinfo->color, startPosition);
+	}
 }
 
-void ADrawingHandler::extendStroke(FVector position, FRotator rotation, FVector direction)
+void ADrawingHandler::extendStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
-	if(!StrokeArray.Last().mesh->bMerged)
-		StrokeArray.Last().mesh->Update(position, rotation, direction, brushinfo->size, brushinfo->color);
 
+	if (meshes[currentBrushType])
+		meshes[currentBrushType]->Update(position, rotation, direction, brushinfo->size, brushinfo->color, startPosition);
 }
+
 //template<char key>
 void ADrawingHandler::ChangeBrushMode(int tex)
 {
@@ -157,13 +195,24 @@ void ADrawingHandler::BrushsizeDown(float val)
 
 void ADrawingHandler::UndoStroke()
 {
-	if (StrokeArray.Num() > 0)
-	{
-		UE_LOG(LogTemp, Warning, TEXT(">>"));
+		if (meshes[currentBrushType])
+		{
+			meshes[currentBrushType]->UndoSection();
+			
+			if (meshes[currentBrushType]->TotalVertice.Num() == 0)
+			{
+				meshes[currentBrushType]->Destroy();
+				meshes.RemoveAt(currentBrushType);
+				meshes.Insert(nullptr, currentBrushType);
+				UE_LOG(LogTemp, Warning, TEXT("meshes num : %d"), meshes.Num());
+			}
+		}
 
-		StrokeArray.Last().mesh->Destroy();
-		StrokeArray.RemoveAt(StrokeArray.Num() - 1);
-	}
+		if (previousBrushType.Num() != 0)
+		{
+			currentBrushType = previousBrushType.Last();
+			previousBrushType.RemoveAt(previousBrushType.Num() - 1);
+		}
 }
 
 /* Deprecated :: Change color by keyboard input */
@@ -237,8 +286,15 @@ void ADrawingHandler::BeginPlay()
 	//Replay
 	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ReplayPainting);
 
+	// Effect Material
+	InputComponent->BindKey(EKeys::G, IE_Pressed, this, &ADrawingHandler::EffectMaterialGlow);
+	InputComponent->BindKey(EKeys::F, IE_Pressed, this, &ADrawingHandler::EffectMaterialFlow);
 
-
+	// Mesh change
+	InputComponent->BindKey(EKeys::One, IE_Pressed, this, &ADrawingHandler::Mesh1);
+	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::Mesh2);
+	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::Mesh3);
+	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::Mesh4);
 }
 
 // Called every frame
@@ -376,8 +432,6 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	FromBinary.Close();
 
 	Loaded(SaveGameData);
-
-
 }
 
 void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
@@ -442,4 +496,40 @@ void ADrawingHandler::ShowPainting()
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, FString::Printf(TEXT("# Actors: %f "), SaveGameData.SavedActors.Num()));
 	//GEngine->AddOnScreenDebugMessage(-1, 10.f, FColor::Cyan, FString::Printf(TEXT("# Vertice"), ArrMeshesections.vertices.Num()));
 
+}
+
+void ADrawingHandler::EffectMaterialGlow()
+{	
+	brushinfo->type = 4;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+}
+
+void ADrawingHandler::EffectMaterialFlow()
+{
+	brushinfo->type = 5;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+}
+
+void ADrawingHandler::Mesh1()
+{
+	brushinfo->type = 0;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+}
+
+void ADrawingHandler::Mesh2()
+{
+	brushinfo->type = 1;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+}
+
+void ADrawingHandler::Mesh3()
+{
+	brushinfo->type = 2;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+}
+
+void ADrawingHandler::Mesh4()
+{
+	brushinfo->type = 3;
+	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 }
