@@ -21,4 +21,6 @@ public:
 
 	virtual void StartPlay() override;
 	
+	UPROPERTY()
+		FString AssetName="";
 };

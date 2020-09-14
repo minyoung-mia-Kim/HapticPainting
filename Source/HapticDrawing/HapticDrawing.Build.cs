@@ -22,6 +22,11 @@ public class HapticDrawing : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SteamVR", "SteamVRController", "HeadMountedDisplay" });
         PrivateDependencyModuleNames.AddRange(new string[] { "HeadMountedDisplay", "SteamVR" });
 
+        // Convert procedural mesh component to static mesh component
+        ////
+        PublicDependencyModuleNames.AddRange(new string[] { "RawMesh", "AssetTools"});
+        ////
+
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
 

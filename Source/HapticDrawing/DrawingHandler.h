@@ -54,9 +54,19 @@ struct FStroke
 	AProceduralPlaneMesh* mesh;
 };
 
+UENUM()
+enum BRUSHTYPE
+{
+	GRUNGE,
+	BASIC,
+	SILKY1,
+	SILKY2,
+	GLOW,
+	FLOW
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FBrushInfoDelegate, float, brushSize, FLinearColor, brushColor, float, viscosity, FString, brushTex);
 //DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FHapticModeDelegate, FVector, brushPos);
-
 
 
 UCLASS()
@@ -90,7 +100,10 @@ public:
 	UPROPERTY()
 		FBrushInfoDelegate FBrushUpdateDelegate;
 
-
+	////
+	FVector startPosition;
+	FVector endPosition;
+	//// 
 
 	/* Deltatime for haptic button */
 	UPROPERTY()
@@ -115,9 +128,9 @@ public:
 	UFUNCTION()
 		void receivedSbutton(FVector position, FRotator rotation, bool hasClicked);
 	UFUNCTION()
-		void generateStroke(FVector position, FRotator rotation, FVector direction);
+		void generateStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition);
 	UFUNCTION()
-		void extendStroke(FVector position, FRotator rotation, FVector direction);
+		void extendStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition);
 
 	UFUNCTION()
 	void ChangeBrushMode(int tex);
@@ -167,4 +180,21 @@ public:
 	//FTimerDelegate  TimerDel;
 	FTimerHandle TimerHandle;
 
+	UPROPERTY()
+		FString AssetName;
+
+	// effect material
+	void EffectMaterialGlow();
+	void EffectMaterialFlow();
+
+	// mesh for each material
+	TArray<AProceduralPlaneMesh*> meshes;
+	TArray<int> previousBrushType;
+	int currentBrushType;
+
+	// save and load optimization
+	void Mesh1();
+	void Mesh2();
+	void Mesh3();
+	void Mesh4();
 };

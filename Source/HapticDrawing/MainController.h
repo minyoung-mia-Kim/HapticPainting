@@ -63,6 +63,5 @@ public:
 	UFUNCTION()
 		void SetHapticTurn(FRotator rotator);
 
-
 };
 
