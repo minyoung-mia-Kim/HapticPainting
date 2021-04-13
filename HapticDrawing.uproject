@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "4.18",
+	"EngineAssociation": "4.26",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -9,16 +9,23 @@
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
 			"AdditionalDependencies": [
-				"Engine",
-				"ProceduralMeshComponent",
+        "Engine",
 				"UMG"
 			]
 		}
 	],
 	"Plugins": [
-		{
-			"Name": "Haptico",
-			"Enabled": true
-		}
+    {
+      "Name": "RenderDocPlugin",
+      "Enabled": true
+    },
+    {
+      "Name": "LogitechVRInk",
+      "Enabled": true
+    },
+    {
+      "Name": "ProceduralMeshComponent",
+      "Enabled":  true
+    }
 	]
 }
