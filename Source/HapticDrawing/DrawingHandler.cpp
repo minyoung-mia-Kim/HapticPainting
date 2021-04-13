@@ -1,12 +1,12 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "DrawingHandler.h"
-#include "MyProcedualMesh.h"
 #include "Components/InputComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "MemoryReader.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
+
 
 ////
 #include "ConvertedStaticActor.h"
@@ -37,12 +37,15 @@ ADrawingHandler::ADrawingHandler()
 	ViscosityArray.Add(2.5f);
 	ViscosityArray.Add(2.5f);
 
-
+	/* Initialize Brush information */
 	this->brushinfo = new FBrushInfo(BRUSHSTATE::Draw, 0, ViscosityArray[0], 10.f, FLinearColor::White);
 	isHapticMode = false;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
 
 	currentBrushType = brushinfo->type;
+	bBrushUp = true;
+	bStrokeStart = true;
+
 	// mesh component for each material
 	meshes.Add(nullptr);
 	meshes.Add(nullptr);
@@ -52,47 +55,49 @@ ADrawingHandler::ADrawingHandler()
 	meshes.Add(nullptr);
 }
 
+// Called when Fbutton clicked
 void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool hasClicked)
 {
 	DrawingDirection = FVector(position - prvPositon);
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), bFbuttonOff ? TEXT("Off") : TEXT("On"));
 	//UE_LOG(LogTemp, Warning, TEXT("%s"), hasClicked ? TEXT("T") : TEXT("F"));
 
-
-	//if (!(DrawingDirection.Size() < 0.5))
-	//{
-		if (!hasClicked && bFbuttonOff)
+	/* When F button Off->On */
+	if (!hasClicked && bFbuttonOff)
+	{
+		generateStroke(position, rotation, DrawingDirection, position);
+		bFbuttonOff = false;
+		// store start position to get distance
+		startPosition = position;
+	}
+	/* When F button keeps On */
+	else
+	{
+		if (dt - prvDt > 0.005 && StrokeArray.Num() > 0)
 		{
-			generateStroke(position, rotation, DrawingDirection, position);
-			bFbuttonOff = false;
-			// store start position to get distance
-			startPosition = position;
+			PositionArray.Add(position);
+			RotationArray.Add(rotation);
+			//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
+
+
+			if (FVector::Dist(position, prvPositon) > 0.1)
+				extendStroke(position, rotation, DrawingDirection, startPosition);
+
+			prvDt = dt;
+			//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
+			//endPosition = position;
 		}
-		else
-		{
-			if (dt - prvDt > 0.01 && StrokeArray.Num() > 0)
-			{
-				PositionArray.Add(position);
-				RotationArray.Add(rotation);
-				//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
-
-				if (FVector::Dist(position, prvPositon) > 0.1)
-					extendStroke(position, rotation, DrawingDirection, startPosition);
-
-				prvDt = dt;
-				//UE_LOG(LogTemp, Warning, TEXT("clicking!"));
-				//endPosition = position;
-			}
-
-		}
-//	}
+	}
 	prvPositon = position;
 
 }
 
+
+
+
 void ADrawingHandler::FbuttonOff()
-{
+{	
 	bFbuttonOff = true;
 	
 	// when F button is off merge section into one mesh component
@@ -116,6 +121,7 @@ void ADrawingHandler::receivedSbutton(FVector position, FRotator rotation, bool 
 	}
 }
 
+/* Called When Stroke starts */
 void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition)
 {
 	previousBrushType.Add(currentBrushType);
@@ -123,6 +129,7 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 
 	UE_LOG(LogTemp, Warning, TEXT("previousBrushType[%d] : %d"), previousBrushType.Num() - 1, previousBrushType.Last());
 
+	/* if using same brush with previous stroke, generate invisible section which connects previous stroke with this one. */
 	if(meshes[currentBrushType])
 	{
 		if(!meshes[currentBrushType]->bMerged)
@@ -131,14 +138,18 @@ void ADrawingHandler::generateStroke(FVector position, FRotator rotation, FVecto
 		}
 	}
 
+	/* if using new brush, spawn new procedural mesh actor. */
 	if(!meshes[currentBrushType])
 	{
+		UE_LOG(LogTemp, Warning, TEXT("re! draw mesh"));
 		meshes[currentBrushType] = GetWorld()->SpawnActor<AProceduralPlaneMesh>(AProceduralPlaneMesh::StaticClass());
 		meshes[currentBrushType]->Initialize(position, rotation, direction, brushinfo->size, brushinfo->color, BrushArray[brushinfo->type]);
 		StrokeArray.Add(FStroke(meshes[currentBrushType]));
 	}
+	/* if using same brush with previous stroke, update the mesh */
 	else
-	{
+	{ 
+		/*for next stroke starting point*/
 		meshes[currentBrushType]->Update(position, rotation, direction, brushinfo->size, brushinfo->color, startPosition);
 	}
 }
@@ -283,6 +294,8 @@ void ADrawingHandler::BeginPlay()
 	//Save and load
 	InputComponent->BindKey(EKeys::S, IE_Pressed, this, &ADrawingHandler::ActorSaveDataSaved);
 	InputComponent->BindKey(EKeys::L, IE_Pressed, this, &ADrawingHandler::ActorSaveDataLoaded);
+	InputComponent->BindAction("SavePointCloud", IE_Pressed, this, &ADrawingHandler::SavePointCloud);
+
 	//Replay
 	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ReplayPainting);
 
@@ -295,6 +308,8 @@ void ADrawingHandler::BeginPlay()
 	InputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ADrawingHandler::Mesh2);
 	InputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ADrawingHandler::Mesh3);
 	InputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ADrawingHandler::Mesh4);
+	
+	
 }
 
 // Called every frame
@@ -385,7 +400,7 @@ void ADrawingHandler::ActorSaveDataSaved()
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Save Failed!"));
+		UE_LOG(LogTemp, Warning, TEXT("Save Failed! %s"), FPlatformProcess::BaseDir());
 	}
 
 	BinaryData.FlushCache();
@@ -410,7 +425,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_burano_water_road_left_right_boat_details_ocean_boat2_pabil_light.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_room_floor_walls_details_bed_end_table_chair2_pots_fin.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;
@@ -532,4 +547,162 @@ void ADrawingHandler::Mesh4()
 {
 	brushinfo->type = 3;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+}
+
+
+void ADrawingHandler::ShowVertices()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Showing Vertices"));
+	for (int i = 0; i < currentBrushType; i++) {
+		meshes[i]->vertices;
+	}
+}
+
+/* Korean Rice Power */
+/* save the points of the meshs - XYZ values, RGB values */
+void ADrawingHandler::SavePointCloud() {
+	
+	/* save the points XYZ values from the meshs */
+	FString PointData = FString();
+	int NumOfvertice = 0;
+	for (auto stroke : StrokeArray) {
+		int i = stroke.mesh->vertices.Num();
+		/* If there is color for each vertex */
+		if (i == stroke.mesh->vertexColors.Num())
+		{
+			for (i = i-1; i > 0; i--) {
+				// add point one				
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0) + "\n"); //color
+				NumOfvertice++;
+
+				// add the middle point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.5) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0.5) + "\n"); //color
+				NumOfvertice++;
+
+				// add the 1:3 internal division point of two sequential points 
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.25) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0.25) + "\n"); //color
+				NumOfvertice++;
+				
+				// add the 3:1 internal division point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.75) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0.75) + "\n"); //color
+				NumOfvertice++;
+			}
+		}
+		else /* If Not, just add position info */
+		{
+			for (i = i - 1; i >= 0; i--) {
+				NumOfvertice++;
+				// add point one				
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0) + " "); // position
+				NumOfvertice++;
+
+				// add the middle point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.5) + " "); // position
+				NumOfvertice++;
+
+				// add the 1:3 internal division point of two sequential points 
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.25) + " "); // position
+				NumOfvertice++;
+
+				// add the 3:1 internal division point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.75) + " "); // position
+				NumOfvertice++;
+			}
+		}
+		
+	}
+	UE_LOG(LogTemp, Warning, TEXT("There are %i vertice in the scene"), NumOfvertice);
+	
+	/**	set the name and format of the file,
+	*	the format should be .txt to read color values in Meshlab */
+	FString PointFileName = FString(TEXT("PointCloud_"));
+	PointFileName.Append(FDateTime::Now().ToString());
+	PointFileName.AppendChars(TEXT(".txt"), 4);
+	
+	/* save the point cloud files */
+	if (FFileHelper::SaveStringToFile(PointData , *PointFileName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("File save Success. - %s - %s"), FPlatformProcess::BaseDir(), *PointFileName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("File save Failed. - PointCloud"));
+	}
+}
+
+/* Compute internal Divition Point position XYZ :: check : 0 <= ratio <= 1
+ * Result String: "X Y Z" 
+ * Used In SavePointCloud() */
+FString ADrawingHandler::ComputeInternalDivisionPoint(FVector p1, FVector p2, float ratio) {
+	FString Result = FString();
+	FVector tempVector = p1 * (1 - ratio) + p2 * ratio;
+	
+	Result.Append(FString::SanitizeFloat(tempVector.X) + " ");
+	Result.Append(FString::SanitizeFloat(tempVector.Y) + " ");
+	Result.Append(FString::SanitizeFloat(tempVector.Z));
+	return Result;
+}
+
+/* Compute internal Divition Point Color RGB :: check : 0 <= ratio <= 1
+ * Result String: "R G B"
+ * Used In SavePointCloud() */
+FString ADrawingHandler::ComputeInternalDivisionPointColor(FLinearColor c1, FLinearColor c2, float ratio) {
+	FString Result = FString();
+	FLinearColor tempColor = c1 * (1 - ratio) + c2 * ratio;
+
+	Result.Append(FString::SanitizeFloat(tempColor.R) + " ");
+	Result.Append(FString::SanitizeFloat(tempColor.G) + " ");
+	Result.Append(FString::SanitizeFloat(tempColor.B));
+	return Result;
+}
+
+/* Paint with Motion Controller */
+void ADrawingHandler::Paint(FVector position, FRotator rotation, bool bBrushUp) {
+	
+	/* When Brush Down = When stroke is start or being drawn. */
+	if (!bBrushUp)
+	{	
+		DrawingDirection = FVector(position - prvPositon);
+		
+		/* the first time of Brush Down */
+		if (bStrokeStart) {
+			bStrokeStart = false;
+			UE_LOG(LogTemp, Warning, TEXT("Painting Start : %f %f %f"), position.X, position.Y, position.Z);
+			generateStroke(position, rotation, DrawingDirection, position);
+			//store start position to get distance
+			startPosition = position;
+		}
+		/* Brush keeps down */
+		else
+		{	
+			UE_LOG(LogTemp, Warning, TEXT("Painting Keeps"));
+			if (dt - prvDt > 0.01 && StrokeArray.Num() > 0)
+			{	
+				PositionArray.Add(position);
+				RotationArray.Add(rotation);
+
+				if (FVector::Dist(position, prvPositon) > 0.1)
+					extendStroke(position, rotation, DrawingDirection, startPosition);
+
+				prvDt = dt;
+			}
+		}
+		prvPositon = position; 
+	}
+	/* When Brush up = When stroke ends */
+	else { 
+		bStrokeStart = true;
+		
+		if (!meshes[currentBrushType]->bMerged)
+		{
+			meshes[currentBrushType]->StoreDegeneratedSection();
+			UE_LOG(LogTemp, Warning, TEXT("Current # of vertice : %i"),meshes[currentBrushType]->TotalNormal.Num());
+			meshes[currentBrushType]->MergeSections();
+			meshes[currentBrushType]->bMerged = false;
+		}
+	} 
 }

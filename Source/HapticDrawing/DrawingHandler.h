@@ -54,6 +54,7 @@ struct FStroke
 	AProceduralPlaneMesh* mesh;
 };
 
+
 UENUM()
 enum BRUSHTYPE
 {
@@ -131,7 +132,7 @@ public:
 		void generateStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition);
 	UFUNCTION()
 		void extendStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition);
-
+	   	 
 	UFUNCTION()
 	void ChangeBrushMode(int tex);
 
@@ -141,6 +142,15 @@ public:
 		void BrushsizeDown(float val);
 	UFUNCTION()
 		void UndoStroke();
+
+	// Motion Controller Integrating to Drawing
+	UFUNCTION()
+		void Paint(FVector position, FRotator rotation, bool bBrushUp);
+	bool bBrushUp; // If trigger is off(true) or not(false)
+	bool bStrokeStart;
+
+
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -197,4 +207,13 @@ public:
 	void Mesh2();
 	void Mesh3();
 	void Mesh4();
+
+	// Variable for Postprocessing
+	void ShowVertices();
+
+	// For Surface Reconstruction
+	void SavePointCloud();
+	FString ComputeInternalDivisionPoint(FVector p1, FVector p2, float ratio);
+	FString ComputeInternalDivisionPointColor(FLinearColor c1, FLinearColor c2, float ratio);
+	
 };

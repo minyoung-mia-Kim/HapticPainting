@@ -13,7 +13,8 @@ AColorPicker::AColorPicker()
 	//Plane->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 	ColorPickerCanvus->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.01f));
 	ColorPickerCanvus->ShapeColor = FColor::Black;
-	ColorPickerCanvus->bVisible = true;
+	//ColorPickerCanvus->bVisible = true;
+	ColorPickerCanvus->SetVisibility(true);
 	SetRootComponent(ColorPickerCanvus);
 	
 	Hue = FLinearColor(1.0f, 0.0f, 0.0f);

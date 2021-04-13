@@ -13,18 +13,19 @@ public class HapticDrawing : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "Haptico" });
-        PrivateDependencyModuleNames.AddRange(new string[] { "Haptico" });
-        PrivateIncludePathModuleNames.AddRange(new string[] { "Haptico" });
-        PublicIncludePathModuleNames.AddRange(new string[] { "Haptico" });
-
         /* VR Required Modules */
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SteamVR", "SteamVRController", "HeadMountedDisplay" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "SteamVR", "HeadMountedDisplay" });
         PrivateDependencyModuleNames.AddRange(new string[] { "HeadMountedDisplay", "SteamVR" });
+
+        /* Prpcedural Mesh and Static Mesh */
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "RawMesh" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "ProceduralMeshComponent" });
+        
+        PrivateDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject" });
 
         // Convert procedural mesh component to static mesh component
         ////
-        PublicDependencyModuleNames.AddRange(new string[] { "RawMesh", "AssetTools"});
+        PublicDependencyModuleNames.AddRange(new string[] { "AssetTools"});
         ////
 
         // Uncomment if you are using Slate UI

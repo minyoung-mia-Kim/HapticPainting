@@ -1,23 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "ProceduralPlaneMesh.h"
-#include "DrawDebugHelpers.h"
 #include "Engine/Engine.h"
+#include "DrawDebugHelpers.h"
 
 // to convert procedural mesh component to static mesh component
-#include "Developer/RawMesh/Public/RawMesh.h"
+#include "RawMesh.h"
 #include "AssetRegistryModule.h"
 #include "Classes/Engine/StaticMesh.h"
-
 
 // Sets default values
 AProceduralPlaneMesh::AProceduralPlaneMesh()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	
 	//SetActorEnableCollision(true);
 	pm = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("ProceduralMesh"));
 	pm->AttachToComponent(GetRootComponent(), FAttachmentTransformRules::KeepWorldTransform);
+	
 	//pm->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	pm->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
 	pm->SetEnableGravity(false);
@@ -111,6 +112,7 @@ void AProceduralPlaneMesh::GenerateTriangles()
 		}
 	}
 }
+
 //Assemble the front or back side trangles
 void AProceduralPlaneMesh::GenerateOppositeTriangles()
 {
@@ -129,11 +131,13 @@ void AProceduralPlaneMesh::GenerateOppositeTriangles()
 	}
 }
 
+
 // store degenerated section index and number of sections in each stroke
 void AProceduralPlaneMesh::StoreDegeneratedSection()
 {
 	if (degenSectionIndex.Num() == 0)
-	{
+	{	
+		UE_LOG(LogTemp, Warning, TEXT("Called %d"), nGeneratedSection);
 		degenSectionIndex.Add(nGeneratedSection + 1);
 	}
 	else
@@ -153,9 +157,9 @@ void AProceduralPlaneMesh::DegenerateSection(FVector position, FRotator rotation
 	startPos = startPosition;
 
 	float uvSpacing = 1.0f / FMath::Max(nGeneratedSection, width);
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
 
-	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));  // Question!
+	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2))); // Question!
 
 	/* Normal and Tangent */
 	//Normal 1 : Mesh front - Forward
@@ -176,11 +180,12 @@ void AProceduralPlaneMesh::DegenerateSection(FVector position, FRotator rotation
 	if (surfaceTangent == FVector().ZeroVector)
 		UE_LOG(LogTemp, Warning, TEXT("vector length is too small to safely normalize"));
 
+	// add normal, color, and tangent value for 4 vertices of the section
 	for (int32 y = 0; y < height; y++)
 	{
 		for (int32 x = 0; x < width; x++)
 		{
-			normals.Add(Normal); // 4
+			normals.Add(Normal);
 			vertexColors.Add(color);
 			tangents.Add(FProcMeshTangent(surfaceTangent, true));
 		}
@@ -193,11 +198,13 @@ void AProceduralPlaneMesh::DegenerateSection(FVector position, FRotator rotation
 	TotalColors.Add(color);
 	
 	int temp = nGeneratedSection + 1;
+	
 	/* Add a mesh section */
 	pm->CreateMeshSection_LinearColor(temp, vertices, triangles, normals, uvs, vertexColors, tangents, true);
+	
 	//nGeneratedSection = 2;
 
-	pm->SetCollisionConvexMeshes({ vertices });
+	pm->SetCollisionConvexMeshes({ vertices }); // Question
 
 	/* Store mesh's location */
 	centerPos.Add(FVector((prvPos + position) / 2));
@@ -210,9 +217,10 @@ void AProceduralPlaneMesh::DegenerateSection(FVector position, FRotator rotation
 	/* Clean mesh data for next mesh section*/
 	ClearMeshData();
 
-	/* For the next mesh section */
+	/* bottom vertice data for the next mesh section */
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
+	
 	/*Save mesh section data*/
 	TotalVertice.Append(vertices);
 }
@@ -227,13 +235,11 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 	//FVector dis = GetTransform().TransformVector(position);
 
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
-	//vertexColors.Add(FLinearColor(0.0f, 0.0f, 1.0f, 1.0f)); //blue
-
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
-	//vertexColors.Add(FLinearColor(1.0f, 1.0f, 1.0f, 1.0f)); //white
 
 
 	/* Normal and Tangent */
+	// vertice[0] & vertice[1] = previous position, vertices[2] & vertices[3] = current position
 	//Normal 1 : Mesh front - Forward
 	FVector Normal = FVector::CrossProduct(FVector(vertices[1] - vertices[3]), FVector(vertices[2] - vertices[3])); //31, 32
 	Normal.Normalize();
@@ -380,7 +386,6 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 
 	/* For the next mesh section */
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, spacing / 2)));
-
 	vertices.Add(FVector(position.X, position.Y, position.Z) + rotation.RotateVector(FVector(0.0f, 0.0f, -spacing / 2)));
 
 	/*Save mesh section data*/
@@ -390,8 +395,10 @@ void AProceduralPlaneMesh::Update(FVector position, FRotator rotation, FVector d
 void AProceduralPlaneMesh::MergeSections()
 {
 	if (bMerged || TotalNormal.Num() == 0)
+	{
 		return;
-
+	}
+		
 	int sectionNum = 0;
 	ClearMeshData();
 	pm->ClearAllMeshSections();
@@ -401,7 +408,8 @@ void AProceduralPlaneMesh::MergeSections()
 		bSetExpandNum = true;
 		expandNumArr.Add(0);
 	}
-
+	
+	UE_LOG(LogTemp, Warning, TEXT("Brush UP"));
 	// when expand section num is not stored
 	if (degenSectionNum.Num() != 0 && degenSectionNum.Num() != expandNumArr.Num())
 	{
@@ -417,11 +425,17 @@ void AProceduralPlaneMesh::MergeSections()
 
 		degenSectionIndex.RemoveAt(degenSectionIndex.Num() - 1);
 		degenSectionNum.RemoveAt(degenSectionNum.Num() - 1);
-		TotalNormal.RemoveAt(TotalNormal.Num() - 1);
-		TotalNormal.RemoveAt(TotalNormal.Num() - 1);
 
-		vertices.Add(TotalVertice[TotalVertice.Num() - 2]);
-		vertices.Add(TotalVertice.Last());
+		if (TotalNormal.Num() >= 2) {
+			TotalNormal.RemoveAt(TotalNormal.Num() - 1);
+			TotalNormal.RemoveAt(TotalNormal.Num() - 1);
+		}
+		
+		if (TotalVertice.Num() >= 2) {
+			vertices.Add(TotalVertice[TotalVertice.Num() - 2]);
+			vertices.Add(TotalVertice.Last());
+		}
+		
 
 		MergeSections();
 		return;

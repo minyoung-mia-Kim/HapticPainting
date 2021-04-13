@@ -3,7 +3,10 @@
 #include "PainterPawn.h"
 #include "Components/ShapeComponent.h"
 #include "Components/InputComponent.h"
+#include "Components/SphereComponent.h"
 #include "Components/WidgetComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "ConstructorHelpers.h"
 #include "Engine/Engine.h"
 
 
@@ -23,19 +26,38 @@ APainterPawn::APainterPawn()
 
 	VRcamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PawnCamera"));
 
+	/*Left Motion Controller*/
 	MC_Left = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Left"));
-	MC_Left->Hand = EControllerHand::Left;
+	MC_Left->SetTrackingSource(EControllerHand::Left);
 	MC_Left->SetupAttachment(RComponent);
 
 	RMComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RMComponent"));
 	RMComponent->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
 
+	/* Right Motion Controller*/
+	MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
+	MC_Right->SetTrackingSource(EControllerHand::Right);
+	MC_Right->SetupAttachment(RComponent); // attach to root component
+	
+	cursor = CreateDefaultSubobject<USphereComponent>(TEXT("Cursor"));
+	cursor->SetupAttachment(MC_Right);
+	cursor->SetNotifyRigidBodyCollision(true);
+	cursor->SetWorldScale3D(FVector(0.05f, 0.1f, 0.1f));
+	cursor->bHiddenInGame = false;
+	
 
-	//MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
-	//MC_Right->Hand = EControllerHand::Right;
-	//MC_Right->SetupAttachment(RootComponent);
+	/* Mesh of Right Motion Controller */
+	SM_Right = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("SM_Right"));
+	SM_Right->SetupAttachment(MC_Right);
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh>  VRInkMeshAsset(TEXT("/LogitechVRInk/"));
+	//SM_Right->SetStaticMesh();
 
+	/* Input state variable */
+	bTriggerReleased = true;
 
+	/* temporary */
+	x_length = 0;
+	z_length = 0;
 }
 
 // Called when the game starts or when spawned
@@ -46,6 +68,7 @@ void APainterPawn::BeginPlay()
 	//Cpicker = Cast<AColorPicker>(MC_Left->GetChildComponent(0));
 	Cpicker->FSelelctedBrushUpdateDelegate.AddDynamic(this, &APainterPawn::Color);
 	Cpicker->FTextureDelegate.AddDynamic(this, &APainterPawn::Texture);
+
 }
 
 // Called every frame
@@ -53,6 +76,17 @@ void APainterPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	//AddMovementInput(GetActorForwardVector() * MovementVector.Y + GetActorRightVector() * MovementVector.X, 1);
+	if (!bTriggerReleased)
+	{
+		x_length += 0.08;
+		FMCInfoDelegate.Broadcast(MC_Right->GetComponentLocation(), MC_Right->GetComponentRotation(), bTriggerReleased);
+	}
+	/* Broadcast one time when trigger released */
+	else if (bTriggerReleasedFirst)
+	{	
+		FMCInfoDelegate.Broadcast(MC_Right->GetComponentLocation(), MC_Right->GetComponentRotation(), bTriggerReleased);
+		bTriggerReleasedFirst = false;
+	}
 }
 
 // Called to bind functionality to input
@@ -67,6 +101,11 @@ void APainterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Released, this, &APainterPawn::MotionControlRightTriggerReleased);
 
 	InputComponent->BindAction("VDP", IE_Pressed, this, &APainterPawn::ActivateVDP);
+	
+	/* Right Motion Controller bindings, Painting */
+	//InputComponent->BindAction("Paint", IE_Repeat, this, &APainterPawn::TriggerPressed);
+	InputComponent->BindAction("Paint", IE_Pressed, this, &APainterPawn::TriggerPressed);
+	InputComponent->BindAction("Paint", IE_Released, this, &APainterPawn::TriggerReleased);
 
 }
 
@@ -126,7 +165,6 @@ float APainterPawn::TurnRight()
 void APainterPawn::MoveRight(float Val)
 {
 
-
 	if (Val != 0.f)
 	{
 		if (Controller)
@@ -139,6 +177,7 @@ void APainterPawn::MoveRight(float Val)
 	}
 
 }
+
 
 void APainterPawn::Color(FLinearColor sColor, float sSize)
 {
@@ -155,6 +194,9 @@ void APainterPawn::ActivateVDP()
 	FActivateVDPDelegate.Broadcast();
 
 }
+
+
+
 
 void APainterPawn::MoveForward(float Val)
 {
@@ -207,3 +249,18 @@ void APainterPawn::GetHapticCursor(FVector Pos)
 //	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds() * CustomTimeDilation);
 //}
 
+void APainterPawn::TriggerPressed() {
+	bTriggerReleased = false;
+	z_length += 10;
+}
+
+// Called when Trigger released.
+void APainterPawn::TriggerReleased()
+{
+	bTriggerReleased = true;
+	x_length = 0;
+	if (!bTriggerReleasedFirst)
+	{
+		bTriggerReleasedFirst = true;
+	}
+}

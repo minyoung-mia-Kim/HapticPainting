@@ -7,6 +7,7 @@
 #include "Engine/World.h"
 #include "HeadMountedDisplay.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SphereComponent.h"
 #include "MotionControllerComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/RotatingMovementComponent.h"
@@ -15,8 +16,10 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPawnInfoDelegate, FRotator, pawnRotator);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSBrushTextureDelegate, int, nTex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSBrushUpdateDelegate, FLinearColor, sColor, float, sSize);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FRightMCUpdataDelegate, FVector, position, FRotator, rotation, bool,TriggerReleased);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FVRInputDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FActivateHapticDelegate);
+
 
 
 class UMotionControllerComponent;
@@ -35,14 +38,19 @@ public:
 	/* VR */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UMotionControllerComponent* MC_Left;
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
-		UMotionControllerComponent* MC_Right;*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
+		UMotionControllerComponent* MC_Right;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
+		USphereComponent* cursor = nullptr;
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
+		UStaticMeshComponent* SM_Right;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UCameraComponent* VRcamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		USpringArmComponent* SPArm;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		URotatingMovementComponent* RMComponent;
+
 
 	/* VR Controller */
 	UFUNCTION(BlueprintCallable)
@@ -66,6 +74,20 @@ public:
 	UPROPERTY(BlueprintCallable)
 		FActivateHapticDelegate FActivateVDPDelegate;
 
+	/* alert the information of right - motion controller to others*/
+	UPROPERTY(BlueprintCallable)
+		FRightMCUpdataDelegate FMCInfoDelegate;
+	UFUNCTION()
+		void TriggerReleased();
+	UFUNCTION()
+		void TriggerPressed();
+	bool bTriggerReleased;
+	bool bTriggerReleasedFirst;
+
+	/* Temporary Variables for Testing without HMD */
+	int32 x_length ;
+	int32 z_length ;
+
 	/* Color picker */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ColorPicker")
 		AColorPicker* Cpicker;
@@ -76,9 +98,6 @@ public:
 	UFUNCTION()
 		void ActivateVDP();
 
-
-	//UFUNCTION()
-		//FString getHMDType();
 
 	UFUNCTION(BlueprintCallable, Category = "Pawn")
 		virtual void MoveForward(float Val);
@@ -96,11 +115,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Rotation")
 		float RotationAngle;
-	//UFUNCTION(BlueprintCallable, Category = "Pawn")
-	//	void TurnAtRate(float Rate);
-
-	//UFUNCTION(BlueprintCallable, Category = "Pawn")
-	//	void LookUpAtRate(float Rate);
+	
 
 protected:
 	// Called when the game starts or when spawned

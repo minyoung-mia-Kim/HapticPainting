@@ -22,6 +22,7 @@ class HAPTICDRAWING_API AProceduralPlaneMesh : public AActor, public ISaveableAc
 
 	UPROPERTY(VisibleAnywhere, Category = "MyProceduralMesh")
 	UProceduralMeshComponent* pm = nullptr;
+	
 	UPROPERTY(EditAnywhere, Category = "MyProceduralMesh")
 	UMaterialInterface* Material;
 	
@@ -46,9 +47,11 @@ public:
 		int32 height;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
 		int32 width;
+	
 	int prvHeight;
 	int prvWidth;
 	int nGeneratedSection;
+	
 	// The distace btw vertices
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "MyProceduralMesh")
 		float spacing;

@@ -6,9 +6,7 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
-#include "HapticHandler.h"
 #include "DrawingHandler.h"
-#include "ForceHandler.h"
 #include "GameFramework/DefaultPawn.h"
 #include "HapticDrawingGameModeBase.h"
 #include "MainController.generated.h"
@@ -22,31 +20,15 @@ class HAPTICDRAWING_API AMainController : public AActor
 public:
 	// Sets default values for this actor's properties
 	AMainController();
-	//Response Delegate
-	UFUNCTION()
-		void BindToFbuttonInput(FVector posDevice, bool hasClicked);
-
-	UFUNCTION()
-		void BindToSbuttonInput(FVector posDevice, bool hasClicked);
-
-	UFUNCTION()
-		void BindToBrushUpdate(float brushSize, FLinearColor brushColor, float viscosity, FString tex);
-
-	/* Color Picker Input */
-	UFUNCTION()
-		void BindToBrushInput(FLinearColor selectedColor, float selectedSize);
 
 protected:
 	UPROPERTY()
-		class AHapticsHandler* HHandler;
-	UPROPERTY()
 		class ADrawingHandler* DHandler;
-	UPROPERTY()
-		class AForceHandler* FHandler;
 	UPROPERTY()
 		class APainterPawn* PainterInstance;
 
 	FVector CurrentLocation;
+	
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -54,14 +36,6 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	/* Adjust Haptic Handler position */
-	FRotator DefaultPosition = FRotator(0.0f, 180.f, 0.0f);
-	FRotator DefaultDirection = FRotator(0.0f, 180.0f, 0.0f);
-	FRotator TotalAngle = FRotator::ZeroRotator;
-
-	UFUNCTION()
-		void SetHapticTurn(FRotator rotator);
 
 };
 

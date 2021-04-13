@@ -18,6 +18,8 @@ class HAPTICDRAWING_API USaveableActorInterface : public UInterface
 };
 
 class HAPTICDRAWING_API ISaveableActorInterface
+
+
 {
 	GENERATED_BODY()
 public:
@@ -44,7 +46,8 @@ struct FMeshSectionData
 	{
 		Ar << Data.vertices;
 		Ar << Data.normals;
-		Data.color.Serialize(Ar);
+		Ar << Data.color;
+		//Data.color.Serialize(Ar);
 		Ar << Data.centerPosition;
 		Ar << Data.centerNormal;
 		Ar << Data.Material;
