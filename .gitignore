@@ -50,10 +50,10 @@ SourceArt/**/*.png
 SourceArt/**/*.tga
 
 # Binary Files
-Binaries/*
 !Binaries/*/*.dll
-Plugins/*/Binaries/*
+Binaries/*
 !Plugins/*/Binaries/*/*.dll
+Plugins/*/Binaries/*
 
 
 # Builds
