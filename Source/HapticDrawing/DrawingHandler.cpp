@@ -77,7 +77,7 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 				//UE_LOG(LogTemp, Warning, TEXT("Direction X:%f, Y:%f, Z:%f"), DrawingDirection.X, DrawingDirection.Y, DrawingDirection.Z);
 
 
-				if (FVector::Dist(position, prvPositon) > 0.1)
+				if (FVector::Dist(position, prvPositon) > 0.2)
 					extendStroke(position, rotation, DrawingDirection, startPosition);
 
 				prvDt = dt;
