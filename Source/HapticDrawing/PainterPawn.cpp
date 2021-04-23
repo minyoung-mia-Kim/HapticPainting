@@ -29,11 +29,10 @@ APainterPawn::APainterPawn()
 
 	RMComponent = CreateDefaultSubobject<URotatingMovementComponent>(TEXT("RMComponent"));
 	RMComponent->RotationRate = FRotator(0.0f, 0.0f, 0.0f);
-
-
-	//MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
-	//MC_Right->Hand = EControllerHand::Right;
-	//MC_Right->SetupAttachment(RootComponent);
+	
+	MC_Right = CreateDefaultSubobject<UMotionControllerComponent>(TEXT("MC_Right"));
+	MC_Right->Hand = EControllerHand::Right;
+	MC_Right->SetupAttachment(RootComponent);
 
 
 }
@@ -61,12 +60,14 @@ void APainterPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	
 	//Motion controller bindings
+	/* Left MC*/
 	InputComponent->BindAxis("MoveForward", this, &APainterPawn::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &APainterPawn::MoveRight);
-	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Pressed, this, &APainterPawn::MotionControlRightTriggerPressed);
-	//InputComponent->BindAction("RightTrigger", EInputEvent::IE_Released, this, &APainterPawn::MotionControlRightTriggerReleased);
-
 	InputComponent->BindAction("VDP", IE_Pressed, this, &APainterPawn::ActivateVDP);
+
+	/* Right MC*/
+	// Draw_RightTrigger in Blueprint
+
 
 }
 

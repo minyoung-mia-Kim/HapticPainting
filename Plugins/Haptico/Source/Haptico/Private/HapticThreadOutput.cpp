@@ -15,6 +15,7 @@ UHapticThreadOutput::UHapticThreadOutput()
 	hapticCursorLinearVelocity = FVector(0, 0, 0);
 	hapticCursorAngularVelocity = FVector(0, 0, 0);
 	hapticCursorRotation = FMatrix(FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0), FVector(0, 0, 0));
+	IsDeviceConnected = false;
 }
 
 /**
@@ -71,4 +72,15 @@ void UHapticThreadOutput::setHapticCursorAngularVelocity(FVector angularVelocity
 */
 void UHapticThreadOutput::setHapticCursorLinearVelocity(FVector linearVelocity) {
 	hapticCursorLinearVelocity = linearVelocity;
+}
+
+/**
+* sets and gets the current connection status 
+*/
+bool UHapticThreadOutput::getDeviceConnectStatus() {
+	return IsDeviceConnected;
+}
+
+void UHapticThreadOutput::setDeviceConnectStatus(bool ConnectStatus) {
+	IsDeviceConnected = ConnectStatus;
 }

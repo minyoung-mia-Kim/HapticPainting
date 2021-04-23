@@ -126,6 +126,11 @@ public:
 	UFUNCTION()
 		void FbuttonOff();
 	UFUNCTION()
+		void receivedTriggerOn(FVector position, FRotator rotation, bool hasClicked);
+	UFUNCTION()
+		void receivedTriggerOff();
+
+	UFUNCTION()
 		void receivedSbutton(FVector position, FRotator rotation, bool hasClicked);
 	UFUNCTION()
 		void generateStroke(FVector position, FRotator rotation, FVector direction, FVector startPosition);

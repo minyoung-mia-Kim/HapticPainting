@@ -13,6 +13,7 @@ private:
 	FMatrix hapticCursorRotation;
 	FVector hapticCursorLinearVelocity;
 	FVector hapticCursorAngularVelocity;
+	bool IsDeviceConnected;
 
 public:
 	static UHapticThreadOutput& getInst() {
@@ -29,6 +30,8 @@ public:
 	FMatrix getHapticCursorRotation();
 	void setHapticCursorAngularVelocity(FVector angularVelocity);
 	void setHapticCursorLinearVelocity(FVector linearVelocity);
+	bool getDeviceConnectStatus();
+	void setDeviceConnectStatus(bool ConnectStatus);
 };
 
 

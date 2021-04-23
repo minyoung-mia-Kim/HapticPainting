@@ -6,9 +6,12 @@
 #include "Components/SphereComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
+
 #include "HapticHandler.h"
-#include "DrawingHandler.h"
 #include "ForceHandler.h"
+#include "DrawingHandler.h"
+#include "Configs.h"
+
 #include "GameFramework/DefaultPawn.h"
 #include "HapticDrawingGameModeBase.h"
 #include "MainController.generated.h"
@@ -55,6 +58,9 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	/* Haptic Value */
+	bool bHapticConnected = false;
+
 	/* Adjust Haptic Handler position */
 	FRotator DefaultPosition = FRotator(0.0f, 180.f, 0.0f);
 	FRotator DefaultDirection = FRotator(0.0f, 180.0f, 0.0f);
@@ -64,4 +70,15 @@ public:
 		void SetHapticTurn(FRotator rotator);
 
 };
-
+//
+//UCLASS(BlueprintType)
+//class HAPTICDRAWING_API HSubController : public AMainController
+//{
+//
+//};
+//
+//UCLASS(BlueprintType)
+//class HAPTICDRAWING_API CSubController : public AMainController
+//{
+//
+//};

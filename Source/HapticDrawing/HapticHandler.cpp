@@ -5,10 +5,15 @@
 #include "HapticHandler.h"
 #include "IHaptico.h"
 #include "AsyncWork.h"
+
+/* Haptic */
 #include "HapticThread.h"
 #include "HapticThreadInput.h"
 #include "HapticThreadOutput.h"
+
+/* Main system */
 #include "MainController.h"
+
 #include "Engine/Engine.h"
 #include "DrawDebugHelpers.h"
 #include "ConstructorHelpers.h"
@@ -21,7 +26,6 @@
 AHapticsHandler::AHapticsHandler()
 {
 	PrimaryActorTick.bCanEverTick = true;
-	noHapticDevice = false;
 
 	// set up a notification for when this component overlaps something
 	//cursor->BodyInstance.SetCollisionProfileName("BlockAll");
@@ -73,6 +77,14 @@ AHapticsHandler::AHapticsHandler()
 	/* Collision block check with vdp*/
 	//DrawingPlane->OnComponentBeginOverlap.AddDynamic(this, &AHapticsHandler::OnBeginOverlap);
 
+
+	/* Init Haptic status */
+	bDeviceConnected = false;
+	hasFBClicked = false;
+	hasSBClicked = false;
+	bIsSpringOn = false;
+	bIsOnVDP = false;
+
 }
 
 /**
@@ -81,16 +93,15 @@ AHapticsHandler::AHapticsHandler()
 void AHapticsHandler::BeginPlay()
 {
 	Super::BeginPlay();
+	/* Start Haptic thread*/
 	UHapticThreadInput::getInst().setRunThread(true);
 	(new FAutoDeleteAsyncTask<FHapticThread>(IHaptico::Get(), this))->StartBackgroundTask();
-	//if (!IHaptico::connect)
-	//	noHapticDevice = true;
+	if (UHapticThreadOutput::getInst().getDeviceConnectStatus())
+		bDeviceConnected = true;
+	else
+		bDeviceConnected = false;
 	UE_LOG(LogTemp, Warning, TEXT("BeginPlay : I'm handler"));
-	/* Haptic status */
-	hasFBClicked = false;
-	hasSBClicked = false;
-	bIsSpringOn = false;
-	bIsOnVDP = false;
+
 }
 
 /**

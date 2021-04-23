@@ -93,8 +93,56 @@ void ADrawingHandler::receivedFbutton(FVector position, FRotator rotation, bool 
 
 void ADrawingHandler::FbuttonOff()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Off"));
+
 	bFbuttonOff = true;
 	
+	// when F button is off merge section into one mesh component
+	if (!meshes[currentBrushType]->bMerged)
+	{
+		meshes[currentBrushType]->StoreDegeneratedSection();
+		meshes[currentBrushType]->MergeSections();
+		meshes[currentBrushType]->bMerged = false;
+	}
+}
+
+void ADrawingHandler::receivedTriggerOn(FVector position, FRotator rotation, bool hasClicked)
+{
+	DrawingDirection = FVector(position - prvPositon);
+	//UE_LOG(LogTemp, Warning, TEXT("%s"), hasClicked ? TEXT("T") : TEXT("F"));
+
+	if (bFbuttonOff)
+	{
+		generateStroke(position, rotation, DrawingDirection, position);
+		bFbuttonOff = false;
+		// store start position to get distance
+		startPosition = position;
+	}
+	else
+	{
+		/* Extend */
+		if (dt - prvDt > 0.01 && StrokeArray.Num() > 0)
+		{
+			PositionArray.Add(position);
+			RotationArray.Add(rotation);
+
+
+			if (FVector::Dist(position, prvPositon) > 0.3) //Default value = 0.2
+				extendStroke(position, rotation, DrawingDirection, startPosition);
+
+			prvDt = dt;
+		}
+	}
+	prvPositon = position;
+
+}
+
+void ADrawingHandler::receivedTriggerOff()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Off"));
+
+	bFbuttonOff = true;
+
 	// when F button is off merge section into one mesh component
 	if (!meshes[currentBrushType]->bMerged)
 	{
