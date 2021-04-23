@@ -4,11 +4,13 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "ProceduralMeshComponent.h"
+#include "Haptico/Public/HapticsManager.h"
+
 #include "Components/SphereComponent.h"
 #include "Components/BoxComponent.h"
-#include "Haptico/Public/HapticsManager.h"
+
 #include "Components/StaticMeshComponent.h"
+#include "ProceduralMeshComponent.h"
 #include "HapticHandler.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_FourParams(FHapticCollisionDelegate, FVector, msPosition, FVector, msNormal, FVector, msTangent, FVector, cPosition);
@@ -23,13 +25,7 @@ UCLASS(BlueprintType)
 class HAPTICDRAWING_API AHapticsHandler : public AHapticsManager
 {
 	GENERATED_BODY()
-
-
-		/*
-		*	Mouse mode
-		*/
-		bool noHapticDevice;
-
+		
 public:
 	UPROPERTY(EditDefaultsOnly, Category = "rc")
 		USceneComponent* RComponent;
@@ -49,6 +45,7 @@ public:
 
 
 	/* Haptic status */
+	bool bDeviceConnected;
 	bool hasFBClicked;
 	bool hasSBClicked;
 	bool bIsSpringOn;

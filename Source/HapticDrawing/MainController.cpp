@@ -18,26 +18,35 @@ AMainController::AMainController()
 void AMainController::BeginPlay()
 {
 	Super::BeginPlay();
+	/* Instance */
 	PainterInstance = Cast<APainterPawn>(GetWorld()->GetFirstPlayerController()->GetPawn());
-	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
 	DHandler = GetWorld()->SpawnActor<ADrawingHandler>(ADrawingHandler::StaticClass());
+	HHandler = GetWorld()->SpawnActor<AHapticsHandler>(AHapticsHandler::StaticClass());
+	bHapticConnected = HHandler->bDeviceConnected;
+
 	FHandler = GetWorld()->SpawnActor<AForceHandler>(AForceHandler::StaticClass());
 
-
+	/* Delegate Painter(User) */
 	PainterInstance->FPawnUpdateDelegate.AddDynamic(this, &AMainController::SetHapticTurn);
 	PainterInstance->FSelectedBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushInput);
 	PainterInstance->FTexDelegate.AddDynamic(DHandler, &ADrawingHandler::ChangeBrushMode);
 	PainterInstance->FActivateVDPDelegate.AddDynamic(HHandler, &AHapticsHandler::ActivateVDP);
 
+	/* For drawing by Motion Controller */
+	PainterInstance->FRMCTriggerOnDelegate.AddDynamic(DHandler, &ADrawingHandler::receivedTriggerOn);
+	PainterInstance->FRMCTriggerOffDelegate.AddDynamic(DHandler, &ADrawingHandler::receivedTriggerOff);
+
+
+	/* For drawing by Haptic Device */
 	HHandler->FbuttonInputDelegate.AddDynamic(this, &AMainController::BindToFbuttonInput);
 	HHandler->SbuttonInputDelegate.AddDynamic(this, &AMainController::BindToSbuttonInput);
 	HHandler->AttachToActor(PainterInstance, FAttachmentTransformRules::KeepRelativeTransform);
+	HHandler->FHapticModeUpdateDelegate.AddDynamic(DHandler, &ADrawingHandler::FbuttonOff);
 	
 	//HHandler->DDirection = DefaultDirection;
-
 	DHandler->FBrushUpdateDelegate.AddDynamic(this, &AMainController::BindToBrushUpdate);
 
-	HHandler->FHapticModeUpdateDelegate.AddDynamic(DHandler, &ADrawingHandler::FbuttonOff);
+
 	//FHandler->HapticForceUpdate.AddDynamic(HHandler, &AHapticsHandler::SetHapticForce);
 	//HHandler->HapticCollisionData.AddDynamic(FHandler, &AForceHandler::getForceInfo);
 

@@ -23,7 +23,7 @@ AHapticsManager::AHapticsManager()
  */
 void AHapticsManager::BeginPlay()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Begin Manager"));
+	UE_LOG(LogTemp, Warning, TEXT("Begin Haptic Manager"));
 
 	Super::BeginPlay();
 	//UHapticThreadInput::getInst().setRunThread(true);
@@ -111,7 +111,7 @@ FVector AHapticsManager::getHapticDevicePositionInUnrealCoordinates() {
 */
 void AHapticsManager::broadCastNewHapticData(FVector position, FMatrix rotation, FVector linearVelocity, FVector angularVelocity) {
 	OnHapticTick.Broadcast(position, FVector::ZeroVector, rotation, linearVelocity, angularVelocity);
-	UE_LOG(LogTemp, Warning, TEXT("its Manager"));
+	UE_LOG(LogTemp, Warning, TEXT("its Haptic Manager"));
 
 }
 void AHapticsManager::button1Clicked()

@@ -15,8 +15,12 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FPawnInfoDelegate, FRotator, pawnRotator);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FSBrushTextureDelegate, int, nTex);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FSBrushUpdateDelegate, FLinearColor, sColor, float, sSize);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FRMCTriggerOnDelegate, FVector, position, FRotator, rotation, bool, hasTriggered);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FRMCTriggerOffDelegate);
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FVRInputDelegate);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FActivateHapticDelegate);
+
 
 
 class UMotionControllerComponent;
@@ -35,8 +39,8 @@ public:
 	/* VR */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UMotionControllerComponent* MC_Left;
-	/*UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
-		UMotionControllerComponent* MC_Right;*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
+		UMotionControllerComponent* MC_Right;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		UCameraComponent* VRcamera;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
@@ -44,7 +48,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "MyPawn")
 		URotatingMovementComponent* RMComponent;
 
-	/* VR Controller */
+	/* Left Controller */
 	UFUNCTION(BlueprintCallable)
 		float TurnLeft();
 
@@ -65,6 +69,13 @@ public:
 
 	UPROPERTY(BlueprintCallable)
 		FActivateHapticDelegate FActivateVDPDelegate;
+
+	/* Right Controller */
+	UPROPERTY(BlueprintCallable)
+		FRMCTriggerOnDelegate FRMCTriggerOnDelegate;
+
+	UPROPERTY(BlueprintCallable)
+		FRMCTriggerOffDelegate FRMCTriggerOffDelegate;
 
 	/* Color picker */
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "ColorPicker")

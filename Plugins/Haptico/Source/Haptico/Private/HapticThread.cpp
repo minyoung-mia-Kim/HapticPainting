@@ -17,7 +17,8 @@
 void FHapticThread::DoWork()
 {
 	HapticDeviceButtonHandler buttonHandler(&haptico);
-	haptico.connect();
+	bool status = haptico.connect();
+	UHapticThreadOutput::getInst().setDeviceConnectStatus(status);
 	hapticsManager->OnHapticTick.AddRaw(this, &FHapticThread::GetCollision);
 	hapticsManager->OneSecHapticTick.AddRaw(this, &FHapticThread::GetAnchor);
 	hapticsManager->OnTexHapticTick.AddRaw(this, &FHapticThread::GetViscosity);
