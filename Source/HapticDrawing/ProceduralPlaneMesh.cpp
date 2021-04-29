@@ -589,7 +589,6 @@ void AProceduralPlaneMesh::MergeSections()
 	//TotalNormal.RemoveAt(TotalNormal.Num() - 1);
 
 	pm->CreateMeshSection_LinearColor(0, TotalVertice, triangles, TotalNormal, uvs, TotalColors, tangents, true);
-
 	FString m = ArrMeshesections.Material;
 	Material = LoadObject<UMaterialInterface>(nullptr, *m);
 
@@ -785,13 +784,16 @@ FMeshSectionData AProceduralPlaneMesh::getAllMeshsections()
 
 	return ArrMeshesections;
 }
+TArray<int32> AProceduralPlaneMesh::GetProcIndexbuffer()
+{
+	return pm->GetProcMeshSection(0)->ProcIndexBuffer;
 
+}
 void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 {
 	/* One mesh section */
 	vertices = msData.vertices;
 	normals = msData.normals;
-
 	int sectionNum = 0;
 	FVector surfaceTangent;
 	for (int i = 0; i < msData.vertices.Num(); i += 2)
@@ -900,15 +902,17 @@ void AProceduralPlaneMesh::LoadMeshsections(FMeshSectionData msData)
 	centerNormals = msData.centerNormal;
 	ArrMeshesections.color = msData.color;
 	ArrMeshesections.Material = msData.Material;
-	/*
-		for (int i=0;i<centerPos.Num(); i++)
-		{
-			DrawDebugPoint(GetWorld(), centerPos[i], 5.5f, FColor::Black, true, 0, 0);
-			UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
 
-		}*/
+	//for (int i = 0; i < centerPos.Num(); i++)
+	//{
+	//	DrawDebugPoint(GetWorld(), centerPos[i], 5.5f, FColor::Black, true, 0, 0);
+	//	UE_LOG(LogTemp, Warning, TEXT("%s"), *centerPos[i].ToString());
+
+	//}
 	TotalColors = vertexColors;
+
 }
+
 
 void AProceduralPlaneMesh::StoreLoadDataDegenSection()
 {

@@ -108,6 +108,7 @@ public:
 	FVector MeshColor;
 	FMeshSectionData getAllMeshsections();
 
+	TArray<int32> GetProcIndexbuffer();
 	void LoadMeshsections(FMeshSectionData vertices);
 
 

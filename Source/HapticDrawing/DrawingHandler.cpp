@@ -331,6 +331,7 @@ void ADrawingHandler::BeginPlay()
 	//Save and load
 	InputComponent->BindKey(EKeys::S, IE_Pressed, this, &ADrawingHandler::ActorSaveDataSaved);
 	InputComponent->BindKey(EKeys::L, IE_Pressed, this, &ADrawingHandler::ActorSaveDataLoaded);
+	InputComponent->BindKey(EKeys::O, IE_Pressed, this, &ADrawingHandler::SaveToObj);
 	//Replay
 	InputComponent->BindKey(EKeys::R, IE_Pressed, this, &ADrawingHandler::ReplayPainting);
 
@@ -458,7 +459,7 @@ void ADrawingHandler::ActorSaveDataLoaded()
 	TArray<uint8> BinaryData;
 	UE_LOG(LogTemp, Warning, TEXT("Loading"));
 
-	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_burano_water_road_left_right_boat_details_ocean_boat2_pabil_light.sav")))
+	if (!FFileHelper::LoadFileToArray(BinaryData, *FString("p_room_floor_walls_details_bed_end_table_chair2_pots_fin.sav")))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Load Failed!"));
 		return;
@@ -508,6 +509,7 @@ void ADrawingHandler::Loaded(FSaveGameData SaveGameData)
 			TotalVerticeNum += ActorRecord.ProcMeshSections.vertices.Num();
 			ISaveableActorInterface::Execute_ActorSaveDataLoaded(NewActor);
 			StrokeArray.Add(FStroke(Cast<AProceduralPlaneMesh>(NewActor)));
+
 		}
 
 	}
@@ -580,4 +582,190 @@ void ADrawingHandler::Mesh4()
 {
 	brushinfo->type = 3;
 	FBrushUpdateDelegate.Broadcast(brushinfo->size, brushinfo->color, brushinfo->viscosity, BrushArray[brushinfo->type]);
+}
+/* save the points of the meshs - XYZ values, RGB values */
+void ADrawingHandler::SavePointCloud() {
+
+	/* save the points XYZ values from the meshs */
+	FString PointData = FString();
+	int NumOfvertice = 0;
+	for (auto stroke : StrokeArray) {
+		int i = stroke.mesh->vertices.Num();
+		/* If there is color for each vertex */
+		if (i == stroke.mesh->vertexColors.Num())
+		{
+			for (i = i - 1; i > 0; i--) {
+				// add point one				
+				PointData.Append("v " + ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0) + "\n"); //color
+				NumOfvertice++;
+
+				// add the middle point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.5) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0.5) + "\n"); //color
+				NumOfvertice++;
+
+				// add the 1:3 internal division point of two sequential points 
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.25) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0.25) + "\n"); //color
+				NumOfvertice++;
+
+				// add the 3:1 internal division point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.75) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0.75) + "\n"); //color
+				NumOfvertice++;
+			}
+		}
+		else /* If Not, just add position info */
+		{
+			for (i = i - 1; i >= 0; i--) {
+				NumOfvertice++;
+				// add point one				
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0) + " "); // position
+				NumOfvertice++;
+
+				// add the middle point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.5) + " "); // position
+				NumOfvertice++;
+
+				// add the 1:3 internal division point of two sequential points 
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.25) + " "); // position
+				NumOfvertice++;
+
+				// add the 3:1 internal division point of two sequential points
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0.75) + " "); // position
+				NumOfvertice++;
+			}
+		}
+
+		/* Vertex Normal */
+
+		/* Faces */
+
+	}
+	UE_LOG(LogTemp, Warning, TEXT("There are %i vertice in the scene"), NumOfvertice);
+
+	/**	set the name and format of the file,
+	*	the format should be .txt to read color values in Meshlab */
+	FString PointFileName = FString(TEXT("PointCloud_"));
+	PointFileName.Append(FDateTime::Now().ToString());
+	PointFileName.AppendChars(TEXT(".txt"), 4);
+
+	/* save the point cloud files */
+	if (FFileHelper::SaveStringToFile(PointData, *PointFileName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("File save Success. - %s - %s"), FPlatformProcess::BaseDir(), *PointFileName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("File save Failed. - PointCloud"));
+	}
+}
+
+
+/* save the points of the meshs - XYZ values, RGB values */
+void ADrawingHandler::SaveToObj() {
+
+
+	/* save the points XYZ values from the meshs */
+	FString PointData = FString();
+	FString FaceData = FString();
+
+	int NumOfvertice = 0;
+	for (auto stroke : StrokeArray) {
+
+		stroke.mesh->ConvertProceduralMeshToStaticMesh();
+
+		int i = stroke.mesh->vertices.Num();
+		/* If there is color for each vertex */
+		if (i == stroke.mesh->vertexColors.Num())
+		{
+
+			for (i = i - 1; i > 0; i--) {
+				// add point one				
+				PointData.Append("v " + ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0) + " "); // position
+				PointData.Append(ComputeInternalDivisionPointColor(stroke.mesh->vertexColors[i], stroke.mesh->vertexColors[i - 1], 0) + "\n"); //color
+				NumOfvertice++;
+			}
+		}
+		else /* If Not, just add position info */
+		{
+			for (i = i - 1; i >= 0; i--) {
+				NumOfvertice++;
+				// add point one				
+				PointData.Append(ComputeInternalDivisionPoint(stroke.mesh->vertices[i], stroke.mesh->vertices[i - 1], 0) + " "); // position
+				NumOfvertice++;
+
+			}
+		}
+
+		/* Vertex Normal */
+		i = stroke.mesh->normals.Num();
+
+		for (i = i - 1; i > 0; i--) {
+			// add point one				
+			PointData.Append("vn " + ComputeInternalDivisionPoint(stroke.mesh->normals[i], stroke.mesh->normals[i - 1], 0) + " "); // position
+		}
+
+		/* Faces */
+		TArray<int32> IndexBuffer = stroke.mesh->GetProcIndexbuffer();
+		FaceData.Append("f ");
+		for (int i = 0; i < IndexBuffer.Num()/3; i+=2) {
+			int Linebreak = 4;
+			// add point one				
+			FaceData.Append(FString::FromInt(IndexBuffer[i]) + "/" + 
+							FString::FromInt(IndexBuffer[i+1]) + "/" +
+							FString::FromInt(IndexBuffer[i+2]) + " "); // faces
+			Linebreak--;
+			if (Linebreak)
+			{
+				FaceData.Append("\n"); Linebreak = 4; FaceData.Append("f ");
+			}
+		}
+
+	}
+	UE_LOG(LogTemp, Warning, TEXT("There are %i vertice in the scene"), NumOfvertice);
+
+	/**	set the name and format of the file,
+	*	the format should be .txt to read color values in Meshlab */
+	FString PointFileName = FString(TEXT("Painting_Room_"));
+	PointFileName.Append(FDateTime::Now().ToString());
+	PointFileName.AppendChars(TEXT(".obj"), 4);
+
+	/* save the point cloud files */
+	if (FFileHelper::SaveStringToFile(PointData+FaceData, *PointFileName))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("File save Success. - %s - %s"), FPlatformProcess::BaseDir(), *PointFileName);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("File save Failed. - SaveToObj"));
+	}
+}
+
+
+/* Compute internal Divition Point position XYZ :: check : 0 <= ratio <= 1
+ * Result String: "X Y Z"
+ * Used In SavePointCloud() */
+FString ADrawingHandler::ComputeInternalDivisionPoint(FVector p1, FVector p2, float ratio) {
+	FString Result = FString();
+	FVector tempVector = p1 * (1 - ratio) + p2 * ratio;
+
+	Result.Append(FString::SanitizeFloat(tempVector.X) + " ");
+	Result.Append(FString::SanitizeFloat(tempVector.Y) + " ");
+	Result.Append(FString::SanitizeFloat(tempVector.Z));
+	return Result;
+}
+
+/* Compute internal Divition Point Color RGB :: check : 0 <= ratio <= 1
+ * Result String: "R G B"
+ * Used In SavePointCloud() */
+FString ADrawingHandler::ComputeInternalDivisionPointColor(FLinearColor c1, FLinearColor c2, float ratio) {
+	FString Result = FString();
+	FLinearColor tempColor = c1 * (1 - ratio) + c2 * ratio;
+
+	Result.Append(FString::SanitizeFloat(tempColor.R) + " ");
+	Result.Append(FString::SanitizeFloat(tempColor.G) + " ");
+	Result.Append(FString::SanitizeFloat(tempColor.B));
+	return Result;
 }

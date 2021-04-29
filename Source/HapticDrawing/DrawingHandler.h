@@ -202,4 +202,11 @@ public:
 	void Mesh2();
 	void Mesh3();
 	void Mesh4();
+
+	// For Surface Reconstruction
+	void SavePointCloud();
+	void SaveToObj();
+
+	FString ComputeInternalDivisionPoint(FVector p1, FVector p2, float ratio);
+	FString ComputeInternalDivisionPointColor(FLinearColor c1, FLinearColor c2, float ratio);
 };
